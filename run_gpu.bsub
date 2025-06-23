@@ -1,0 +1,26 @@
+#!/bin/bash
+#BSUB -q general
+#BSUB -R "rusage[mem=150GB] span[hosts=1] select[gpuhost && port8543=1]"
+#BSUB -G compute-rvmartin
+#BSUB -gpu "num=1:j_exclusive=no"
+#BSUB -a 'docker(syword/python3-pytorch:2024.05)'
+#BSUB -J "PM25 2D sweep"
+#BSUB -g /s.siyuan/Test
+#BSUB -N
+#BSUB -u s.siyuan@wustl.edu
+#BSUB -o job_output/job-%J-output.txt
+
+/bin/true
+pause_time=$((RANDOM % 30 + 30))
+echo "Pausing for $pause_time seconds..."
+sleep $pause_time
+
+cd /my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25/v0.0.0
+python3 main.py
+
+
+# NVIDIAA100_SXM4_80GB
+# NVIDIAA40
+# NVIDIAA100_SXM4_40GB
+# TeslaV100_SXM2_32G
+ 

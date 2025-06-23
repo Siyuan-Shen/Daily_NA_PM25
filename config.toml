@@ -1,0 +1,164 @@
+#########################################################################################################################################################
+
+[Pathway]
+[Pathway.learning_objective]
+
+ground_observation_data_dir                           = '/my-projects2/Projects/Daily_PM25_DL_2024/data/GroundBased_Observations/AVD_d20240814/' 
+geophysical_species_data_dir                          = '/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/AVD_d20240814/vAOD20240322vGEO20241212/2022-2023/'
+geophysical_biases_data_dir                           = '/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/AVD_d20240814/vAOD20240322vGEO20241212/2022-2023/'
+ground_observation_data_infile                        = 'daily_PM25_data_20220101-20231231.npy'
+geophysical_species_data_infile                       = 'geophysical_PM25_datasets.npy'
+geophysical_biases_data_infile                        = 'geophysical_bias_datasets.npy'
+
+[Pathway.TrainingDataset]
+
+CNN_Training_infiles                                  = '/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/AVD_d20240814/vAOD20240322vGEO20241212/2DCNN/2022-2023/CNN_training_datasets_{}_11x11_20220101-20231231.npy'
+CNN3D_Training_infiles                                = '/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/AVD_d20240814/vAOD20240322vGEO20241212/3DCNN/2022-2023/CNN_training_datasets_{}_3x11x11_20220101-20231231.npy'
+[Pathway.Results]
+
+csv_outdir                                            = '/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/'
+model_outdir                                          = '/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/'     
+data_recording_outdir                                 = '/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/'
+#########################################################################################################################################################
+
+[Hyperparameters_Search_Validation-Settings]
+
+Hyperparameters_Search_Validation_Switch              = true
+HSV_Apply_wandb_sweep_Switch                          = true # Default is false. If true, the model will use wandb sweep to search hyperparameters. Go tuning the wandb config file.
+wandb_sweep_count                                     = 50 # Default is 1. If > 1, the model will run multiple sweeps.
+Use_recorded_data_to_show_validation_results          = false # Default is false. If true, the model will use the recorded data to show the validation results.
+
+[Hyperparameters_Search_Validation-Settings.Training-Settings]
+
+Spatial_splitting_Switch                             = true
+Spatial_splitting_begindates                         = [20220101]
+Spatial_splitting_enddates                           = [20231231]
+Spatial_splitting_training_portion                   = 0.8
+Spatial_splitting_validation_portion                 = 0.2      
+
+Temporal_splitting_Switch                            = false
+Temporal_splitting_training_begindates               = [20220101]
+Temporal_splitting_training_enddates                 = [20221231]
+Temporal_splitting_validation_begindates             = [20230101]
+Temporal_splitting_validation_enddates               = [20231231]
+
+
+#########################################################################################################################################################
+
+[Spatial-CrossValidation]
+
+Spatial_CrossValidation_Switch                        = false
+Spatial_CV_Apply_wandb_sweep_Switch                   = false # Default is false. If true, the model will use wandb sweep to search hyperparameters. Go tuning the wandb config file.
+wandb_sweep_count_Spatial_CV                          = 100 # Default is 1. If > 1, the model will run multiple sweeps.
+Use_recorded_data_to_show_validation_results          = false # Default is false. If true, the model will use the recorded data to show the validation results.
+
+
+[Spatial-CrossValidation.Training-Settings]
+
+Spatial_CV_folds                                         = 2 # Number of folds for spatial cross-validation.
+Spatial_CV_training_begindates                           = [20220101]
+Spatial_CV_training_enddates                             = [20231231]
+Spatial_CV_validation_begindates                         = [20220101]
+Spatial_CV_validation_enddates                           = [20231231]
+additional_validation_regions                            = ['Canada','Contiguous United States','Midwestern United States','Northeastern United States',
+                                                        'Northern North America','Northwestern United States','Southern United States','Southwestern United States']
+[Spatial-CrossValidation.Visualization_Settings]
+
+regression_plot_switch                                   = true
+every_point_begindates                                   = 2000
+every_point_enddates                                     = 2023
+
+[Spatial-CrossValidation.Forced-Slope-Unity]
+
+ForcedSlopeUnity                                         = true # True: force the slope to unity and offset to zero with Training datasets
+
+[Spatial-CrossValidation.SHAP_Analysis_Settings]
+
+SHAP_Analysis_switch                                     = false
+SHAP_Analysis_Calculation_Switch                         = true
+SHAP_Analysis_visualization_Switch                       = true
+SHAP_Analysis_background_number                          = 2000 # Typical 100-1000, do not feed all data in it.
+SHAP_Analysis_test_number                                = 400
+SHAP_Analysis_plot_type                                  = 'beeswarm' # 'beeswarm'; 
+
+
+#########################################################################################################################################################
+
+[Training-Settings]
+
+[Training-Settings.identity]
+
+version                                             = 'v0.0.0'
+description                                         = '_test_0'
+author                                              = 'Siyuan Shen'
+email                                               = 's.siyuan@wustl.edu'
+runningdate                                         = '2025-05-23'
+
+
+[Training-Settings.learning-objective]
+
+species                                             = 'PM25'
+# Only one of these can be true. Default is bias.
+bias                                                = false   # learning objectives: bias = ground-based species observation - geophysical species concentration estimation
+normalize_bias                                      = false
+normalize_species                                   = true
+absolute_species                                    = false 
+
+
+[Training-Settings.hyper-parameters]
+
+epoch                                               = 51
+batchsize                                           = 128
+channel_names                                       =['eta','tSATAOD', 'tSATPM25', 
+                                                      'GC_PM25','GC_SO4','GC_NH4','GC_NIT','GC_BC','GC_OM','GC_SOA','GC_DST','GC_SSLT',
+                                                     'USTAR','PRECTOT','PBLH','T2M','V10M','U10M','RH','PS'
+                                                       ] 
+
+
+[Training-Settings.Loss-Functions]
+
+Regression_loss_type                                  = 'MSE'           # MSE; GeoMSE; CrossEntropyLoss; MultiHead_Loss; <-- Regression Type for all other models
+Classification_loss_type                              = 'CrossEntropyLoss' # Only for MultiHeadLateFusion, ResNet_classification and ResNet_MultiHeadNet. 
+
+[Training-Settings.Loss-Functions.GeoMSE]
+GeoMSE_Lamba1_Penalty1                                = 10.0  # This is for GeoMSE Penalty1 - Constrain form negative side.
+GeoMSE_Lamba1_Penalty2                                = 8.0   # This is for GeoMSE Penalty2 - Constrain form positive side.
+GeoMSE_Gamma                                          = 2.5   # This is for GeoMSE Penalty2 ratio. 
+
+[Training-Settings.Loss-Functions.MultiHead_Loss]
+ResNet_MultiHeadNet_regression_loss_coefficient       = 1 # This is used to decide the coefficient of regression loss in ResNet_MultiHeadNet 
+ResNet_MultiHeadNet_classfication_loss_coefficient    = 1 # This is used to decide the coefficient of classfication loss in ResNet_MultiHeadNet 
+
+[Training-Settings.optimizer]
+
+Adam.Settings                                         = true
+Adam.beta0                                            = 0.9
+Adam.beta1                                            = 0.999
+Adam.eps                                              = 1e-8
+
+
+[Training-Settings.learning_rate]
+
+learning_rate0                                        = 0.01
+
+ExponentialLR.Settings                                = false
+ExponentialLR.gamma                                   = 0.9
+
+CosineAnnealingLR.Settings                            = true
+CosineAnnealingLR.T_max                               = 10
+CosineAnnealingLR.eta_min                             = 1e-8
+
+CosineAnnealingRestartsLR.Settings                    = false
+CosineAnnealingRestartsLR.T_0                         = 10
+CosineAnnealingRestartsLR.T_mult                      = 2
+CosineAnnealingRestartsLR.eta_min                     = 0
+
+[Training-Settings.activation_func]
+
+activation_func_name                                  = 'relu'
+ReLU.Settings                                         = false
+Tanh.Settings                                         = true
+GeLU.Settings                                         = false 
+Sigmoid.Settings                                      = false
+Mish.Settings                                         = false
+ELU.Settings                                          = false
