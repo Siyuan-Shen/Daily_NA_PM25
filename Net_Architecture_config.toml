@@ -8,12 +8,12 @@ Apply_3D_CNN_architecture                            = false
 
 [network-architecture.CNN-architecture]
 
-CovLayer_padding_mode                                 = 'replicate'    # 'replicate' or 'reflect' or 'zeros' or 'circular'
-Pooling_padding_mode                                  = 'replicate' # 'replicate' or 'reflect' or 'constant' or 'circular'
+CovLayer_padding_mode                                 = 'reflect'    # 'replicate' or 'reflect' or 'zeros' or 'circular'
+Pooling_padding_mode                                  = 'reflect' # 'replicate' or 'reflect' or 'constant' or 'circular'
 
 ResNet.Settings                                      = true
 ResNet.Blocks                                        = 'BasicBlock'
-ResNet.blocks_num                                    = [1,0,0,1]
+ResNet.blocks_num                                    = [2,2,2,2]
 ResNet.Pooling_layer_type                            = 'MaxPooling2d' # 'MaxPooling2d' or 'AvgPooling2d'
 ############# Two Combine Models; Classified by variables
 TwoCombineModels.Settings                             = false # Only Available to ResNet and ResNet_MLP; one of those two structures settings must be true.

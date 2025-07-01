@@ -10,7 +10,7 @@ import shap
 import wandb
 import time
 
-from wandb_config import wandb_sweep_parameters_return,wandb_initialize
+import torch.multiprocessing as mp
 
 from Evaluation_pkg.utils import *
 from Evaluation_pkg.data_func import Split_Datasets_based_site_index,randomly_select_training_testing_indices,Get_final_output
@@ -25,7 +25,8 @@ from Training_pkg.utils import epoch as config_epoch, batchsize as config_batchs
 from Training_pkg.TensorData_func import Dataset_Val, Dataset
 from Training_pkg.TrainingModule import CNN_train, cnn_predict, CNN3D_train, cnn_predict_3D
 from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets
-
+from Training_pkg.iostream import load_daily_datesbased_model
+from wandb_config import init_get_sweep_config
 
 
 ####################################################################################
@@ -45,57 +46,33 @@ from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets
 # 8. Regularization
 
 
-def Hyperparameters_Search_Training_Testing_Validation(wandb_config,total_channel_names,main_stream_channel_names,side_stream_channel_names,):
+def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_stream_channel_names,side_stream_channel_names,):
     
-    epoch = config_epoch
-    batchsize = config_batchsize
-    learning_rate0 = config_learning_rate0
     typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species, log_species=False, species=species)
-            
+    world_size = torch.cuda.device_count()
+
     if HSV_Spatial_splitting_Switch:
             Evaluation_type = 'Hyperparameters_Search_Validation_Spatial_Splitting'
     #####################################################################
     if Apply_CNN_architecture:
-        ### Initialize the CNN datasets
-
-        ### Get the hyperparameters from wandb sweep if wandb is applied
-        if HSV_Apply_wandb_sweep_Switch:
-            print('Get wandb sweep parameters...')
-            sweep_batchsize, sweep_learning_rate0, sweep_epoch = wandb_sweep_parameters_return(sweep_config=wandb_config)
-            batchsize = sweep_batchsize
-            learning_rate0 = sweep_learning_rate0
-            epoch = sweep_epoch
-        
-        print('@@@@@@@@@@@@@@@wandb name: ', wandb.run.name if wandb.run is not None else 'No wandb run')
-        
         
         Model_structure_type = 'CNNModel'
         print('Init_CNN_Datasets starting...')
         start_time = time.time()
         Init_CNN_Datasets = CNNInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species)
         print('Init_CNN_Datasets finished, time elapsed: ', time.time() - start_time)
-        print('Epoch: ', epoch, ' Batch size: ', batchsize, ' Learning rate: ', learning_rate0)
-
-
         total_sites_number = Init_CNN_Datasets.total_sites_number
         true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
         TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
         width, height = Init_CNN_Datasets.width, Init_CNN_Datasets.height
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
     elif Apply_3D_CNN_architecture:
-        if HSV_Apply_wandb_sweep_Switch:
-            print('Get wandb sweep parameters...')
-            sweep_batchsize, sweep_learning_rate0, sweep_epoch = wandb_sweep_parameters_return(sweep_config=wandb_config)
-            batchsize = sweep_batchsize
-            learning_rate0 = sweep_learning_rate0
-            epoch = sweep_epoch
         Model_structure_type = '3DCNNModel'
-        print('@@@@@@@@@@@@@@@wandb name: ', wandb.run.name if wandb.run is not None else 'No wandb run')
         print('Init_CNN_Datasets starting...')
         start_time = time.time()
         Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species)
         print('Init_CNN_Datasets finished, time elapsed: ', time.time() - start_time)
-        print('Epoch: ', epoch, ' Batch size: ', batchsize, ' Learning rate: ', learning_rate0)
+
         total_sites_number = Init_CNN_Datasets.total_sites_number
 
         true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
@@ -107,10 +84,6 @@ def Hyperparameters_Search_Training_Testing_Validation(wandb_config,total_channe
     # Start the hyperparameters search validation
     Statistics_list = ['test_R2','train_R2','geo_R2','RMSE','NRMSE','slope','PWA']
     if not Use_recorded_data_to_show_validation_results:
-            
-            Training_losses_recording, Training_acc_recording, valid_losses_recording, valid_acc_recording = initialize_Loss_Accuracy_Recordings(kfolds=1,n_models=len(HSV_Spatial_splitting_begindates),epoch=epoch,batchsize=batchsize)
-            
-
             final_data_recording = np.array([],dtype=float)
             obs_data_recording = np.array([],dtype=float)
             geo_data_recording = np.array([],dtype=float)
@@ -157,41 +130,54 @@ def Hyperparameters_Search_Training_Testing_Validation(wandb_config,total_channe
                     print('test_datasets_index: ', test_datasets_index)
                     
                     if Apply_CNN_architecture:
-                        Daily_Model = initial_cnn_network(width=width, main_stream_nchannel=len(main_stream_channel_names),side_stream_nchannel=len(side_stream_channel_names))
-                        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                        Daily_Model.to(device)
-                        torch.manual_seed(21)
-                        train_loss, train_acc, valid_losses, test_acc = CNN_train(model=Daily_Model, X_train=X_train, y_train=y_train, X_test=X_test,
-                                                                                    y_test=y_test, input_std=TrainingDatasets_mean,input_mean=TrainingDatasets_std,
-                                                                                    width=width,height=height,BATCH_SIZE=batchsize, learning_rate=learning_rate0, TOTAL_EPOCHS=epoch,
-                                                                            channel_names=total_channel_names)
-                        save_daily_datesbased_model(model=Daily_Model,evaluation_type=Evaluation_type,typeName=typeName,
-                                                begindates=HSV_Spatial_splitting_begindates[imodel],enddates=HSV_Spatial_splitting_enddates[imodel],
-                                                version=version,species=species,nchannel=len(main_stream_channel_names),width=width,height=height,
-                                                special_name=description,ifold=0)
-                    
+                        if HSV_Apply_wandb_sweep_Switch:
+                            temp_sweep_config = init_get_sweep_config()
+                        else:
+                            temp_sweep_config = None
+                        mp.spawn(CNN_train,args=(world_size,temp_sweep_config,total_channel_names,X_train, y_train,\
+                                                  X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
+                                                Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
+                                                HSV_Spatial_splitting_enddates[imodel],0),nprocs=world_size)
+                        
+                        try:
+                            channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
+                        except AttributeError:
+                            channels_to_exclude = []
+
+                        total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
 
                         # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in 
                         # different time ranges. 
-
+                        Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=HSV_Spatial_splitting_begindates[imodel],
+                                                                    enddates=HSV_Spatial_splitting_enddates[imodel], version=version,species=species,
+                                                                    nchannel=len(main_stream_channel_names),special_name=description,ifold=0,width=width,height=height)
                         validation_output = cnn_predict(inputarray=X_test, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                         mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                         training_output = cnn_predict(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                         mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                     
                     if Apply_3D_CNN_architecture:
-                        Daily_Model = initial_3dcnn_net(main_stream_nchannel=len(main_stream_channel_names))
-                        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                        Daily_Model.to(device)
-                        torch.manual_seed(21)
-                        train_loss, train_acc, valid_losses, test_acc = CNN3D_train(model=Daily_Model, X_train=X_train, y_train=y_train, X_test=X_test,
-                                                                                    y_test=y_test, input_std=TrainingDatasets_mean,input_mean=TrainingDatasets_std,
-                                                                                    width=width,height=height,BATCH_SIZE=batchsize, learning_rate=learning_rate0, TOTAL_EPOCHS=epoch,
-                                                                            channel_names=total_channel_names)
-                        save_daily_datesbased_model(model=Daily_Model,evaluation_type=Evaluation_type,typeName=typeName,
-                                                begindates=HSV_Spatial_splitting_begindates[imodel],enddates=HSV_Spatial_splitting_enddates[imodel],
-                                                version=version,species=species,nchannel=len(main_stream_channel_names),
-                                                special_name=description,ifold=0,width=width,height=height,depth=depth)
+                        
+                        if HSV_Apply_wandb_sweep_Switch:
+                            temp_sweep_config = init_get_sweep_config()
+                        else:
+                            temp_sweep_config = None
+                        mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,total_channel_names,X_train, y_train,\
+                                                  X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
+                                                Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
+                                                HSV_Spatial_splitting_enddates[imodel],0),nprocs=world_size)
+                        try:
+                            channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
+                        except AttributeError:
+                            channels_to_exclude = []
+
+                        total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
+
+                        # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in 
+                        # different time ranges. 
+                        Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=HSV_Spatial_splitting_begindates[imodel],
+                                                                    enddates=HSV_Spatial_splitting_enddates[imodel], version=version,species=species,
+                                                                    nchannel=len(main_stream_channel_names),special_name=description,ifold=0,width=width,height=height,depth=depth)
                         
                         validation_output = cnn_predict_3D(inputarray=X_test, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                         mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
@@ -206,11 +192,6 @@ def Hyperparameters_Search_Training_Testing_Validation(wandb_config,total_channe
                     training_final_output = Get_final_output(Validation_Prediction=training_output, validation_geophysical_species=cctnd_geophysical_species_data[train_datasets_index],
                                                     bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
                                                     log_species=False, mean=true_input_mean, std=true_input_std)
-                    # Calculate the statistics for the validation datasets
-                    Training_losses_recording[0,imodel,0:len(train_loss)] = train_loss
-                    Training_acc_recording[0,imodel,0:len(train_acc)] = train_acc
-                    valid_losses_recording[0,imodel,0:len(valid_losses)] = valid_losses
-                    valid_acc_recording[0,imodel,0:len(test_acc)] = test_acc
 
                     final_data_recording = np.concatenate((final_data_recording, final_output), axis=0)
                     obs_data_recording = np.concatenate((obs_data_recording, cctnd_ground_observation_data[test_datasets_index]), axis=0)

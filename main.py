@@ -1,7 +1,8 @@
 import toml
 import pprint
 import wandb
-from wandb_config import  wandb_initialize, wandb_sweep_config
+import time
+from wandb_config import  wandb_initialize, wandb_sweep_config,wandb_run_config
 from Evaluation_pkg.Hyperparameter_Search_Validation import Hyperparameters_Search_Training_Testing_Validation
 from Evaluation_pkg.Spatial_CrossValidation import spatial_cross_validation
 from Evaluation_pkg.utils import *
@@ -11,23 +12,23 @@ from Model_Structure_pkg.utils import *
 wandb.login(key='f256dceb0a92527f2588e098c831713ce3428bda')
 cfg = toml.load('./config.toml')
 pprint.pprint(cfg)
+import os
+
+os.environ['MASTER_ADDR'] = 'localhost'
+os.environ['MASTER_PORT'] = '12355'  # Pick an unused port
+
+start_time = time.time()
+
 
 def Hyperparameters_Search_Training_Testing_Validation_main(total_channel_names, main_stream_channel_names, side_channel_names):
     
-    wandb_initialize()
-    wandb_config = wandb.config
-    print('wandb_config: ', wandb_config)
-    if wandb_config.channel_to_exclude is not None:
-        print('wandb_config.channel_to_exclude: ', wandb_config.channel_to_exclude)
-        total_channel_names,main_stream_channel_names, side_channel_names = Get_channel_names(channels_to_exclude=wandb_config.channel_to_exclude)
-    Hyperparameters_Search_Training_Testing_Validation(wandb_config=wandb_config,total_channel_names=total_channel_names,main_stream_channel_names=main_stream_channel_names,
+    Hyperparameters_Search_Training_Testing_Validation(total_channel_names=total_channel_names,main_stream_channel_names=main_stream_channel_names,
                                                               side_stream_channel_names=side_channel_names,
                                                               ) 
 
 
-def Spatial_Cross_Validation_main(total_channel_names, main_stream_channel_names, side_channel_names):
-    wandb_initialize()
-    wandb_config = wandb.config
+def Spatial_Cross_Validation_main(wandb_config,total_channel_names, main_stream_channel_names, side_channel_names):
+
     print('wandb_config: ', wandb_config)
     if wandb_config.channel_to_exclude is not None:
         print('wandb_config.channel_to_exclude: ', wandb_config.channel_to_exclude)
@@ -47,9 +48,7 @@ if __name__ == "__main__":
                                                                                                    main_stream_channel_names=main_stream_channel_names,
                                                                                                    side_channel_names=side_channel_names), count=wandb_sweep_count)
         else:
-            wandb_initialize()
-            wandb_config = None
-            Hyperparameters_Search_Training_Testing_Validation(wandb_config=wandb_config,total_channel_names=total_channel_names,main_stream_channel_names=main_stream_channel_names,
+            Hyperparameters_Search_Training_Testing_Validation(total_channel_names=total_channel_names,main_stream_channel_names=main_stream_channel_names,
                                                            side_stream_channel_names=side_channel_names,
                                                            )
     
@@ -61,8 +60,9 @@ if __name__ == "__main__":
                                                                                  main_stream_channel_names=main_stream_channel_names,
                                                                                  side_channel_names=side_channel_names), count=wandb_sweep_count)
         else:
-            wandb_initialize()
-            wandb_config = None
-            spatial_cross_validation(wandb_config=wandb_config,total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
+            spatial_cross_validation(total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
                                      side_stream_channel_names=side_channel_names)
             
+end_time = time.time()
+world_size = torch.cuda.device_count()
+print('Total time taken: {:.2f} secons, with {} GPUs'.format(end_time - start_time, world_size))

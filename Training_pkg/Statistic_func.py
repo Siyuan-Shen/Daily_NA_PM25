@@ -85,6 +85,8 @@ def Cal_NRMSE(final_data,obs_data):
     RMSE = np.sqrt(mean_squared_error(final_data, obs_data))
     RMSE = round(RMSE, 2)
     NRMSE = RMSE/np.mean(obs_data)
+    print('RMSE: {}, mean obs_data: {}, NRMSE: {}'.format(RMSE, np.mean(obs_data), NRMSE))
+    
     return NRMSE
 
 def Cal_PWM_rRMSE(x,y,population):
@@ -167,8 +169,6 @@ def linear_slope(x, y):
         varY += diffYYBar ** 2
 
     SST = math.sqrt(varX * varY)
-    print("r: ", SSR / SST, "r-squared: ", (SSR / SST) ** 2)
-
     return np.linalg.solve(A, b)
 
 

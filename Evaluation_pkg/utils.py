@@ -57,12 +57,6 @@ Spatial_CV_every_point_begindates = Spatial_CV_Visualization_Settings_cfg['every
 Spatial_CV_every_point_enddates = Spatial_CV_Visualization_Settings_cfg['every_point_enddates']
 
 
-################################################################################
-# Results Path
-results_dir_cfg = cfg['Pathway']['Results']
-csv_outdir = results_dir_cfg['csv_outdir']
-model_outdir = results_dir_cfg['model_outdir']
-data_recording_outdir = results_dir_cfg['data_recording_outdir']
 
 def Get_typeName(bias, normalize_bias, normalize_species, absolute_species, log_species, species):
     if bias == True:
