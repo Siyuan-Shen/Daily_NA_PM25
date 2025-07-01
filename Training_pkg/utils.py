@@ -27,6 +27,13 @@ training_dir_cfg = cfg['Pathway']['TrainingDataset']
 CNN_Training_infiles = training_dir_cfg['CNN_Training_infiles']
 CNN3D_Training_infiles = training_dir_cfg['CNN3D_Training_infiles']
 
+################################################################################
+# Results Path
+results_dir_cfg = cfg['Pathway']['Results']
+csv_outdir = results_dir_cfg['csv_outdir']
+model_outdir = results_dir_cfg['model_outdir']
+data_recording_outdir = results_dir_cfg['data_recording_outdir']
+
 ####################################################################################
 ###                                Training Settings                             ###
 ####################################################################################

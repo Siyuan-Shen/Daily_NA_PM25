@@ -2,8 +2,53 @@ import numpy as np
 import os
 from concurrent.futures import ThreadPoolExecutor
 from Training_pkg.utils import *
+
 import time
 
+def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,enddates, version, species, nchannel, special_name, ifold, **args):
+    '''
+    Evaluation type is not only applied to the evaluation, also the estimation model. 
+    For estimation models, the ifold is set to 0.
+    '''
+    width = args.get('width', 11)
+    height = args.get('height', 11)
+    depth = args.get('depth', 3)
+    
+    outdir = model_outdir + '{}/{}/Results/results-Trained_Models/{}/'.format(species, version,evaluation_type)
+    if not os.path.isdir(outdir):
+        os.makedirs(outdir)
+    if Apply_CNN_architecture:
+        Model_structure_type = 'CNNModel'
+        model_outfile = outdir +  '{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, width,height, begindates,enddates,nchannel,special_name, ifold)
+        torch.save(model, model_outfile)
+    elif Apply_3D_CNN_architecture:
+        Model_structure_type = '3DCNNModel'
+        model_outfile = outdir +  '{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
+        torch.save(model, model_outfile)
+    return
+
+def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, version, species, nchannel, special_name, ifold,**args):
+    width = args.get('width', 11)
+    height = args.get('height', 11)
+    depth = args.get('depth', 3)
+    indir = model_outdir + '{}/{}/Results/results-Trained_Models/{}/'.format(species, version,evaluation_type)
+    if Apply_CNN_architecture:
+        Model_structure_type = 'CNNModel'
+        model_infile = indir + '{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, width,height, begindates,enddates,nchannel,special_name, ifold)
+        
+        if not os.path.isfile(model_infile):
+            raise ValueError('The {} file does not exist!'.format(model_infile))
+        
+        model = torch.load(model_infile)
+    elif Apply_3D_CNN_architecture:
+        Model_structure_type = '3DCNNModel'
+        model_infile = indir + '{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
+        
+        if not os.path.isfile(model_infile):
+            raise ValueError('The {} file does not exist!'.format(model_infile))
+        
+        model = torch.load(model_infile)
+    return model
 
 
 def _process_concatenate_site_data(data, temp_data, isite):

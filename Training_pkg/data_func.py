@@ -3,7 +3,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from Training_pkg.utils import *
 import time
-
+import copy
 class TransformInputDatasets():
     def __init__(self, species, total_channel_names, bias, normalize_bias, normalize_species, absolute_species):
         self.species = species
@@ -29,8 +29,32 @@ class CNNInputDatasets():
 
 
         self.ground_observation_data = self._load_daily_PM25_data() 
+        ## First time examin the ground_observation_data, wether it has negative values
+        for isite in self.ground_observation_data.keys():
+            temp_data = self.ground_observation_data[isite]['PM25']
+            index = np.where(temp_data < 0)[0]
+            if len(index) > 0:
+                print('First check - Warning: Site {} has negative values in PM2.5 data!'.format(isite))
+                print('Negative values: ', temp_data[index])
+                self.ground_observation_data[isite]['PM25'][index] = np.nan
+            else:
+                None
+                #print('Site {} has no negative values in PM2.5 data.'.format(isite))
+
         self.geophysical_species_data,self.bias_data = self._load_geophyscial_PMandBias_data()
         self.ground_observation_data, self.geophysical_species_data, self.bias_data,self.delete_all_data_sites, self.delete_specific_data_sites, self.delete_specific_data_indices = self._get_nonan_sites()
+
+        # Second time examin the ground_observation_data, wether it has negative values
+        for isite in self.ground_observation_data.keys():
+            temp_data = self.ground_observation_data[isite]['PM25']
+            index = np.where(temp_data < 0)[0]
+            if len(index) > 0:
+                print('Second check - Warning: Site {} has negative values in PM2.5 data!'.format(isite))
+                print('Negative values: ', temp_data[index])
+                self.ground_observation_data[isite]['PM25'][index] = np.nan
+            else:
+                None
+                #print('Site {} has no negative values in PM2.5 data.'.format(isite))
 
         self.true_input, self.true_input_mean, self.true_input_std = self._Learning_objective()
         self.total_sites_number = len(self.true_input.keys())
@@ -42,6 +66,18 @@ class CNNInputDatasets():
         print('The time of loading and aggregating the training datasets is {} seconds'.format(time.time()-start_time))
         
         self.ground_observation_data, self.geophysical_species_data, self.bias_data, self.trainingdatasets, self.true_input = self._rename_key_in_dict()
+
+        # Third time examin the ground_observation_data, wether it has negative values
+        for isite in self.ground_observation_data.keys():
+            temp_data = self.ground_observation_data[isite]['PM25']
+            index = np.where(temp_data < 0)[0]
+            if len(index) > 0:
+                print('Third check - Warning: Site {} has negative values in PM2.5 data!'.format(isite))
+                print('Negative values: ', temp_data[index])
+                self.ground_observation_data[isite]['PM25'][index] = np.nan
+            else:
+                None
+                #print('Site {} has no negative values in PM2.5 data.'.format(isite))
         print('Start deriving the training datasets normalization matrix...')
         start_time = time.time()
         self.TrainingDatasets_mean, self.TrainingDatasets_std = self._derive_trainingdatasets_normalization_matrix()
@@ -50,9 +86,9 @@ class CNNInputDatasets():
         self.width, self.height = self.TrainingDatasets_mean.shape[1], self.TrainingDatasets_mean.shape[2]
 
     def _get_nonan_sites(self):
-        temp_observation_data = self.ground_observation_data.copy()
-        temp_geophysical_species_data = self.geophysical_species_data.copy()
-        temp_bias_data = self.bias_data.copy()
+        temp_observation_data = copy.deepcopy(self.ground_observation_data)
+        temp_geophysical_species_data = copy.deepcopy(self.geophysical_species_data)
+        temp_bias_data = copy.deepcopy(self.bias_data)
 
         delete_all_data_sites = []
         delete_specific_data_sites = []
@@ -79,7 +115,8 @@ class CNNInputDatasets():
                     temp_bias_data[site]['geobias'] = np.delete(temp_bias_data[site]['geobias'], indice, axis=0)
                     temp_bias_data[site]['dates'] = np.delete(temp_bias_data[site]['dates'], indice, axis=0)
             else:
-                print('Site {} has no NaN values in PM2.5 data.'.format(site))
+                None
+                #print('Site {} has no NaN values in PM2.5 data.'.format(site))
         return temp_observation_data, temp_geophysical_species_data, temp_bias_data, delete_all_data_sites, delete_specific_data_sites, delete_specific_data_indices
 
     def _load_daily_PM25_data(self):
@@ -106,15 +143,15 @@ class CNNInputDatasets():
     
     def _Learning_objective(self):
         if self.bias == True:
-            PM_data, Bias_data = self.geophysical_species_data,self.bias_data
+            PM_data, Bias_data = copy.deepcopy(self.geophysical_species_data),copy.deepcopy(self.bias_data)
+
             true_input = Bias_data
             mean = 0
             std = 1
             return true_input, mean, std
         
         elif self.normalize_bias:
-            PM_data, Bias_data = self.geophysical_species_data,self.bias_data
-
+            PM_data, Bias_data = copy.deepcopy(self.geophysical_species_data),copy.deepcopy(self.bias_data)
             for index, isite in enumerate(Bias_data.keys()):
                 if index == 0:
                     total_bias_data = Bias_data[str(isite)]['geobias']
@@ -130,15 +167,15 @@ class CNNInputDatasets():
             return true_input, bias_mean, bias_std
         
         elif self.absolute_species:
+            PM_data = copy.deepcopy(self.ground_observation_data)
 
-            PM_data = self.ground_observation_data
             true_input = PM_data
             mean = 0
             std = 1
             return true_input, mean, std
         
         elif self.normalize_species:
-            PM_data = self.ground_observation_data
+            PM_data = copy.deepcopy(self.ground_observation_data)
 
             for index,isite in enumerate(PM_data.keys()):
                 if index == 0:
@@ -212,6 +249,7 @@ class CNNInputDatasets():
                 print('Init Training Data Shape: ' ,data['0']['data'].shape)
             else:
                 with ThreadPoolExecutor() as executor:
+                    print('channel_name: ', channel_name)
                     futures = [executor.submit(self._process_concatenate_site_data, data, temp_data, isite) for isite in self.ground_observation_data.keys()]
                     for future in futures:
                         future.result()
@@ -294,7 +332,7 @@ class CNNInputDatasets():
 
         ## We already calculated the mean and std of the training datasets based on the whole training datasets.
         ## Now we need to normalize the desired training datasets based on the mean and std matrix.
-        desired_normalized_trainingdatasets = desired_trainingdatasets.copy()
+        desired_normalized_trainingdatasets = copy.deepcopy(desired_trainingdatasets)
         for isite in self.ground_observation_data.keys():
             desired_normalized_trainingdatasets[str(isite)]['data'] = (desired_normalized_trainingdatasets[str(isite)]['data'] - self.TrainingDatasets_mean) / self.TrainingDatasets_std
         return desired_normalized_trainingdatasets
@@ -371,6 +409,7 @@ class CNN3DInputDatasets():
         if not os.path.exists(infile):
             raise ValueError('Observation file - The {} file does not exist!'.format(infile))
         data = np.load(infile,allow_pickle=True).item()
+
         return data
 
     def _load_geophyscial_PMandBias_data(self):
@@ -385,9 +424,9 @@ class CNN3DInputDatasets():
         return PM_data, Bias_data
     
     def _get_nonan_sites(self):
-        temp_observation_data = self.ground_observation_data.copy()
-        temp_geophysical_species_data = self.geophysical_species_data.copy()
-        temp_bias_data = self.bias_data.copy()
+        temp_observation_data = copy.deepcopy(self.ground_observation_data)
+        temp_geophysical_species_data = copy.deepcopy(self.geophysical_species_data)
+        temp_bias_data = copy.deepcopy(self.bias_data.copy)
 
         delete_all_data_sites = []
         delete_specific_data_sites = []
@@ -414,20 +453,21 @@ class CNN3DInputDatasets():
                     temp_bias_data[site]['geobias'] = np.delete(temp_bias_data[site]['geobias'], indice, axis=0)
                     temp_bias_data[site]['dates'] = np.delete(temp_bias_data[site]['dates'], indice, axis=0)
             else:
-                print('Site {} has no NaN values in PM2.5 data.'.format(site))
+                None
+                #print('Site {} has no NaN values in PM2.5 data.'.format(site))
         return temp_observation_data, temp_geophysical_species_data, temp_bias_data, delete_all_data_sites, delete_specific_data_sites, delete_specific_data_indices
 
 
     def _Learning_objective(self):
         if self.bias == True:
-            PM_data, Bias_data = self.geophysical_species_data,self.bias_data
+            PM_data, Bias_data = copy.deepcopy(self.geophysical_species_data),copy.deepcopy(self.bias_data)
             true_input = Bias_data
             mean = 0
             std = 1
             return true_input, mean, std
         
         elif self.normalize_bias:
-            PM_data, Bias_data = self.geophysical_species_data,self.bias_data
+            PM_data, Bias_data = copy.deepcopy(self.geophysical_species_data),copy.deepcopy(self.bias_data)
             for index,isite in enumerate(Bias_data.keys()):
                 if index == 0:
                     total_bias_data = Bias_data[str(isite)]['geobias']
@@ -443,15 +483,14 @@ class CNN3DInputDatasets():
             return true_input, bias_mean, bias_std
         
         elif self.absolute_species:
-
-            PM_data = self.ground_observation_data
+            PM_data = copy.deepcopy(self.ground_observation_data)
             true_input = PM_data
             mean = 0
             std = 1
             return true_input, mean, std
         
         elif self.normalize_species:
-            PM_data = self.ground_observation_data
+            PM_data = copy.deepcopy(self.ground_observation_data)
             for index,isite in enumerate(PM_data.keys()):
                 if index == 0:
                     total_PM_data = PM_data[str(isite)]['PM25']
@@ -596,7 +635,7 @@ class CNN3DInputDatasets():
 
         ## We already calculated the mean and std of the training datasets based on the whole training datasets.
         ## Now we need to normalize the desired training datasets based on the mean and std matrix.
-        desired_normalized_trainingdatasets = desired_trainingdatasets.copy()
+        desired_normalized_trainingdatasets = copy.deepcopy(desired_trainingdatasets)
         for isite in self.ground_observation_data.keys():
             desired_normalized_trainingdatasets[str(isite)]['data'] = (desired_normalized_trainingdatasets[str(isite)]['data'] - self.TrainingDatasets_mean) / self.TrainingDatasets_std
         return desired_normalized_trainingdatasets

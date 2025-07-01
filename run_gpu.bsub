@@ -1,17 +1,17 @@
 #!/bin/bash
 #BSUB -q general
-#BSUB -R "rusage[mem=150GB] span[hosts=1] select[gpuhost && port8543=1]"
+#BSUB -R "rusage[mem=500GB] span[hosts=1] select[gpuhost && port8543=1]"
 #BSUB -G compute-rvmartin
 #BSUB -gpu "num=1:j_exclusive=no"
-#BSUB -a 'docker(syword/python3-pytorch:2024.05)'
-#BSUB -J "PM25 2D sweep"
+#BSUB -a 'docker(syword/python3-pytorch:2025.06)'
+#BSUB -J "PM25 2D SpatialCV 1GPU"
 #BSUB -g /s.siyuan/Test
 #BSUB -N
 #BSUB -u s.siyuan@wustl.edu
 #BSUB -o job_output/job-%J-output.txt
 
 /bin/true
-pause_time=$((RANDOM % 30 + 30))
+pause_time=$((RANDOM % 5 ))
 echo "Pausing for $pause_time seconds..."
 sleep $pause_time
 
