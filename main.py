@@ -27,13 +27,10 @@ def Hyperparameters_Search_Training_Testing_Validation_main(total_channel_names,
                                                               ) 
 
 
-def Spatial_Cross_Validation_main(wandb_config,total_channel_names, main_stream_channel_names, side_channel_names):
+def Spatial_Cross_Validation_main(total_channel_names, main_stream_channel_names, side_channel_names):
 
-    print('wandb_config: ', wandb_config)
-    if wandb_config.channel_to_exclude is not None:
-        print('wandb_config.channel_to_exclude: ', wandb_config.channel_to_exclude)
-        total_channel_names,main_stream_channel_names, side_channel_names = Get_channel_names(channels_to_exclude=wandb_config.channel_to_exclude)
-    spatial_cross_validation(wandb_config=wandb_config,total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
+    
+    spatial_cross_validation(total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
                              side_stream_channel_names=side_channel_names)
     
 
