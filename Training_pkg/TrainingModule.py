@@ -25,7 +25,7 @@ def ddp_setup(rank, world_size):
     init_process_group(backend='nccl', rank=rank, world_size=world_size)
 
 
-def CNN3D_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_train, y_train,X_test,y_test,input_mean, input_std,width,height,depth,
+def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,init_total_channel_names,X_train, y_train,X_test,y_test,input_mean, input_std,width,height,depth,
               evaluation_type,typeName,begindates,enddates,ifold=0):
 
 
@@ -40,8 +40,14 @@ def CNN3D_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_tra
 
     run_config = wandb_run_config()
     if rank == 0 and ifold == 0:
-        wandb_initialize(run_config,rank)
-    if temp_sweep_config is not None:
+        if sweep_mode:
+            wandb_initialize(temp_sweep_config,rank,sweep_mode,sweep_id)
+        else:
+            wandb_initialize(run_config,rank,sweep_mode,sweep_id)
+
+        run_id_container["run_id"] = wandb.run.id
+        run_id_container["run_name"] = wandb.run.name   
+    if sweep_mode:
         wandb_config = temp_sweep_config
     else:
         wandb_config = run_config
@@ -107,9 +113,6 @@ def CNN3D_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_tra
         temp_losses = []
         if world_size > 1:
             train_loader.sampler.set_epoch(epoch)
-        else:
-            train_loader.sampler = None
-
         for i, (images, labels) in enumerate(train_loader):
             
             Daily_Model.train()
@@ -163,7 +166,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_tra
         accuracy = correct / counts
         test_accuracy = valid_correct / valid_counts
         print('Epoch: ',epoch, ', Training Loss: ', loss.item(),', Training accuracy:',accuracy, ', \nTesting Loss:', valid_loss.item(),', Testing accuracy:', test_accuracy)
-        if wandb.run is not None and rank == 0 and ifold == 0:  # Log only from the main process
+        if rank == 0 and ifold == 0:  # Log only from the main process
             wandb.log({
                 'epoch': epoch,
                 'learning_rates': optimizer.param_groups[0]['lr'],
@@ -172,6 +175,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_tra
                 'train_accuracy': accuracy,
                 'valid_accuracy': test_accuracy
             })
+            wandb.finish()  # Finish the run to avoid memory leaks
         train_acc.append(accuracy)
         test_acc.append(test_accuracy)
         print('Epoch: ',epoch,'\nLearning Rate:',optimizer.param_groups[0]['lr'])
@@ -184,8 +188,9 @@ def CNN3D_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_tra
                                                 special_name=description,ifold=ifold)
 
 
-def CNN_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_train, y_train,X_test,y_test,input_mean, input_std,width,height,
+def CNN_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,init_total_channel_names,X_train, y_train,X_test,y_test,input_mean, input_std,width,height,
               evaluation_type,typeName,begindates,enddates,ifold=0):
+    print('world_size: {}'.format(world_size))
     try:
         print(f"[Rank {rank}] Starting CNN_train")
         # Your original CNN_train logic goes here...
@@ -197,13 +202,17 @@ def CNN_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_train
 
     run_config = wandb_run_config()
     if rank == 0 and ifold == 0:
-        wandb_initialize(run_config,rank)
-
-    if temp_sweep_config is not None:
+        if sweep_mode:
+            wandb_initialize(temp_sweep_config,rank,sweep_mode,sweep_id)
+        else:
+            wandb_initialize(run_config,rank,sweep_mode,sweep_id)
+        run_id_container["run_id"] = wandb.run.id
+        run_id_container["run_name"] = wandb.run.name
+    if sweep_mode:
         wandb_config = temp_sweep_config
     else:
         wandb_config = run_config
-    
+
     BATCH_SIZE, learning_rate, TOTAL_EPOCHS = wandb_parameters_return(wandb_config=wandb_config)
     try:
         channels_to_exclude = wandb_config.get("channel_to_exclude", [])
@@ -267,8 +276,7 @@ def CNN_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_train
         temp_losses = []
         if world_size > 1:
             train_loader.sampler.set_epoch(epoch)
-        else:
-            train_loader.sampler = None
+        
         for i, (images, labels) in enumerate(train_loader):
             
             Daily_Model.train()
@@ -329,7 +337,7 @@ def CNN_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_train
         test_accuracy = valid_correct / valid_counts
         print('Epoch: ',epoch, ', Training Loss: ', loss.item(),', Training accuracy:',accuracy, ', \nTesting Loss:', valid_loss.item(),', Testing accuracy:', test_accuracy)
 
-        if wandb.run is not None and rank == 0 and ifold == 0:  # Log only from the main process
+        if rank == 0 and ifold == 0:  # Log only from the main process
             wandb.log({
                 'epoch': epoch,
                 'learning_rates': optimizer.param_groups[0]['lr'],
@@ -338,6 +346,7 @@ def CNN_train(rank,world_size,temp_sweep_config,init_total_channel_names,X_train
                 'train_accuracy': accuracy,
                 'valid_accuracy': test_accuracy
             })
+            wandb.finish()  # Finish the run to avoid memory leaks
 
         train_acc.append(accuracy)
         test_acc.append(test_accuracy)

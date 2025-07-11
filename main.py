@@ -20,18 +20,18 @@ os.environ['MASTER_PORT'] = '12355'  # Pick an unused port
 start_time = time.time()
 
 
-def Hyperparameters_Search_Training_Testing_Validation_main(total_channel_names, main_stream_channel_names, side_channel_names):
+def Hyperparameters_Search_Training_Testing_Validation_main(total_channel_names, main_stream_channel_names, side_channel_names,sweep_id=None, entity=None, project=None, width=None, height=None, depth=None):
     
     Hyperparameters_Search_Training_Testing_Validation(total_channel_names=total_channel_names,main_stream_channel_names=main_stream_channel_names,
-                                                              side_stream_channel_names=side_channel_names,
+                                                              side_stream_channel_names=side_channel_names,sweep_id=sweep_id
                                                               ) 
 
 
-def Spatial_Cross_Validation_main(total_channel_names, main_stream_channel_names, side_channel_names):
+def Spatial_Cross_Validation_main(total_channel_names, main_stream_channel_names, side_channel_names,sweep_id=None):
 
     
     spatial_cross_validation(total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
-                             side_stream_channel_names=side_channel_names)
+                             side_stream_channel_names=side_channel_names,sweep_id=sweep_id)
     
 
     
@@ -43,7 +43,7 @@ if __name__ == "__main__":
             sweep_id = wandb.sweep(sweep=sweep_config, project=sweep_config['project'],entity=sweep_config['entity'])
             wandb.agent(sweep_id, function=lambda: Hyperparameters_Search_Training_Testing_Validation_main(total_channel_names=total_channel_names,
                                                                                                    main_stream_channel_names=main_stream_channel_names,
-                                                                                                   side_channel_names=side_channel_names), count=wandb_sweep_count)
+                                                                                                   side_channel_names=side_channel_names,sweep_id=sweep_id), count=wandb_sweep_count)
         else:
             Hyperparameters_Search_Training_Testing_Validation(total_channel_names=total_channel_names,main_stream_channel_names=main_stream_channel_names,
                                                            side_stream_channel_names=side_channel_names,
@@ -55,7 +55,7 @@ if __name__ == "__main__":
             sweep_id = wandb.sweep(sweep=sweep_config, project=sweep_config['project'],entity=sweep_config['entity'])
             wandb.agent(sweep_id, function=lambda: Spatial_Cross_Validation_main(total_channel_names=total_channel_names,
                                                                                  main_stream_channel_names=main_stream_channel_names,
-                                                                                 side_channel_names=side_channel_names), count=wandb_sweep_count)
+                                                                                 side_channel_names=side_channel_names,sweep_id=sweep_id), count=wandb_sweep_count)
         else:
             spatial_cross_validation(total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
                                      side_stream_channel_names=side_channel_names)
