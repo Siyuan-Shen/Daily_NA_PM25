@@ -118,7 +118,10 @@ def get_csvfile_outfile(Evaluation_type, typeName,Model_structure_type,main_stre
     width = args.get('width', 11)
     height = args.get('height', 11)
     depth = args.get('depth', 3)
-
+    entity = args.get('entity', 'ACAG-NorthAmericaDailyPM25')
+    project = args.get('project', 'Daily_PM25_DL_2024')
+    sweep_id = args.get('sweep_id', None)
+    name = args.get('name', None)
     if Apply_CNN_architecture:
         
         csvfile_outdir = csv_outdir + '{}/{}/Results/results-{}/statistical_indicators/{}_{}_{}_{}_{}_{}Channel_{}x{}{}/'.format(species,version,Evaluation_type,
@@ -129,16 +132,15 @@ def get_csvfile_outfile(Evaluation_type, typeName,Model_structure_type,main_stre
             os.makedirs(csvfile_outdir)
         
         if (Spatial_CrossValidation_Switch and Spatial_CV_Apply_wandb_sweep_Switch) or (Hyperparameters_Search_Validation_Switch and HSV_Apply_wandb_sweep_Switch):
-            api = wandb.Api()
-            sweep = api.sweep(f"/{wandb.run.entity}/{wandb.run.project}/{wandb.run.sweep_id}")
-            csvfile_outdir = csvfile_outdir + 'sweep-{}/'.format(sweep.name)
+
+            csvfile_outdir = csvfile_outdir + 'sweep-{}/'.format(name)
             if not os.path.isdir(csvfile_outdir):
                 os.makedirs(csvfile_outdir)
             
             csvfile_outfile = csvfile_outdir + '{}_{}_{}_{}_{}_{}Channel_{}-{}_{}x{}_sweep-{}.csv'.format(species,version,
                                                                                                                 Evaluation_type,Model_structure_type,typeName,
                                                                                                                 len(main_stream_channel_names),test_begindate,
-                                                                                                                test_enddate,width,height,wandb.run.name)
+                                                                                                                test_enddate,width,height,sweep_id)
         else:
             csvfile_outfile = csvfile_outdir + '{}_{}_{}_{}_{}_{}Channel_{}-{}_{}x{}{}.csv'.format(species,version,
                                                                                                                 Evaluation_type,Model_structure_type,typeName,
@@ -151,15 +153,14 @@ def get_csvfile_outfile(Evaluation_type, typeName,Model_structure_type,main_stre
         if not os.path.isdir(csvfile_outdir):
             os.makedirs(csvfile_outdir)
         if (Spatial_CrossValidation_Switch and Spatial_CV_Apply_wandb_sweep_Switch) or (Hyperparameters_Search_Validation_Switch and HSV_Apply_wandb_sweep_Switch):
-            api = wandb.Api()
-            sweep = api.sweep(f"/{wandb.run.entity}/{wandb.run.project}/{wandb.run.sweep_id}")
-            csvfile_outdir = csvfile_outdir + 'sweep-{}/'.format(sweep.name)
+
+            csvfile_outdir = csvfile_outdir + 'sweep-{}/'.format(name)
             if not os.path.isdir(csvfile_outdir):
                 os.makedirs(csvfile_outdir)
             csvfile_outfile = csvfile_outdir + '{}_{}_{}_{}_{}_{}Channel_{}-{}_{}x{}x{}_sweep-{}.csv'.format(species,version,
                                                                                                                 Evaluation_type,Model_structure_type,typeName,
                                                                                                                 len(main_stream_channel_names),test_begindate,
-                                                                                                                test_enddate,depth,width,height,wandb.run.name)
+                                                                                                                test_enddate,depth,width,height,sweep_id)
         else:
             csvfile_outfile = csvfile_outdir + '{}_{}_{}_{}_{}_{}Channel_{}-{}_{}x{}x{}.csv'.format(species,version,
                                                                                                                 Evaluation_type,Model_structure_type,typeName,

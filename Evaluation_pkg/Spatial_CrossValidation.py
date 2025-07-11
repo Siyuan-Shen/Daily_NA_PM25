@@ -28,8 +28,8 @@ from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets
 from Training_pkg.iostream import load_daily_datesbased_model
 from wandb_config import wandb_run_config, wandb_initialize, init_get_sweep_config
 
-def spatial_cross_validation(wandb_config,total_channel_names, main_stream_channel_names,
-                             side_stream_channel_names):
+def spatial_cross_validation(total_channel_names, main_stream_channel_names,
+                             side_stream_channel_names,sweep_id=None,):
     world_size = torch.cuda.device_count()
     typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias,normalize_species=normalize_species, absolute_species=absolute_species, log_species=False, species=species)
 
@@ -116,10 +116,16 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
                         
                         if Apply_CNN_architecture:
                             if Spatial_CV_Apply_wandb_sweep_Switch:
+                                sweep_mode = True
                                 temp_sweep_config = init_get_sweep_config()
+                                entity = temp_sweep_config.get("entity", "ACAG-NorthAmericaDailyPM25")
+                                project = temp_sweep_config.get("project", version)
                             else:
+                                sweep_mode = False
                                 temp_sweep_config = None
-                            mp.spawn(CNN_train,args=(world_size,temp_sweep_config,total_channel_names,X_train, y_train,\
+                                entity = None
+                                project = None
+                            mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,total_channel_names,X_train, y_train,\
                                                   X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
                                                 Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                 Spatial_CV_training_enddates[imodel],ifold),nprocs=world_size)
@@ -129,8 +135,10 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
                             except AttributeError:
                                 channels_to_exclude = []
 
-                            total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
-
+                            excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
+                            index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
+                            X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:]
+                            X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:]
                             # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in 
                             # different time ranges. 
                             Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=Spatial_CV_training_begindates[imodel],
@@ -145,10 +153,16 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
 
                         if Apply_3D_CNN_architecture:
                             if Spatial_CV_Apply_wandb_sweep_Switch:
+                                sweep_mode = True
                                 temp_sweep_config = init_get_sweep_config()
+                                entity = temp_sweep_config.get("entity", "ACAG-NorthAmericaDailyPM25")
+                                project = temp_sweep_config.get("project", version)
                             else:
+                                sweep_mode = False
                                 temp_sweep_config = None
-                            mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,total_channel_names,X_train, y_train,\
+                                entity = None
+                                project = None
+                            mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,total_channel_names,X_train, y_train,\
                                                     X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                     Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                     Spatial_CV_training_enddates[imodel],ifold),nprocs=world_size)
@@ -157,8 +171,10 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
                             except AttributeError:
                                 channels_to_exclude = []
 
-                            total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
-
+                            excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
+                            index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
+                            X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:,:]
+                            X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:,:]
                             # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in 
                             # different time ranges. 
                             Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=Spatial_CV_training_begindates[imodel],
@@ -170,6 +186,9 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
                             training_output = cnn_predict_3D(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                     
+                        del Daily_Model
+                        gc.collect()
+                        
                         # Get the final output for the validation datasets
                         final_output = Get_final_output(Validation_Prediction=validation_output, validation_geophysical_species=cctnd_geophysical_species_data[test_datasets_index],
                                                         bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
@@ -198,7 +217,7 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
                                 training_sites_recording=training_sites_recording, training_dates_recording=training_dates_recording,
                                 species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                 enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
-                                evaluation_type=Evaluation_type,height=height,width=width)
+                                evaluation_type=Evaluation_type,height=height,width=width,project=project,entity=entity,sweep_id=sweep_id)
             elif Apply_3D_CNN_architecture:
                 save_data_recording(final_data_recording=final_data_recording, obs_data_recording=obs_data_recording, geo_data_recording=geo_data_recording,
                                 sites_recording=sites_recording, dates_recording=dates_recording,
@@ -206,15 +225,15 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
                                 training_sites_recording=training_sites_recording, training_dates_recording=training_dates_recording,
                                 species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                 enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
-                                evaluation_type=Evaluation_type,height=height,width=width,depth=depth)
+                                evaluation_type=Evaluation_type,height=height,width=width,depth=depth,project=project,entity=entity,sweep_id=sweep_id)
     if Apply_CNN_architecture:
          final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording = load_data_recording(species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                                                                                                                                                                                                                          enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
-                                                                                                                                                                                                                                         evaluation_type=Evaluation_type,width=width,height=height,special_name=description)
+                                                                                                                                                                                                                                         evaluation_type=Evaluation_type,width=width,height=height,special_name=description,project=project,entity=entity,sweep_id=sweep_id)
     if Apply_3D_CNN_architecture:
         final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording = load_data_recording(species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                                                                                                                                                                                                                          enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
-                                                                                                                                                                                                                                         evaluation_type=Evaluation_type,width=width,height=height,special_name=description,depth=depth)
+                                                                                                                                                                                                                                         evaluation_type=Evaluation_type,width=width,height=height,special_name=description,depth=depth,project=project,entity=entity,sweep_id=sweep_id)
     Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording = calculate_statistics(test_begindates=Spatial_CV_validation_begindates[0],
                                                                                                                 test_enddates=Spatial_CV_validation_enddates[-1],final_data_recording=final_data_recording,
                                                                                                                 obs_data_recording=obs_data_recording,geo_data_recording=geo_data_recording,
@@ -226,6 +245,7 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
                                                                                                                 Statistics_list=Statistics_list,)
     
     if wandb.run is not None:
+        print('Start to log the validation results to wandb... for {}'.format(Model_structure_type))
         wandb.log({'test_R2': Daily_statistics_recording['All_points']['test_R2'],
                        'train_R2': Daily_statistics_recording['All_points']['train_R2'],
                        'geo_R2': Daily_statistics_recording['All_points']['geo_R2'],
@@ -233,18 +253,19 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
                        'NRMSE': Daily_statistics_recording['All_points']['NRMSE'],
                        'slope': Daily_statistics_recording['All_points']['slope'],
                        })
+        wandb.finish()
     print('Start to save the validation results to csv file... for {}'.format(Model_structure_type))     
 
     if Apply_CNN_architecture:
         csvfile_outfile = get_csvfile_outfile(Evaluation_type=Evaluation_type,typeName=typeName,Model_structure_type=Model_structure_type,
                                           main_stream_channel_names=main_stream_channel_names,test_begindate=Spatial_CV_validation_begindates[0],
                                           test_enddate=Spatial_CV_validation_enddates[-1],
-                                          width=width,height=height,)
+                                          width=width,height=height,project=project,entity=entity,sweep_id=sweep_id)
     elif Apply_3D_CNN_architecture:
         csvfile_outfile = get_csvfile_outfile(Evaluation_type=Evaluation_type,typeName=typeName,Model_structure_type=Model_structure_type,
                                           main_stream_channel_names=main_stream_channel_names,test_begindate=Spatial_CV_validation_begindates[0],
                                           test_enddate=Spatial_CV_validation_enddates[-1],
-                                          width=width,height=height,depth=depth,)
+                                          width=width,height=height,depth=depth,project=project,entity=entity,sweep_id=sweep_id)
     
     output_csv(outfile=csvfile_outfile,status='w',Area='North America',
                 test_begindate=Spatial_CV_validation_begindates[0],test_enddate=Spatial_CV_validation_enddates[-1],
@@ -284,7 +305,7 @@ def spatial_cross_validation(wandb_config,total_channel_names, main_stream_chann
     correlation_coefficient = np.corrcoef(obs_data_recording, geo_data_recording)[0, 1]
     print(f'Correlation Coefficient between Ground-based PM2.5 and Geophysical PM2.5: {correlation_coefficient:.4f}')
     
-    del Daily_Model, Init_CNN_Datasets, final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
+    del Init_CNN_Datasets, final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
     del training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording
     gc.collect()
                 

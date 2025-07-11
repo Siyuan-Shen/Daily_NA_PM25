@@ -92,7 +92,7 @@ Pooling_padding_mode_3D                                 = 'replicate' # 'replica
 
 ResNet3D.Settings                                       = true
 ResNet3D.Blocks                                         = 'BasicBlock'
-ResNet3D.blocks_num                                     = [1,1,1,1]
+ResNet3D.blocks_num                                     = [2,2,2,2]
 ResNet3D.output_channels                                = [64,128,256,512]
 ResNet3D.Pooling_layer_type_3D                          = 'MaxPooling3d' # 'MaxPooling3d' or 'AvgPooling3d' or 'None'
 ResNet3D.Depth                                          = 3

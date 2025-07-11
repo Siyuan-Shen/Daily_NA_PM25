@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name="Daily PM 2D sweep 4GPU"
-#SBATCH --partition=general
-#SBATCH --mem=500G
+#SBATCH --partition=general-gpu
+#SBATCH --mem=900G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus=4
@@ -22,17 +22,17 @@
 # Optional: mimic host exclusion if needed via constraints or scheduler filters
 
 # Run your code
-cd /my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25/v0.0.0
+cd /my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25/v0.1.0
 
 # Random pause
 
-pause_time=$((RANDOM % 30 + 30))
+pause_time=$((RANDOM % 3 + 1))
 echo "Pausing for $pause_time seconds..."
 sleep $pause_time
 
 # Buffer_size=[80]
 # sed -i '/\[BLCO\-CrossValidation\]/,/^\[/{/Buffer_size/s/=.*/= '"$Buffer_size"'/}' config.toml
 
-cd /my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25/v0.0.0
+cd /my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25/v0.1.0
 python3 main.py
 
