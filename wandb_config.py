@@ -55,7 +55,7 @@ def wandb_sweep_config():
     # Define the sweep configuration
     if Apply_CNN_architecture:
         sweep_configuration = {
-            'name':'HSV_2DCNN_Sweep_Normalized_Speices_channels_exclusion_donot_finish_atSpawn',  # Name of the sweep
+            'name':'HSV_2DCNN_Sweep_Normalized_Speices',  # Name of the sweep
             'entity': 'ACAG-NorthAmericaDailyPM25',  # Your wandb entity (team name)
             'project': version,  # Your wandb project name
             'method': "random",  # 'grid', 'random', 'bayes'
