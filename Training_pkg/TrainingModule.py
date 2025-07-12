@@ -175,18 +175,21 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
                 'train_accuracy': accuracy,
                 'valid_accuracy': test_accuracy
             })
-            wandb.finish()  # Finish the run to avoid memory leaks
+
         train_acc.append(accuracy)
         test_acc.append(test_accuracy)
         print('Epoch: ',epoch,'\nLearning Rate:',optimizer.param_groups[0]['lr'])
     raw_model = Daily_Model.module if world_size > 1 else Daily_Model  # Get the underlying model if using DDP
-    if world_size > 1:
-        destroy_process_group()
+
     save_daily_datesbased_model(model=raw_model,evaluation_type=evaluation_type,typeName=typeName,
                                                 begindates=begindates,enddates=enddates,
                                                 version=version,species=species,nchannel=len(main_stream_channel_names),width=width,height=height,depth=depth,
                                                 special_name=description,ifold=ifold)
+    if world_size > 1:
+        destroy_process_group()
 
+    if rank == 0 and ifold == 0:
+        wandb.finish()  # only finalize logging after all training done
 
 def CNN_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,init_total_channel_names,X_train, y_train,X_test,y_test,input_mean, input_std,width,height,
               evaluation_type,typeName,begindates,enddates,ifold=0):
@@ -346,19 +349,24 @@ def CNN_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_conta
                 'train_accuracy': accuracy,
                 'valid_accuracy': test_accuracy
             })
-            wandb.finish()  # Finish the run to avoid memory leaks
 
         train_acc.append(accuracy)
         test_acc.append(test_accuracy)
         print('Epoch: ',epoch,'\nLearning Rate:',optimizer.param_groups[0]['lr'])
 
     raw_model = Daily_Model.module if world_size > 1 else Daily_Model  # Get the underlying model if using DDP
-    if world_size > 1:
-        destroy_process_group()
+
     save_daily_datesbased_model(model=raw_model,evaluation_type=evaluation_type,typeName=typeName,
                                                 begindates=begindates,enddates=enddates,
                                                 version=version,species=species,nchannel=len(main_stream_channel_names),width=width,height=height,
                                                 special_name=description,ifold=ifold)
+    
+
+    if world_size > 1:
+        destroy_process_group()
+
+    if rank == 0 and ifold == 0:
+        wandb.finish()  # only finalize logging after all training done
 
 def cnn_predict_3D(inputarray, model, batchsize,initial_channel_names,mainstream_channel_names,sidestream_channel_names):
     """
