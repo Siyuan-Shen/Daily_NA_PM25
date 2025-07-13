@@ -426,7 +426,7 @@ class CNN3DInputDatasets():
     def _get_nonan_sites(self):
         temp_observation_data = copy.deepcopy(self.ground_observation_data)
         temp_geophysical_species_data = copy.deepcopy(self.geophysical_species_data)
-        temp_bias_data = copy.deepcopy(self.bias_data.copy)
+        temp_bias_data = copy.deepcopy(self.bias_data)
 
         delete_all_data_sites = []
         delete_specific_data_sites = []

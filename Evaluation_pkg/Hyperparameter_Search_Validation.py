@@ -145,12 +145,16 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                             project = None
                             name = None
                            
-
-                        mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                        if world_size > 1:
+                            mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                   X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
                                                 Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
                                                 HSV_Spatial_splitting_enddates[imodel],0),nprocs=world_size)
-                        
+                        else:
+                            CNN_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                  X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
+                                                Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
+                                                HSV_Spatial_splitting_enddates[imodel],0)
                         try:
                             channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
                         except AttributeError:
@@ -185,10 +189,16 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                             entity = None
                             project = None
                             name = None
-                        mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                        if world_size > 1:
+                            mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                   X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                 Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
                                                 HSV_Spatial_splitting_enddates[imodel],0),nprocs=world_size)
+                        else:
+                            CNN3D_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                  X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
+                                                Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
+                                                HSV_Spatial_splitting_enddates[imodel],0)
                         try:
                             channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
                         except AttributeError:
@@ -233,33 +243,11 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     training_sites_recording = np.concatenate((training_sites_recording, sites_train), axis=0)
                     training_dates_recording = np.concatenate((training_dates_recording, dates_train), axis=0)
                 
-                if Apply_CNN_architecture:
-                    save_data_recording(final_data_recording=final_data_recording, obs_data_recording=obs_data_recording, geo_data_recording=geo_data_recording,
-                                    sites_recording=sites_recording, dates_recording=dates_recording,
-                                    training_final_data_recording=training_final_data_recording, training_obs_data_recording=training_obs_data_recording,
-                                    training_sites_recording=training_sites_recording, training_dates_recording=training_dates_recording,
-                                    species=species,version=version,begindates=HSV_Spatial_splitting_begindates[0],
-                                    enddates=HSV_Spatial_splitting_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
-                                    evaluation_type=Evaluation_type,height=height,width=width,entity=entity,project=project,sweep_id=sweep_id)
-                elif Apply_3D_CNN_architecture:
-                    save_data_recording(final_data_recording=final_data_recording, obs_data_recording=obs_data_recording, geo_data_recording=geo_data_recording,
-                                    sites_recording=sites_recording, dates_recording=dates_recording,
-                                    training_final_data_recording=training_final_data_recording, training_obs_data_recording=training_obs_data_recording,
-                                    training_sites_recording=training_sites_recording, training_dates_recording=training_dates_recording,
-                                    species=species,version=version,begindates=HSV_Spatial_splitting_begindates[0],
-                                    enddates=HSV_Spatial_splitting_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
-                                    evaluation_type=Evaluation_type,height=height,width=width,depth=depth,entity=entity,project=project,sweep_id=sweep_id)
+                
                 
     
     
-    if Apply_CNN_architecture:
-         final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording = load_data_recording(species=species,version=version,begindates=HSV_Spatial_splitting_begindates[0],
-                                                                                                                                                                                                                                         enddates=HSV_Spatial_splitting_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
-                                                                                                                                                                                                                                         evaluation_type=Evaluation_type,width=width,height=height,special_name=description,entity=entity,project=project,sweep_id=sweep_id)
-    if Apply_3D_CNN_architecture:
-        final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording = load_data_recording(species=species,version=version,begindates=HSV_Spatial_splitting_begindates[0],
-                                                                                                                                                                                                                                         enddates=HSV_Spatial_splitting_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
-                                                                                                                                                                                                                                         evaluation_type=Evaluation_type,width=width,height=height,special_name=description,depth=depth,entity=entity,project=project,sweep_id=sweep_id)
+                                                                                                                                                                                                                                       
     Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording = calculate_statistics(test_begindates=HSV_Spatial_splitting_begindates[0],
                                                                                                                 test_enddates=HSV_Spatial_splitting_enddates[-1],final_data_recording=final_data_recording,
                                                                                                                 obs_data_recording=obs_data_recording,geo_data_recording=geo_data_recording,
@@ -292,37 +280,45 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                 Annual_statistics_recording=Annual_statistics_recording,)
     
     print('Start to log the validation results to wandb... for {}'.format(Model_structure_type))
-    run_id = run_id_container.get("run_id", None)
-    run_name = run_id_container.get("run_name", None)
-    print('run_id: ', run_id)
-    print('run_name: ', run_name)
-    os.environ["WANDB_DEBUG"] = "true"
-    
-    wandb.init( entity="ACAG-NorthAmericaDailyPM25",
-               id=run_id,
-                name=run_name,
-                # Set the wandb project where this run will be logged.
-                project=version,
-                # Track hyperparameters and run metadata.
-               group=sweep_id if sweep_mode else None,
-               mode='online',
-               resume="allow"
-               )  # <-- Prevent hangs on init)
-
-    print("Wandb init succeeded:", wandb.run.id)
-
-
-    wandb.log({'test_R2': Daily_statistics_recording['All_points']['test_R2'],
-                       'train_R2': Daily_statistics_recording['All_points']['train_R2'],
-                       'geo_R2': Daily_statistics_recording['All_points']['geo_R2'],
-                       'RMSE': Daily_statistics_recording['All_points']['RMSE'],
-                       'NRMSE': Daily_statistics_recording['All_points']['NRMSE'],
-                       'slope': Daily_statistics_recording['All_points']['slope'],
-                       })
-    wandb.finish()
-
-    del Init_CNN_Datasets, final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
-    del training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording
-    gc.collect()
+    if not Use_recorded_data_to_show_validation_results:
+        run_id = run_id_container.get("run_id", None)
+        run_name = run_id_container.get("run_name", None)
+        print('run_id: ', run_id)
+        print('run_name: ', run_name)
+        os.environ["WANDB_DEBUG"] = "true"
         
+        wandb.init( entity="ACAG-NorthAmericaDailyPM25",
+                id=run_id,
+                    name=run_name,
+                    # Set the wandb project where this run will be logged.
+                    project=version,
+                    # Track hyperparameters and run metadata.
+                group=sweep_id if sweep_mode else None,
+                mode='online',
+                resume="allow"
+                )  # <-- Prevent hangs on init)
+
+        print("Wandb init succeeded:", wandb.run.id)
+
+
+        wandb.log({'test_R2': Daily_statistics_recording['All_points']['test_R2'],
+                        'train_R2': Daily_statistics_recording['All_points']['train_R2'],
+                        'geo_R2': Daily_statistics_recording['All_points']['geo_R2'],
+                        'RMSE': Daily_statistics_recording['All_points']['RMSE'],
+                        'NRMSE': Daily_statistics_recording['All_points']['NRMSE'],
+                        'slope': Daily_statistics_recording['All_points']['slope'],
+                        })
+        print('logged information to wandb: ','\n'.join(['test_R2: {}'.format(Daily_statistics_recording['All_points']['test_R2']),
+                                                        'train_R2: {}'.format(Daily_statistics_recording['All_points']['train_R2']),
+                                                        'geo_R2: {}'.format(Daily_statistics_recording['All_points']['geo_R2']),
+                                                        'RMSE: {}'.format(Daily_statistics_recording['All_points']['RMSE']),
+                                                        'NRMSE: {}'.format(Daily_statistics_recording['All_points']['NRMSE']),
+                                                        'slope: {}'.format(Daily_statistics_recording['All_points']['slope'])]))
+        
+        wandb.finish()
+
+        del Init_CNN_Datasets, final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
+        del training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording
+        gc.collect()
+            
     return

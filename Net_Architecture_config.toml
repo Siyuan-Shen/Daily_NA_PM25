@@ -2,8 +2,8 @@
 [network-architecture]
 
 ### Select only one of the following architectures to be true.
-Apply_CNN_architecture                               = true
-Apply_3D_CNN_architecture                            = false
+Apply_CNN_architecture                               = false
+Apply_3D_CNN_architecture                            = true
 
 
 [network-architecture.CNN-architecture]
