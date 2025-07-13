@@ -44,7 +44,7 @@ def linear_regression(x, y):
     if SST == 0.0:
         rsquared = 0.0
     else:
-        print("r: ", SSR / SST, "r-squared: ", (SSR / SST) ** 2)
+        #print("r: ", SSR / SST, "r-squared: ", (SSR / SST) ** 2)
         rsquared = (SSR / SST) ** 2
     return rsquared
 
@@ -224,7 +224,7 @@ def regress2(_x, _y, _method_type_1 = "ordinary least square",
     _y = _y[mask]
     
     # Check if there are enough data points after filtering
-    if len(_x) <= 1 or len(_y) <= 1:
+    if len(_x) <= 2 or len(_y) <= 2:
         print("No valid data points after removing NaN values.")
         return {"slope": float(-999.0), "intercept": -999.0, "r": -999.0, 'r_square': -999.0,
             "std_slope": -999.0, "std_intercept": -999.0,

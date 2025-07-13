@@ -176,15 +176,15 @@ class ResCNN3D(nn.Module):
             x = F.pad(x,pad=(1,1,1,1,0,0,),mode=Pooling_padding_mode_3D,value=0)
             x = self.pooling(x)
         
-        print('size of x after layer0: {}'.format(x.size()))
+        #print('size of x after layer0: {}'.format(x.size()))
         x = self.layer1(x)
-        print('size of x after layer1: {}'.format(x.size()))
+        #print('size of x after layer1: {}'.format(x.size()))
         x = self.layer2(x)
-        print('size of x after layer2: {}'.format(x.size()))
+        #print('size of x after layer2: {}'.format(x.size()))
         x = self.layer3(x)
-        print('size of x after layer3: {}'.format(x.size()))
+        #print('size of x after layer3: {}'.format(x.size()))
         x = self.layer4(x)
-        print('size of x after layer4: {}'.format(x.size()))
+        #print('size of x after layer4: {}'.format(x.size()))
 
         if self.include_top:
             x = self.avgpool(x)

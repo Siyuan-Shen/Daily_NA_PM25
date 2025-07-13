@@ -74,7 +74,7 @@ def wandb_sweep_config():
                     'values': [31,51,71,91,111,131]
                 },
                 'channel_to_exclude': {
-                    'values': [[]]#['GC_PM25'],['GC_SO4'],['GC_NH4'],['GC_NIT'],['GC_BC'],['GC_OM'],['GC_SOA'],['GC_DST'],['GC_SSLT'],
+                    'values': [['']]#['GC_PM25'],['GC_SO4'],['GC_NH4'],['GC_NIT'],['GC_BC'],['GC_OM'],['GC_SOA'],['GC_DST'],['GC_SSLT'],
                                 #                     ['PBLH'],['RH'],['PRECTOT'],['T2M'],['V10M'],['U10M'],['PS'],#'USTAR',
                                 #                      ['NH3_anthro_emi'],['SO2_anthro_emi'],['NO_anthro_emi'],['OC_anthro_emi'],['BC_anthro_emi'],['NMVOC_anthro_emi'],
                                 #                      ['DST_offline_emi'],['SSLT_offline_emi'],
@@ -97,7 +97,7 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [ 0.01,0.001, 0.0001]
+                    'values': [  0.01,0.001, 0.0001,0.00001]
                 },
                 'batch_size': {
                     'values': [32,64,128,256,512]
