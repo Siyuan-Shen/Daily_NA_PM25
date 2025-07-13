@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name="Daily PM 2D sweep 4GPU"
+#SBATCH --job-name="Daily PM 3D sweep 1GPU testR2 examination"
 #SBATCH --partition=general-gpu
-#SBATCH --mem=900G
+#SBATCH --mem=300G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gpus=4
+#SBATCH --gpus=1
 # SBATCH --exclude=c2-gpu-[009]
 #SBATCH --output=job_output/job-%j-output.txt
 #SBATCH --mail-type=END,FAIL
@@ -17,7 +17,15 @@
 # Uncomment this line if needed:
 #SBATCH --container-image=syword/python3-pytorch:2025.06
 #SBATCH --container-mounts=/storage1/fs1/rvmartin/Active/s.siyuan:/my-projects,/storage1/fs1/rvmartin2/Active/s.siyuan:/my-projects2
-#SBATCH --container-workdir=/my-projects2/Projects/MLCNN_PM25_2021/code/Training_Evaluation_Estimation/PM25/V6.02.03-test
+#SBATCH --container-workdir=/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25
+
+
+# Redirect W&B and tmp paths inside the container
+export WANDB_DIR=/my-projects2/tmp/wandb_dir
+export TMPDIR=/my-projects2/tmp/tmpdir
+export XDG_CONFIG_HOME=/my-projects2/tmp/config_home
+export WANDB_CACHE_DIR=/my-projects2/tmp/wandb_cache
+mkdir -p $WANDB_DIR $TMPDIR $XDG_CONFIG_HOME $WANDB_CACHE_DIR
 
 # Optional: mimic host exclusion if needed via constraints or scheduler filters
 
