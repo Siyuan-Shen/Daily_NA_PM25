@@ -28,7 +28,7 @@ def ddp_setup(rank, world_size):
 def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,init_total_channel_names,X_train, y_train,X_test,y_test,input_mean, input_std,width,height,depth,
               evaluation_type,typeName,begindates,enddates,ifold=0):
 
-
+    print('fold {} is starting...'.format(ifold))
     try:
         print(f"[Rank {rank}] Starting CNN_train")
         # Your original CNN_train logic goes here...
@@ -75,7 +75,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         os.environ['WANDB_MODE'] = 'disabled'
     
     if world_size == 1:
-        Daily_Model = initial_3dcnn_net(main_stream_nchannel=len(main_stream_channel_names))
+        Daily_Model = initial_3dcnn_net(main_stream_nchannel=len(main_stream_channel_names),wandb_config=wandb_config)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         Daily_Model.to(device)
         torch.manual_seed(21)
@@ -83,7 +83,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         validation_loader = DataLoader(Dataset(X_test, y_test), 2000, shuffle=True)
     elif world_size > 1:
         ddp_setup(rank, world_size)
-        Daily_Model = initial_3dcnn_net(main_stream_nchannel=len(main_stream_channel_names))
+        Daily_Model = initial_3dcnn_net(main_stream_nchannel=len(main_stream_channel_names),wandb_config=wandb_config)
         device = rank
         Daily_Model.to(device)
         torch.manual_seed(21 + rank)
@@ -239,7 +239,7 @@ def CNN_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_conta
         os.environ['WANDB_MODE'] = 'disabled'
 
     if world_size == 1:
-        Daily_Model = initial_cnn_network(width=width, main_stream_nchannel=len(main_stream_channel_names),side_stream_nchannel=len(side_stream_channel_names))
+        Daily_Model = initial_cnn_network(width=width, main_stream_nchannel=len(main_stream_channel_names),side_stream_nchannel=len(side_stream_channel_names),wandb_config=wandb_config)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         Daily_Model.to(device)
         torch.manual_seed(21)
@@ -247,7 +247,7 @@ def CNN_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_conta
         validation_loader = DataLoader(Dataset(X_test, y_test), 2000, shuffle=True)
     elif world_size > 1:
         ddp_setup(rank, world_size)
-        Daily_Model = initial_cnn_network(width=width, main_stream_nchannel=len(main_stream_channel_names),side_stream_nchannel=len(side_stream_channel_names))
+        Daily_Model = initial_cnn_network(width=width, main_stream_nchannel=len(main_stream_channel_names),side_stream_nchannel=len(side_stream_channel_names),wandb_config=wandb_config)
         device = rank
         Daily_Model.to(device)
         torch.manual_seed(21 + rank)

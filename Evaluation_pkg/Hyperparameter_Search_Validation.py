@@ -59,7 +59,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         Model_structure_type = 'CNNModel'
         print('Init_CNN_Datasets starting...')
         start_time = time.time()
-        Init_CNN_Datasets = CNNInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species)
+        Init_CNN_Datasets = CNNInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
         print('Init_CNN_Datasets finished, time elapsed: ', time.time() - start_time)
         total_sites_number = Init_CNN_Datasets.total_sites_number
         true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
@@ -70,7 +70,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         Model_structure_type = '3DCNNModel'
         print('Init_CNN_Datasets starting...')
         start_time = time.time()
-        Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species)
+        Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
         print('Init_CNN_Datasets finished, time elapsed: ', time.time() - start_time)
 
         total_sites_number = Init_CNN_Datasets.total_sites_number
@@ -285,6 +285,8 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         run_name = run_id_container.get("run_name", None)
         print('run_id: ', run_id)
         print('run_name: ', run_name)
+        manager.shutdown()  # Shutdown the manager to release resources
+        
         os.environ["WANDB_DEBUG"] = "true"
         
         wandb.init( entity="ACAG-NorthAmericaDailyPM25",
@@ -319,6 +321,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
 
         del Init_CNN_Datasets, final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
         del training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording
+        del Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording
         gc.collect()
             
     return

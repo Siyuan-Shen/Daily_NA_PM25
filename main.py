@@ -8,9 +8,10 @@ from Evaluation_pkg.Spatial_CrossValidation import spatial_cross_validation
 from Evaluation_pkg.utils import *
 from Training_pkg.utils import *
 from Model_Structure_pkg.utils import *
+from config import cfg
 
 wandb.login(key='f256dceb0a92527f2588e098c831713ce3428bda')
-cfg = toml.load('./config.toml')
+
 pprint.pprint(cfg)
 import os
 

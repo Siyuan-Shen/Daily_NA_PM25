@@ -36,6 +36,7 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
             outfile = outdir + '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel_sweep-{}.npy'.format(Model_structure_type, evaluation_type,file_target,typeName, species, depth,width, height, begindate,enddate,nchannel,sweep_id)
+        outfile = outdir + '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}.npy'.format(Model_structure_type, evaluation_type,file_target,typeName, species, depth,width, height, begindate,enddate,nchannel,description)
     return outfile
 
 def save_loss_accuracy_recording(loss,accuracy,valid_loss,valid_accuracy,species,version,evaluation_type,begindate,enddate,typeName,nchannel,width=11,height=11,):
@@ -75,7 +76,6 @@ def load_loss_accuracy_recording(species,version,evaluation_type,typeName,begind
     valid_loss = np.load(valid_loss_infile)
     valid_accuracy = np.load(valid_accuracy_infile)
     return loss, accuracy, valid_loss, valid_accuracy
-
 
 
 def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_statistics_recording,Monthly_statistics_recording,Annual_statistics_recording):

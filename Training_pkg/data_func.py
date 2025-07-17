@@ -20,7 +20,8 @@ class TransformInputDatasets():
         self.sites_lon = self.input_datasets.sites_lon
 
 class CNNInputDatasets():
-    def __init__(self,species,total_channel_names,bias,normalize_bias,normalize_species,absolute_species):
+    def __init__(self,species,total_channel_names,bias,normalize_bias,normalize_species,absolute_species,datapoints_threshold):
+        self.datapoints_threshold = datapoints_threshold
         self.species = species
         self.bias = bias
         self.normalize_bias = normalize_bias
@@ -85,7 +86,7 @@ class CNNInputDatasets():
 
         self.width, self.height = self.TrainingDatasets_mean.shape[1], self.TrainingDatasets_mean.shape[2]
 
-    def _get_nonan_sites(self):
+    def _get_nonan_and_threshold_sites(self):
         temp_observation_data = copy.deepcopy(self.ground_observation_data)
         temp_geophysical_species_data = copy.deepcopy(self.geophysical_species_data)
         temp_bias_data = copy.deepcopy(self.bias_data)
@@ -100,6 +101,11 @@ class CNNInputDatasets():
             if np.isnan(self.geophysical_species_data[site]['geoPM25']).any():
                 print('Warning: Site {} has NaN values in PM2.5 data!'.format(site))
                 if np.isnan(self.geophysical_species_data[site]['geoPM25']).all():
+                    del temp_observation_data[site]
+                    del temp_geophysical_species_data[site]
+                    del temp_bias_data[site]
+                    delete_all_data_sites.append(site)
+                elif len(self.ground_observation_data[site]['PM25']) < self.datapoints_threshold:
                     del temp_observation_data[site]
                     del temp_geophysical_species_data[site]
                     del temp_bias_data[site]
@@ -370,7 +376,8 @@ class CNNInputDatasets():
 
 
 class CNN3DInputDatasets():
-    def __init__(self,species,total_channel_names,bias,normalize_bias,normalize_species,absolute_species):
+    def __init__(self,species,total_channel_names,bias,normalize_bias,normalize_species,absolute_species,datapoints_threshold):
+        self.datapoints_threshold = datapoints_threshold
         self.species = species
         self.bias = bias
         self.normalize_bias = normalize_bias
@@ -438,6 +445,11 @@ class CNN3DInputDatasets():
                 
                 print('Warning: Site {} has NaN values in PM2.5 data!'.format(site))
                 if np.isnan(self.geophysical_species_data[site]['geoPM25']).all():
+                    del temp_observation_data[site]
+                    del temp_geophysical_species_data[site]
+                    del temp_bias_data[site]
+                    delete_all_data_sites.append(site)
+                elif len(self.ground_observation_data[site]['PM25']) < self.datapoints_threshold:
                     del temp_observation_data[site]
                     del temp_geophysical_species_data[site]
                     del temp_bias_data[site]
