@@ -23,8 +23,10 @@ def resnet_block_lookup_table(blocktype):
         print(' Wrong Key Word! BasicBlock or Bottleneck only! ')
         return None
 
-def initial_3dcnn_net(main_stream_nchannel):
+def initial_3dcnn_net(main_stream_nchannel,wandb_config):
     block = resnet_block_lookup_table(ResCNN3D_Blocks)
+    ResCNN3D_blocks_num = wandb_config['ResCNN3D_blocks_num']
+    ResCNN3D_output_channels = wandb_config['ResCNN3D_output_channels']
     cnn3D_model = ResCNN3D(nchannel=main_stream_nchannel,
                            block=block,
                            blocks_num=ResCNN3D_blocks_num,

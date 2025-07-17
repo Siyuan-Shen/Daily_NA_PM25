@@ -20,18 +20,18 @@ def resnet_block_lookup_table(blocktype):
         return None
 
 
-def initial_cnn_network(width,main_stream_nchannel,side_stream_nchannel):
+def initial_cnn_network(width,main_stream_nchannel,side_stream_nchannel,wandb_config):
 
-    if TwoCombineModels_Settings:
-        Model_A = initial_cnn_OneStage_network(width=width,main_stream_nchannel=main_stream_nchannel,side_stream_nchannel=side_stream_nchannel)
-        Model_B = initial_cnn_OneStage_network(width=width,main_stream_nchannel=main_stream_nchannel,side_stream_nchannel=side_stream_nchannel)
-        cnn_model = Combine_GeophysicalDivide_Two_Models(model_A=Model_A, model_B=Model_B)
-    else:
-        cnn_model = initial_cnn_OneStage_network(width=width,main_stream_nchannel=main_stream_nchannel,side_stream_nchannel=side_stream_nchannel)
+    #if TwoCombineModels_Settings:
+    #    Model_A = initial_cnn_OneStage_network(width=width,main_stream_nchannel=main_stream_nchannel,side_stream_nchannel=side_stream_nchannel)
+    #    Model_B = initial_cnn_OneStage_network(width=width,main_stream_nchannel=main_stream_nchannel,side_stream_nchannel=side_stream_nchannel)
+    #    cnn_model = Combine_GeophysicalDivide_Two_Models(model_A=Model_A, model_B=Model_B)
+    #else:
+    cnn_model = initial_cnn_OneStage_network(width=width,main_stream_nchannel=main_stream_nchannel,side_stream_nchannel=side_stream_nchannel,wandb_config=wandb_config)
     return cnn_model
  
-def initial_cnn_OneStage_network(width,main_stream_nchannel,side_stream_nchannel):
-
+def initial_cnn_OneStage_network(width,main_stream_nchannel,side_stream_nchannel,wandb_config):
+    ResNet_blocks_num = wandb_config.get('ResNet_blocks_num', [1,1,1,1])
     if ResNet_Settings:
         block = resnet_block_lookup_table(ResNet_Blocks)
         cnn_model = ResNet(nchannel=main_stream_nchannel,block=block,blocks_num=ResNet_blocks_num,num_classes=1,include_top=True,groups=1,width_per_group=width)#cnn_model = Net(nchannel=nchannel)

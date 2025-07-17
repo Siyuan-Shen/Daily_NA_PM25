@@ -4,12 +4,12 @@ from datetime import datetime, timedelta
 import os
 import wandb
 from Training_pkg.utils import *
-
+from config import cfg
 ####################################################################################
 ###                            Evaluation Settings                               ###
 ####################################################################################
 
-cfg = toml.load('./config.toml')
+
 
 # Hyperparameter Search Validation Settings
 Hyperparameter_Search_Validation_Settings_cfg = cfg['Hyperparameters_Search_Validation-Settings']
@@ -53,8 +53,8 @@ Spatial_CV_validation_addtional_regions = Spatial_CV_Training_Settings_cfg['addi
 
 Spatial_CV_Visualization_Settings_cfg = Spatial_CV_Settings_cfg['Visualization_Settings']
 Spatial_CV_regression_plot_switch = Spatial_CV_Visualization_Settings_cfg['regression_plot_switch']
-Spatial_CV_every_point_begindates = Spatial_CV_Visualization_Settings_cfg['every_point_begindates']
-Spatial_CV_every_point_enddates = Spatial_CV_Visualization_Settings_cfg['every_point_enddates']
+Spatial_CV_plot_begindates = Spatial_CV_Visualization_Settings_cfg['plot_begindates']
+Spatial_CV_plot_enddates = Spatial_CV_Visualization_Settings_cfg['plot_enddates']
 
 
 

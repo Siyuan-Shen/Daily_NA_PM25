@@ -1,6 +1,6 @@
 import wandb
 import os
-from Training_pkg.utils import description,Apply_CNN_architecture,Apply_3D_CNN_architecture, version, learning_rate0, epoch, batchsize
+from Training_pkg.utils import description,Apply_CNN_architecture,Apply_3D_CNN_architecture, version, learning_rate0, epoch, batchsize,ResCNN3D_blocks_num,ResCNN3D_output_channels,ResNet_blocks_num
 
 def wandb_run_config():
     if Apply_CNN_architecture:
@@ -9,6 +9,7 @@ def wandb_run_config():
             "architecture": "CNN",
             "epoch": epoch,
             "batch_size": batchsize,  # Replace with your batch size variable
+            "ResNet_blocks_num": ResNet_blocks_num,
         }
     if Apply_3D_CNN_architecture:
         run_config = {
@@ -16,6 +17,8 @@ def wandb_run_config():
             "architecture": "3DCNN",
             "epoch": epoch,
             "batch_size": batchsize,  # Replace with your batch size variable
+            "ResCNN3D_blocks_num": ResCNN3D_blocks_num,
+            "ResCNN3D_output_channels": ResCNN3D_output_channels,
         }
     return run_config
 
@@ -81,8 +84,12 @@ def wandb_sweep_config():
                                 #                    ['Urban_Builtup_Lands'], #  'Crop_Nat_Vege_Mos','Permanent_Wetlands','Croplands',
                                                     #  'major_roads','minor_roads','motorway',
                                 #                      ['elevation'],['Population'],
-                                 #                     ['lat'],['lon'],['sin_days'],['cos_days']]
-                }
+                                 #                     ['lat'],['lon'],['sin_days'],['cos_days']]                
+                },
+
+                'ResNet_blocks_num': {
+                    'values': [[2,2,2,2],[1,1,1,1],[3,3,3,3],[4,4,4,4]]
+                },
             }
         }
     if Apply_3D_CNN_architecture:
@@ -97,17 +104,24 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [  0.01,0.001, 0.0001,0.00001]
+                    'values': [ 0.001, 0.0001,0.00001]
                 },
                 'batch_size': {
-                    'values': [32,64,128,256,512]
+                    'values': [64,128,256,512,1024,2048]
                 },
                 'epoch':{
-                    'values': [31,51,71,91,111,131]
+                    'values': [91,111,131,151,171]
                 },
                'channel_to_exclude': {
                     'values': [['']
                                ]
+                },
+                'ResCNN3D_blocks_num': {
+                    'values': [[2,2,2,2],[1,1,1,1],[3,3,3,3],[4,4,4,4],[1,1,2,2],[2,2,3,3],[1,2,3,4],[4,3,2,1]]
+                },
+
+                'ResCNN3D_output_channels': {
+                    'values': [[64,128,256,512],[128,256,512,1024]]  # Example values for output channels
                 }
             }
         }

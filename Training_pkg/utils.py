@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from Model_Structure_pkg.utils import *
-cfg = toml.load('./config.toml')
+from config import cfg
 
 ####################################################################################
 ###                                 Paths Settings                               ###
@@ -19,7 +19,7 @@ ground_observation_data_dir     = obs_dir['ground_observation_data_dir']
 geophysical_species_data_infile = obs_dir['geophysical_species_data_infile']
 geophysical_biases_data_infile  = obs_dir['geophysical_biases_data_infile']
 ground_observation_data_infile  = obs_dir['ground_observation_data_infile']
-
+observation_datapoints_threshold = obs_dir['observation_datapoints_threshold']
 ################################################################################
 # Training Path
 training_dir_cfg = cfg['Pathway']['TrainingDataset']

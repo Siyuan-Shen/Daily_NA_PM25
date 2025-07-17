@@ -1,5 +1,5 @@
 import toml
-
+from Net_Architecture_config import cfg
 
 cfg = toml.load('./Net_Architecture_config.toml')
 
