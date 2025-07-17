@@ -40,7 +40,7 @@ cfg = {
         "Use_recorded_data_to_show_validation_results": False,
 
 
-        "Training_Settings": {
+        "Training-Settings": {
             "Spatial_splitting_Switch"       : True,
             "Spatial_splitting_begindates"   : [20220101],
             "Spatial_splitting_enddates"     : [20231231],
@@ -65,7 +65,7 @@ cfg = {
         "Use_recorded_data_to_show_validation_results": False,
 
         ##### Spatial Cross Validation Settings #####
-        "Training_Settings": {
+        "Training-Settings": {
             "Spatial_CV_folds": 10,
             "Spatial_CV_training_begindates": [20220101],
             "Spatial_CV_training_enddates": [20231231],
