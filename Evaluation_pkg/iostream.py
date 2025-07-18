@@ -178,8 +178,34 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
                             str(np.round(Daily_statistics_recording['Monthly_Scale'][imonth]['slope'], 4)),
 
                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,])
+        
         ## Write the Monthly All Points Statistics
 
+        writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Monthly - All Months Allpoints',
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['test_R2'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['geo_R2'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['train_R2'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['RMSE'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['NRMSE'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['slope'], 4)),
+
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['test_R2'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['geo_R2'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['train_R2'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['RMSE'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['NRMSE'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['slope'], 4)),
+
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['test_R2'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['geo_R2'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['train_R2'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['RMSE'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['NRMSE'], 4)),
+                            str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['slope'], 4)),
+
+                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,])
+                            
+                            
         for imonth in MONTH[1:]:
             writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Monthly - Allpoints - {}'.format(imonth),
                             str(np.round(Monthly_statistics_recording['All_points'][imonth]['test_R2'], 4)),
@@ -205,7 +231,37 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
 
                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,])
         
+
         ## Write the Monthly Purely Spatial Statistics
+        writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Monthly - Purely Spatial (All Months)',
+                                str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['test_R2']), 4)),
+                                str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['geo_R2']), 4)),
+                                str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['train_R2']), 4)),
+                                str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['RMSE']), 4)),
+                                str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['NRMSE']), 4)),
+                                str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['slope']), 4)),
+
+                                str(np.round(np.max(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['test_R2']), 4)),
+                                str(np.round(np.max(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['geo_R2']), 4)),
+                                str(np.round(np.max(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['train_R2']), 4)),
+                                str(np.round(np.max(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['RMSE']), 4)),
+                                str(np.round(np.max(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['NRMSE']), 4)),
+                                str(np.round(np.max(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['slope']), 4)),
+
+                                str(np.round(np.min(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['test_R2']), 4)),
+                                str(np.round(np.min(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['geo_R2']), 4)),
+                                str(np.round(np.min(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['train_R2']), 4)),
+                                str(np.round(np.min(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['RMSE']), 4)),
+                                str(np.round(np.min(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['NRMSE']), 4)),
+                                str(np.round(np.min(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['slope']), 4)),
+
+                                str(np.round(np.std(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['test_R2']), 4)),
+                                str(np.round(np.std(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['geo_R2']), 4)),
+                                str(np.round(np.std(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['train_R2']), 4)),
+                                str(np.round(np.std(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['RMSE']), 4)),
+                                str(np.round(np.std(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['NRMSE']), 4)),
+                                str(np.round(np.std(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['slope']), 4)),
+                                ])
         for imonth in MONTH[1:]:
             writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Monthly - Purely Spatial - {}'.format(imonth),
                                 str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial'][imonth]['test_R2']), 4)),

@@ -43,7 +43,7 @@ class CNNInputDatasets():
                 #print('Site {} has no negative values in PM2.5 data.'.format(isite))
 
         self.geophysical_species_data,self.bias_data = self._load_geophyscial_PMandBias_data()
-        self.ground_observation_data, self.geophysical_species_data, self.bias_data,self.delete_all_data_sites, self.delete_specific_data_sites, self.delete_specific_data_indices = self._get_nonan_sites()
+        self.ground_observation_data, self.geophysical_species_data, self.bias_data,self.delete_all_data_sites, self.delete_specific_data_sites, self.delete_specific_data_indices = self._get_nonan_and_threshold_sites()
 
         # Second time examin the ground_observation_data, wether it has negative values
         for isite in self.ground_observation_data.keys():
@@ -388,7 +388,7 @@ class CNN3DInputDatasets():
 
         self.ground_observation_data = self._load_daily_PM25_data() 
         self.geophysical_species_data,self.bias_data = self._load_geophyscial_PMandBias_data()
-        self.ground_observation_data, self.geophysical_species_data, self.bias_data,self.delete_all_data_sites, self.delete_specific_data_sites, self.delete_specific_data_indices = self._get_nonan_sites()
+        self.ground_observation_data, self.geophysical_species_data, self.bias_data,self.delete_all_data_sites, self.delete_specific_data_sites, self.delete_specific_data_indices = self._get_nonan_and_threshold_sites()
 
         self.true_input, self.true_input_mean, self.true_input_std = self._Learning_objective()
         self.total_sites_number = len(self.true_input.keys())
@@ -430,7 +430,7 @@ class CNN3DInputDatasets():
         Bias_data = np.load(Bias_infile,allow_pickle=True).item()
         return PM_data, Bias_data
     
-    def _get_nonan_sites(self):
+    def _get_nonan_and_threshold_sites(self):
         temp_observation_data = copy.deepcopy(self.ground_observation_data)
         temp_geophysical_species_data = copy.deepcopy(self.geophysical_species_data)
         temp_bias_data = copy.deepcopy(self.bias_data)

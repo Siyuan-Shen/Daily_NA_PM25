@@ -99,6 +99,12 @@ def calculate_statistics(test_begindates,test_enddates, final_data_recording,obs
     
     # Monthly statistics
     # All_points statistics and Purely_Spatial statistics
+    Allpoints_AllMonths_temp_final_data = np.array([],dtype=np.float64)
+    Allpoints_AllMonths_temp_obs_data = np.array([],dtype=np.float64)
+    Allpoints_AllMonths_temp_geo_data = np.array([],dtype=np.float64)
+    Allpoints_AllMonths_temp_training_final_data = np.array([],dtype=np.float64)
+    Allpoints_AllMonths_temp_training_obs_data = np.array([],dtype=np.float64)
+
     for imonth, MM in enumerate(MONTHs):
         Allpoints_monthly_temp_final_data = np.array([],dtype=np.float64)
         Allpoints_monthly_temp_obs_data = np.array([],dtype=np.float64)
@@ -153,22 +159,39 @@ def calculate_statistics(test_begindates,test_enddates, final_data_recording,obs
             temp_test_R2, temp_train_R2, temp_geo_R2, temp_RMSE, temp_NRMSE, intercept, slope = calculation_process_of_statistics(temp_final_data, temp_obs_data, temp_geo_data, temp_training_final_data, temp_training_obs_data)
             if temp_test_R2 > 0:
                 Monthly_statistics_recording['Purely_Spatial'][MM]['test_R2'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial'][MM].get('test_R2', []), [temp_test_R2]))
+                Monthly_statistics_recording['Purely_Spatial']['AllMonths']['test_R2'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial']['AllMonths'].get('test_R2', []), [temp_test_R2]))
             if temp_RMSE > 0:
                 Monthly_statistics_recording['Purely_Spatial'][MM]['RMSE'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial'][MM].get('RMSE', []), [temp_RMSE]))
+                Monthly_statistics_recording['Purely_Spatial']['AllMonths']['RMSE'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial']['AllMonths'].get('RMSE', []), [temp_RMSE]))    
             if temp_NRMSE > 0:
                 Monthly_statistics_recording['Purely_Spatial'][MM]['NRMSE'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial'][MM].get('NRMSE', []), [temp_NRMSE]))
+                Monthly_statistics_recording['Purely_Spatial']['AllMonths']['NRMSE'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial']['AllMonths'].get('NRMSE', []), [temp_NRMSE]))
             if slope > 0:
                 Monthly_statistics_recording['Purely_Spatial'][MM]['slope'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial'][MM].get('slope', []), [slope]))
+                Monthly_statistics_recording['Purely_Spatial']['AllMonths']['slope'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial']['AllMonths'].get('slope', []), [slope]))  
             if temp_train_R2 > 0:
                 Monthly_statistics_recording['Purely_Spatial'][MM]['train_R2'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial'][MM].get('train_R2', []), [temp_train_R2]))
+                Monthly_statistics_recording['Purely_Spatial']['AllMonths']['train_R2'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial']['AllMonths'].get('train_R2', []), [temp_train_R2]))    
             if temp_geo_R2 > 0:
                 Monthly_statistics_recording['Purely_Spatial'][MM]['geo_R2'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial'][MM].get('geo_R2', []), [temp_geo_R2]))
+                Monthly_statistics_recording['Purely_Spatial']['AllMonths']['geo_R2'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial']['AllMonths'].get('geo_R2', []), [temp_geo_R2]))
             
+
             Allpoints_monthly_temp_final_data = np.concatenate((Allpoints_monthly_temp_final_data, temp_final_data))
+            Allpoints_AllMonths_temp_final_data = np.concatenate((Allpoints_AllMonths_temp_final_data, temp_final_data))
+
             Allpoints_monthly_temp_obs_data = np.concatenate((Allpoints_monthly_temp_obs_data, temp_obs_data))
+            Allpoints_AllMonths_temp_obs_data = np.concatenate((Allpoints_AllMonths_temp_obs_data, temp_obs_data))
+
             Allpoints_monthly_temp_geo_data = np.concatenate((Allpoints_monthly_temp_geo_data, temp_geo_data))
+            Allpoints_AllMonths_temp_geo_data = np.concatenate((Allpoints_AllMonths_temp_geo_data, temp_geo_data))
+
             Allpoints_monthly_temp_training_final_data = np.concatenate((Allpoints_monthly_temp_training_final_data, temp_training_final_data))
+            Allpoints_AllMonths_temp_training_final_data = np.concatenate((Allpoints_AllMonths_temp_training_final_data, temp_training_final_data))
+
             Allpoints_monthly_temp_training_obs_data = np.concatenate((Allpoints_monthly_temp_training_obs_data, temp_training_obs_data))
+            Allpoints_AllMonths_temp_training_obs_data = np.concatenate((Allpoints_AllMonths_temp_training_obs_data, temp_training_obs_data))
+
         Allpoints_Monthly_test_R2, Allpoints_Monthly_train_R2, Allpoints_Monthly_geo_R2, Allpoints_Monthly_RMSE, Allpoints_Monthly_NRMSE, intercept, slope = calculation_process_of_statistics(Allpoints_monthly_temp_final_data, Allpoints_monthly_temp_obs_data, Allpoints_monthly_temp_geo_data, Allpoints_monthly_temp_training_final_data, Allpoints_monthly_temp_training_obs_data)
         Monthly_statistics_recording['All_points'][MM]['test_R2'] = Allpoints_Monthly_test_R2
         Monthly_statistics_recording['All_points'][MM]['RMSE'] = Allpoints_Monthly_RMSE
@@ -176,6 +199,15 @@ def calculate_statistics(test_begindates,test_enddates, final_data_recording,obs
         Monthly_statistics_recording['All_points'][MM]['slope'] = slope
         Monthly_statistics_recording['All_points'][MM]['train_R2'] = Allpoints_Monthly_train_R2
         Monthly_statistics_recording['All_points'][MM]['geo_R2'] = Allpoints_Monthly_geo_R2
+        
+    Allpoints_Monthly_test_R2, Allpoints_Monthly_train_R2, Allpoints_Monthly_geo_R2, Allpoints_Monthly_RMSE, Allpoints_Monthly_NRMSE, intercept, slope = calculation_process_of_statistics(Allpoints_AllMonths_temp_final_data, Allpoints_AllMonths_temp_obs_data, Allpoints_AllMonths_temp_geo_data, Allpoints_AllMonths_temp_training_final_data, Allpoints_AllMonths_temp_training_obs_data)
+    Monthly_statistics_recording['All_points']['AllMonths']['test_R2'] = Allpoints_Monthly_test_R2
+    Monthly_statistics_recording['All_points']['AllMonths']['RMSE'] = Allpoints_Monthly_RMSE
+    Monthly_statistics_recording['All_points']['AllMonths']['NRMSE'] = Allpoints_Monthly_NRMSE
+    Monthly_statistics_recording['All_points']['AllMonths']['slope'] = slope
+    Monthly_statistics_recording['All_points']['AllMonths']['train_R2'] = Allpoints_Monthly_train_R2
+    Monthly_statistics_recording['All_points']['AllMonths']['geo_R2'] = Allpoints_Monthly_geo_R2
+
 
     # Annual statistics
     # All_points statistics and Purely_Spatial statistics 

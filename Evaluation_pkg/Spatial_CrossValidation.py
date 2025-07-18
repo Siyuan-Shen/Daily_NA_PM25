@@ -26,6 +26,8 @@ from Training_pkg.TensorData_func import Dataset_Val, Dataset
 from Training_pkg.TrainingModule import CNN_train, cnn_predict, CNN3D_train, cnn_predict_3D
 from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets
 from Training_pkg.iostream import load_daily_datesbased_model
+
+from Visualization_pkg.Assemble_Func import plot_longterm_Annual_Monthly_Daily_Scatter_plots
 from wandb_config import wandb_run_config, wandb_initialize, init_get_sweep_config
 from multiprocessing import Manager
 
@@ -37,6 +39,30 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
     Evaluation_type = 'Spatial_CrossValidation'
 
     #####################################################################
+    
+    #####################################################################
+    # Start the hyperparameters search validation
+    Statistics_list = ['test_R2','train_R2','geo_R2','RMSE','NRMSE','slope','PWA']
+    seed       = 19980130
+    rkf = RepeatedKFold(n_splits=Spatial_CV_folds, n_repeats=1, random_state=seed)
+    manager = Manager()
+    run_id_container = manager.dict() 
+
+    #### Initialize the wandb for sweep mode
+    if Spatial_CV_Apply_wandb_sweep_Switch:
+        sweep_mode = True
+        temp_sweep_config = init_get_sweep_config()
+        entity = temp_sweep_config.get("entity", "ACAG-NorthAmericaDailyPM25")
+        project = temp_sweep_config.get("project", version)
+        name = temp_sweep_config.get("name", None)
+    else:
+        sweep_mode = False
+        temp_sweep_config = None
+        entity = None
+        project = None
+        name = None
+
+    ### Load the datasets
     if Apply_CNN_architecture:
         ### Initialize the CNN datasets
         Model_structure_type = 'CNNModel'
@@ -61,14 +87,9 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
         TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
         depth, width, height = Init_CNN_Datasets.depth,Init_CNN_Datasets.width, Init_CNN_Datasets.height
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
-    #####################################################################
-    # Start the hyperparameters search validation
-    Statistics_list = ['test_R2','train_R2','geo_R2','RMSE','NRMSE','slope','PWA']
-    seed       = 19980130
-    rkf = RepeatedKFold(n_splits=Spatial_CV_folds, n_repeats=1, random_state=seed)
-    manager = Manager()
-    run_id_container = manager.dict() 
+
     if not Use_recorded_data_to_show_validation_results_Spatial_CV:
+
             Training_losses_recording, Training_acc_recording, valid_losses_recording, valid_acc_recording = initialize_Loss_Accuracy_Recordings(kfolds=Spatial_CV_folds,n_models=len(Spatial_CV_training_begindates),epoch=epoch,batchsize=batchsize)
             
 
@@ -117,18 +138,6 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         print('test_datasets_index: ', test_datasets_index)
 
                         if Apply_CNN_architecture:
-                            if Spatial_CV_Apply_wandb_sweep_Switch:
-                                sweep_mode = True
-                                temp_sweep_config = init_get_sweep_config()
-                                entity = temp_sweep_config.get("entity", "ACAG-NorthAmericaDailyPM25")
-                                project = temp_sweep_config.get("project", version)
-                                name = temp_sweep_config.get("name", None)
-                            else:
-                                sweep_mode = False
-                                temp_sweep_config = None
-                                entity = None
-                                project = None
-                                name = None
                             if world_size > 1:
                                 mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                   X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
@@ -162,19 +171,7 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         
 
                         if Apply_3D_CNN_architecture:
-                            if Spatial_CV_Apply_wandb_sweep_Switch:
-                                sweep_mode = True
-                                temp_sweep_config = init_get_sweep_config()
-                                entity = temp_sweep_config.get("entity", "ACAG-NorthAmericaDailyPM25")
-                                project = temp_sweep_config.get("project", version)
-                                name = temp_sweep_config.get("name", None)
 
-                            else:
-                                sweep_mode = False
-                                temp_sweep_config = None
-                                entity = None
-                                project = None
-                                name = None
                             if world_size > 1:
                                 mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                     X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
@@ -253,6 +250,21 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
         final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording = load_data_recording(species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                                                                                                                                                                                                                          enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
                                                                                                                                                                                                                                          evaluation_type=Evaluation_type,width=width,height=height,special_name=description,depth=depth,project=project,entity=entity,sweep_id=sweep_id)
+        ### Plot the long-term, annual, monthly and daily scatter plots
+    if Spatial_CV_regression_plot_switch:
+
+        for ifigure in range(len(Spatial_CV_plot_begindates)):
+            plot_begin_date = Spatial_CV_plot_begindates[ifigure]
+            plot_end_date = Spatial_CV_plot_enddates[ifigure]
+            plot_longterm_Annual_Monthly_Daily_Scatter_plots(Evaluation_type=Evaluation_type,typeName=typeName,
+                                                             final_data_recording=final_data_recording,
+                                                             obs_data_recording=obs_data_recording,
+                                                             sites_recording=sites_recording,
+                                                             dates_recording=dates_recording,
+                                                             plot_begin_date=plot_begin_date,
+                                                             plot_end_date=plot_end_date,
+                                                             nchannel=len(main_stream_channel_names))
+            
     Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording = calculate_statistics(test_begindates=Spatial_CV_validation_begindates[0],
                                                                                                                 test_enddates=Spatial_CV_validation_enddates[-1],final_data_recording=final_data_recording,
                                                                                                                 obs_data_recording=obs_data_recording,geo_data_recording=geo_data_recording,
@@ -351,6 +363,9 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
     #calculate the correlation coefficient
     correlation_coefficient = np.corrcoef(obs_data_recording, geo_data_recording)[0, 1]
     print(f'Correlation Coefficient between Ground-based PM2.5 and Geophysical PM2.5: {correlation_coefficient:.4f}')
+
+
+
     
 
     del Init_CNN_Datasets, final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
