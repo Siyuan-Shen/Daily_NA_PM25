@@ -96,6 +96,7 @@ def initialize_statistics_recordings(test_start_date,test_end_date,Statistics_li
     Annual_statistics_recording['Purely_Spatial'] = {}
     Annual_statistics_recording['All_points'] = {}
 
+
     for imonth in MONTH:
         Daily_statistics_recording['Monthly_Scale'][imonth] = {}
         Monthly_statistics_recording['Purely_Spatial'][imonth] = {}
@@ -103,15 +104,21 @@ def initialize_statistics_recordings(test_start_date,test_end_date,Statistics_li
         Annual_statistics_recording['Purely_Spatial'][imonth] = {}
         Annual_statistics_recording['All_points'][imonth] = {}
 
+    Monthly_statistics_recording['Purely_Spatial']['AllMonths'] = {}
+    Monthly_statistics_recording['All_points']['AllMonths'] = {}
+
     for stat in Statistics_list:
         Daily_statistics_recording['Purely_Spatial'][stat] = np.array([],dtype=np.float64)
         Daily_statistics_recording['All_points'][stat] = np.array([],dtype=np.float64)
+        Monthly_statistics_recording['Purely_Spatial']['AllMonths'][stat] = np.array([],dtype=np.float64)
+        Monthly_statistics_recording['All_points']['AllMonths'][stat] = np.array([],dtype=np.float64)
         for imonth in MONTH:
             Daily_statistics_recording['Monthly_Scale'][imonth][stat] = np.array([],dtype=np.float64)
             Monthly_statistics_recording['Purely_Spatial'][imonth][stat] = np.array([],dtype=np.float64)
             Monthly_statistics_recording['All_points'][imonth][stat] = np.array([],dtype=np.float64)
             Annual_statistics_recording['Purely_Spatial'][imonth][stat] = np.array([],dtype=np.float64)
             Annual_statistics_recording['All_points'][imonth][stat] = np.array([],dtype=np.float64)
+        
     return Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording
 
 def get_csvfile_outfile(Evaluation_type, typeName,Model_structure_type,main_stream_channel_names,test_begindate,test_enddate,**args):

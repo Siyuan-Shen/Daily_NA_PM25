@@ -23,7 +23,8 @@ cfg = {
         "Results": {
             "csv_outdir"               : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
             "model_outdir"             : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
-            "data_recording_outdir"    : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/"
+            "data_recording_outdir"    : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
+            "figure_outdir"            : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
         },
     },
 
@@ -34,7 +35,7 @@ cfg = {
     'Hyperparameters_Search_Validation-Settings' : {
 
         ### Hyperparameters Search and Validation Settings
-        "Hyperparameters_Search_Validation_Switch": True,
+        "Hyperparameters_Search_Validation_Switch": False,
         "HSV_Apply_wandb_sweep_Switch"            : True,
         "wandb_sweep_count"                       : 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -59,7 +60,7 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        "Spatial_CrossValidation_Switch": False,
+        "Spatial_CrossValidation_Switch": True,
         "Spatial_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Spatial_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -80,8 +81,8 @@ cfg = {
         ##### Spatial Cross Visualization Settings ####
         "Visualization_Settings": {
             "regression_plot_switch": True,
-            "plot_begindates": [20220101],
-            "plot_enddates": [20231231]
+            "plot_begindates": [20220101,20220101],
+            "plot_enddates": [20231231,20221231]
         },
         "Forced_Slope_Unity": {
             "ForcedSlopeUnity": True
@@ -103,7 +104,7 @@ cfg = {
     'Training-Settings' : {
         "identity": {
             "version": "v0.1.0",
-            "description": "_3DCNN_Model_Structure_Searching",
+            "description": "_3DCNN_BenchMark",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "2025-07-15"
@@ -117,7 +118,7 @@ cfg = {
         },
         "hyper-parameters": {
             "epoch": 131,
-            "batchsize": 512,
+            "batchsize": 128,
             "channel_names": [
                 "eta", "tSATAOD", "tSATPM25", "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_BC", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",

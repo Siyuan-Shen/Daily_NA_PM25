@@ -33,6 +33,7 @@ results_dir_cfg = cfg['Pathway']['Results']
 csv_outdir = results_dir_cfg['csv_outdir']
 model_outdir = results_dir_cfg['model_outdir']
 data_recording_outdir = results_dir_cfg['data_recording_outdir']
+figure_outdir = results_dir_cfg['figure_outdir']
 
 ####################################################################################
 ###                                Training Settings                             ###

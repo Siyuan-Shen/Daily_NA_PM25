@@ -83,14 +83,14 @@ cfg  = {
             }
         },
 
-        "CNN3D_architecture": {
+        "CNN3D-architecture": {
             "CovLayer_padding_mode_3D": "replicate",
             "Pooling_padding_mode_3D": "replicate",
             "ResNet3D": {
                 "Settings": True,
                 "Blocks": "BasicBlock",
-                "blocks_num": [2, 2, 2, 2],
-                "output_channels": [64, 128, 256, 512],
+                "blocks_num": [1, 1, 1, 1],
+                "output_channels": [128, 256, 512, 1024],
                 "Pooling_layer_type_3D": "MaxPooling3d",
                 "Depth": 3
             }
