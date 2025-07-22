@@ -94,7 +94,9 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
             training_obs_data_recording = np.array([],dtype=float)
             training_sites_recording = np.array([],dtype=int)
             training_dates_recording = np.array([],dtype=int)
-
+            manager = Manager()
+            run_id_container = manager.dict() 
+            
             if HSV_Spatial_splitting_Switch:
                 
                 for imodel in range(len(HSV_Spatial_splitting_begindates)):
@@ -129,8 +131,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     print('cctnd_geophysical_species_data[test_datasets_index]: ', cctnd_geophysical_species_data[test_datasets_index])
                     print('test_datasets_index: ', test_datasets_index)
                     
-                    manager = Manager()
-                    run_id_container = manager.dict() 
+                    
                     if Apply_CNN_architecture:
                         if HSV_Apply_wandb_sweep_Switch:
                             sweep_mode = True

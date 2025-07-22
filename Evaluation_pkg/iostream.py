@@ -39,6 +39,38 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
         outfile = outdir + '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}.npy'.format(Model_structure_type, evaluation_type,file_target,typeName, species, depth,width, height, begindate,enddate,nchannel,description)
     return outfile
 
+def save_SHAPValues_data_recording(shap_values_values:np.array, shap_values_data:np.array,species, version, begindates,enddates, evaluation_type, typeName,nchannel,**args):
+    width = args.get('width', 11)
+    height = args.get('height', 11)
+    depth = args.get('depth', 3)
+    outdir = data_recording_outdir + '{}/{}/Results/results-SHAPValues_data_recording/{}/'.format(species, version,evaluation_type)
+    if not os.path.isdir(outdir):
+        os.makedirs(outdir)
+    SHAP_values_values_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SHAP_values_values',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates)
+    SHAP_values_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SHAP_values_data',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates)
+    np.save(SHAP_values_values_outfile, shap_values_values)
+    np.save(SHAP_values_data_outfile, shap_values_data)
+    return 
+
+def load_SHAPValues_data_recording(species, version, evaluation_type, typeName, begindates, enddates, nchannel, **args):
+    width = args.get('width', 11)
+    height = args.get('height', 11)
+    depth = args.get('depth', 3)
+    indir = data_recording_outdir + '{}/{}/Results/results-SHAPValues_data_recording/{}/'.format(species, version,evaluation_type)
+    if not os.path.isdir(indir):
+        raise ValueError('The {} directory does not exist!'.format(indir))
+    SHAP_values_values_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SHAP_values_values',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates)
+    SHAP_values_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SHAP_values_data',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates)
+
+    if not os.path.isfile(SHAP_values_values_infile):
+        raise ValueError('The {} file does not exist!'.format(SHAP_values_values_infile))
+    if not os.path.isfile(SHAP_values_data_infile):
+        raise ValueError('The {} file does not exist!'.format(SHAP_values_data_infile))
+    
+    shap_values_values = np.load(SHAP_values_values_infile)
+    shap_values_data   = np.load(SHAP_values_data_infile)
+    return shap_values_values,shap_values_data
+
 def save_loss_accuracy_recording(loss,accuracy,valid_loss,valid_accuracy,species,version,evaluation_type,begindate,enddate,typeName,nchannel,width=11,height=11,):
     outdir = data_recording_outdir + '{}/{}/Results/results-LossAccuracy/{}/'.format(species, version,evaluation_type)
     if not os.path.isdir(outdir):
@@ -356,6 +388,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
         
 def save_data_recording(final_data_recording,obs_data_recording,geo_data_recording,sites_recording,dates_recording,
                         training_final_data_recording,training_obs_data_recording,training_sites_recording,training_dates_recording,
+                        sites_lat_array,sites_lon_array,
                         species, version, begindates,enddates, evaluation_type, typeName,nchannel,**args):
     """This is for saving the data recording files for the evaluation of the model.
     The hyperparameter search validation, spatial crossvalidation and temporal crossvalidation
@@ -388,7 +421,7 @@ def save_data_recording(final_data_recording,obs_data_recording,geo_data_recordi
     project = args.get('project', 'Daily_PM25_DL_2024')
     sweep_id = args.get('sweep_id', None)
 
-    outdir = csv_outdir + '{}/{}/Results/results-DataRecording/{}/'.format(species, version,evaluation_type)
+    outdir = data_recording_outdir + '{}/{}/Results/results-DataRecording/{}/'.format(species, version,evaluation_type)
 
     if not os.path.isdir(outdir):
         os.makedirs(outdir)
@@ -402,6 +435,8 @@ def save_data_recording(final_data_recording,obs_data_recording,geo_data_recordi
     training_final_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingFinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
     training_sites_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingSitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
     training_dates_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingDatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_lat_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SitesLatRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_lon_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SitesLonRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
 
     np.save(obs_data_outfile, obs_data_recording.data)
     np.save(final_data_outfile, final_data_recording.data)
@@ -412,6 +447,9 @@ def save_data_recording(final_data_recording,obs_data_recording,geo_data_recordi
     np.save(training_final_data_outfile, training_final_data_recording.data)
     np.save(training_sites_outfile, training_sites_recording.data)
     np.save(training_dates_outfile, training_dates_recording.data)
+    np.save(sites_lat_outfile, sites_lat_array)
+    np.save(sites_lon_outfile, sites_lon_array)
+
     print('Data recording files saved in: {}'.format(outdir))
 
     print('Obs data recording file: {}'.format(obs_data_outfile))
@@ -432,7 +470,7 @@ def load_data_recording(species, version, begindates,enddates, evaluation_type, 
     entity = args.get('entity', 'ACAG-NorthAmericaDailyPM25')
     project = args.get('project', 'Daily_PM25_DL_2024')
     sweep_id = args.get('sweep_id', None)
-    indir = csv_outdir + '{}/{}/Results/results-DataRecording/{}/'.format(species, version,evaluation_type)
+    indir = data_recording_outdir + '{}/{}/Results/results-DataRecording/{}/'.format(species, version,evaluation_type)
     if not os.path.isdir(indir):
         raise ValueError('The {} directory does not exist!'.format(indir))
     obs_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='ObsDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
@@ -444,6 +482,8 @@ def load_data_recording(species, version, begindates,enddates, evaluation_type, 
     training_final_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingFinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
     training_sites_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingSitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
     training_dates_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingDatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_lat_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SitesLatRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_lon_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SitesLonRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
 
     if not os.path.isfile(obs_data_infile):
         raise ValueError('The {} file does not exist!'.format(obs_data_infile))
@@ -463,6 +503,10 @@ def load_data_recording(species, version, begindates,enddates, evaluation_type, 
         raise ValueError('The {} file does not exist!'.format(training_sites_infile))
     if not os.path.isfile(training_dates_infile):
         raise ValueError('The {} file does not exist!'.format(training_dates_infile))
+    if not os.path.isfile(sites_lat_infile):
+        raise ValueError('The {} file does not exist!'.format(sites_lat_infile))
+    if not os.path.isfile(sites_lon_infile):
+        raise ValueError('The {} file does not exist!'.format(sites_lon_infile))
     obs_data_recording = np.load(obs_data_infile)
     final_data_recording = np.load(final_data_infile)
     geo_data_recording = np.load(geo_data_infile)
@@ -472,8 +516,10 @@ def load_data_recording(species, version, begindates,enddates, evaluation_type, 
     training_final_data_recording = np.load(training_final_data_infile)
     training_sites_recording = np.load(training_sites_infile)
     training_dates_recording = np.load(training_dates_infile)
+    sites_lat_array = np.load(sites_lat_infile)
+    sites_lon_array = np.load(sites_lon_infile)
     
-    return final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording
+    return final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording, sites_lat_array, sites_lon_array
 
 def load_NA_Mask_data(region_name):
     NA_Mask_indir = '/my-projects/mask/NA_Masks/Cropped_NA_Masks/'

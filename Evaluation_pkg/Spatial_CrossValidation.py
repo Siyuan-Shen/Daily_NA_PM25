@@ -27,7 +27,7 @@ from Training_pkg.TrainingModule import CNN_train, cnn_predict, CNN3D_train, cnn
 from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets
 from Training_pkg.iostream import load_daily_datesbased_model
 
-from Visualization_pkg.Assemble_Func import plot_longterm_Annual_Monthly_Daily_Scatter_plots
+from Visualization_pkg.Assemble_Func import plot_longterm_Annual_Monthly_Daily_Scatter_plots,plot_timeseries_statistics_plots
 from wandb_config import wandb_run_config, wandb_initialize, init_get_sweep_config
 from multiprocessing import Manager
 
@@ -231,6 +231,7 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                 sites_recording=sites_recording, dates_recording=dates_recording,
                                 training_final_data_recording=training_final_data_recording, training_obs_data_recording=training_obs_data_recording,
                                 training_sites_recording=training_sites_recording, training_dates_recording=training_dates_recording,
+                                sites_lat_array=sites_lat, sites_lon_array=sites_lon,
                                 species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                 enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
                                 evaluation_type=Evaluation_type,height=height,width=width,project=project,entity=entity,sweep_id=sweep_id,name=name)
@@ -239,19 +240,24 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                 sites_recording=sites_recording, dates_recording=dates_recording,
                                 training_final_data_recording=training_final_data_recording, training_obs_data_recording=training_obs_data_recording,
                                 training_sites_recording=training_sites_recording, training_dates_recording=training_dates_recording,
+                                sites_lat_array=sites_lat, sites_lon_array=sites_lon,
                                 species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                 enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
                                 evaluation_type=Evaluation_type,height=height,width=width,depth=depth,project=project,entity=entity,sweep_id=sweep_id,name=name)
     if Apply_CNN_architecture:
-         final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording = load_data_recording(species=species,version=version,begindates=Spatial_CV_training_begindates[0],
+         final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording, sites_lat_array, sites_lon_array = load_data_recording(species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                                                                                                                                                                                                                          enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
                                                                                                                                                                                                                                          evaluation_type=Evaluation_type,width=width,height=height,special_name=description,project=project,entity=entity,sweep_id=sweep_id)
     if Apply_3D_CNN_architecture:
-        final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording = load_data_recording(species=species,version=version,begindates=Spatial_CV_training_begindates[0],
+        final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording, sites_lat_array, sites_lon_array = load_data_recording(species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                                                                                                                                                                                                                          enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
                                                                                                                                                                                                                                          evaluation_type=Evaluation_type,width=width,height=height,special_name=description,depth=depth,project=project,entity=entity,sweep_id=sweep_id)
         ### Plot the long-term, annual, monthly and daily scatter plots
     if Spatial_CV_regression_plot_switch:
+        if Apply_CNN_architecture:
+            args = {'width': width, 'height': height}
+        elif Apply_3D_CNN_architecture:
+            args = {'width': width, 'height': height, 'depth': depth}
 
         for ifigure in range(len(Spatial_CV_plot_begindates)):
             plot_begin_date = Spatial_CV_plot_begindates[ifigure]
@@ -263,7 +269,15 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                              dates_recording=dates_recording,
                                                              plot_begin_date=plot_begin_date,
                                                              plot_end_date=plot_end_date,
-                                                             nchannel=len(main_stream_channel_names))
+                                                             nchannel=len(main_stream_channel_names),**args,)
+            plot_timeseries_statistics_plots(Evaluation_type=Evaluation_type,typeName=typeName,
+                                                             final_data_recording=final_data_recording,
+                                                             obs_data_recording=obs_data_recording,
+                                                             sites_recording=sites_recording,
+                                                             dates_recording=dates_recording,
+                                                             plot_begin_date=plot_begin_date,
+                                                             plot_end_date=plot_end_date,
+                                                             nchannel=len(main_stream_channel_names),**args,)
             
     Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording = calculate_statistics(test_begindates=Spatial_CV_validation_begindates[0],
                                                                                                                 test_enddates=Spatial_CV_validation_enddates[-1],final_data_recording=final_data_recording,
