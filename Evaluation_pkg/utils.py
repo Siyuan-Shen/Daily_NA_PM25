@@ -56,6 +56,13 @@ Spatial_CV_regression_plot_switch = Spatial_CV_Visualization_Settings_cfg['regre
 Spatial_CV_plot_begindates = Spatial_CV_Visualization_Settings_cfg['plot_begindates']
 Spatial_CV_plot_enddates = Spatial_CV_Visualization_Settings_cfg['plot_enddates']
 
+Spatial_CV_SHAP_Analysis_Settings_cfg = Spatial_CV_Settings_cfg['SHAP_Analysis_Settings']
+Spatial_CV_SHAP_Analysis_Switch = Spatial_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_switch']
+Spatial_CV_SHAP_Analysis_Calculation_Switch = Spatial_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_Calculation_Switch']
+Spatial_CV_SHAP_Analysis_visualization_Switch = Spatial_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_visualization_Switch']
+Spatial_CV_SHAP_Analysis_background_number = Spatial_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_background_number']
+Spatial_CV_SHAP_Analysis_test_number = Spatial_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_test_number']
+Spatial_CV_SHAP_Analysis_plot_type = Spatial_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_plot_type']
 
 
 def Get_typeName(bias, normalize_bias, normalize_species, absolute_species, log_species, species):
