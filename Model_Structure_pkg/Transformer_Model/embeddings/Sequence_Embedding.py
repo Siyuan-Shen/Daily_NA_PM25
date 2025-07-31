@@ -36,7 +36,8 @@ class Positional_Embedding(nn.Module):
         position = torch.arange(0, max_len, dtype=torch.float, device=device).unsqueeze(1)
         # 1D => 2D unsqueeze to represent word position, i.e., make this a column vector
 
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * -(torch.log(torch.tensor(10000.0)) / d_model), device=device)
+        div_term = torch.arange(0, d_model, 2, dtype=torch.float, device=device)
+        div_term = torch.exp(div_term * -(torch.log(torch.tensor(10000.0)) / d_model))
         self.encoding[:, 0::2] = torch.sin(position * div_term)
         self.encoding[:, 1::2] = torch.cos(position * div_term)
     def forward(self, x):
@@ -55,15 +56,16 @@ class Sequence_Embedding(nn.Module):
     Sequence embedding layer for input features.
     """
 
-    def __init__(self, input_dim, output_dim, max_len=1000,drop_prob=0.1): 
+    def __init__(self, input_dim, output_dim, max_len=1000,drop_prob=0.1,device=None): 
         ## input dim is the number of the input features
         ## output dim is the number of the model dimensions
         super(Sequence_Embedding, self).__init__()
         self.linear_embedding = Linear_Embedding(input_dim, output_dim)
-        self.positional_embedding = Positional_Embedding(output_dim, max_len)
+        self.positional_embedding = Positional_Embedding(output_dim, max_len,device=device)
         self.dropout = nn.Dropout(drop_prob)  # Dropout layer with a dropout rate. Default: 0.1
     def forward(self, x):
         x = self.linear_embedding(x)
         x = self.positional_embedding(x)
         x = self.dropout(x)
         return x
+    

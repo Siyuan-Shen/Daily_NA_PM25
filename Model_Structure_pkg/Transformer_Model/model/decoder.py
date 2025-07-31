@@ -12,7 +12,8 @@ class Decoder(nn.Module):
         self.linear = nn.Linear(d_model, input_dim)  # Linear layer to project output to input dimension
     
     def forward(self, x, enc_output=None, target_mask=None, src_mask=None):
-        x = x.unsqueeze(-1)
+
+        #x = x.unsqueeze(-1)
         x = self.embedding(x)
         for layer in self.layers:
             x = layer(x, enc_output, target_mask, src_mask)

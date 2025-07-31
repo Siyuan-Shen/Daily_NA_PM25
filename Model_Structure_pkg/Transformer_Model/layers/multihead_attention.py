@@ -55,13 +55,16 @@ class ScaleDotProductAttention(nn.Module):
         batch_size, head, length, d_tensor = key.size()
 
         # 1. dot product Query with Key^T to compute similarity
-        scores = torch.matmul(query, key.transpose(-2, -1)) / torch.sqrt(query.size(-1))
+
+        scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
 
         # 2. apply masking (opt)
         if mask is not None:
             # Fills elements of self tensor with value where mask is True. And here we set
             # the function to fill pixels with -1e9 where mask is 0
             # The shape of mask must be broadcastable with the shape of the underlying tensor.
+            print("scores.shape:", scores.shape)
+            print("mask.shape:", mask.shape)
             scores = scores.masked_fill(mask == 0, -1e9)
 
         # 3. pass them softmax to make [0, 1] range
@@ -86,6 +89,7 @@ class MultiHeadAttention(nn.Module):
         self.w_concat = nn.Linear(d_model, d_model)
 
     def forward(self, q, k, v, mask=None):
+
         # 1. dot product with weight matrices
         q, k, v = self.w_q(q), self.w_k(k), self.w_v(v)
         

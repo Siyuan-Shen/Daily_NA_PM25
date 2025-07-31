@@ -27,7 +27,7 @@ class DecoderBlock(nn.Module):
 
         # Encoder-decoder attention
         if enc_output is not None:
-            enc_dec_output = self.enc_dec_attention(query = dec_input, key = enc_output, value = enc_output, mask=src_mask)
+            enc_dec_output = self.enc_dec_attention( dec_input,  enc_output, enc_output, mask=src_mask)
             dec_input = dec_input + self.dropout2(enc_dec_output)
             dec_input = self.layer_norm2(dec_input)
         # Feed-forward network
