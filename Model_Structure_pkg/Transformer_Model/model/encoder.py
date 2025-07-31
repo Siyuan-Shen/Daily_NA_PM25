@@ -12,5 +12,6 @@ class Encoder(nn.Module):
     def forward(self, x, src_mask=None):
         x = self.embedding(x)  # Apply embedding layer
         for layer in self.layers:
+
             x = layer(x, src_mask)
         return x
