@@ -4,8 +4,9 @@
 cfg  = {
     'network-architecture':{
         "Apply_CNN_architecture": False,
-        "Apply_3D_CNN_architecture": True,
-    
+        "Apply_3D_CNN_architecture": False,
+        "Apply_Transformer_architecture": True,
+
         "CNN-architecture": {
             "CovLayer_padding_mode": "reflect",
             "Pooling_padding_mode": "reflect",
@@ -94,6 +95,19 @@ cfg  = {
                 "Pooling_layer_type_3D": "MaxPooling3d",
                 "Depth": 3
             }
-        }
+        },
+
+
+        "Transformer-architecture": {
+            "Settings": True,
+            "trg_dim": 1,  # Dimension of the target features; default is 1
+            "d_model": 64,  # Dimension of the model (hidden size); default is 64
+            "n_head": 8,  # Number of attention heads; default is 8
+            "ffn_hidden": 256,  # Dimension of the feed-forward network hidden layer
+            "num_layers": 6,  # Number of encoder/decoder layers; default is 6
+            "max_len": 31,  # Maximum length of the input sequence; default is 365. This is for the range that the model calculate the loss.
+            "spin_up_len": 30,  # Spin-up length for the model; default is 30. This is for the range that the model DO NOT calculate the loss.
+            "drop_prob": 0.1,  # Dropout probability; default is 0.1
+        },
     }
 }

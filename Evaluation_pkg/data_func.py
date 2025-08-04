@@ -49,9 +49,9 @@ def Split_Datasets_based_site_index(train_site_index,test_site_index,total_train
     print('test_site_index.shape: ',test_site_index.shape)
     train_datasets_index = np.where(np.isin(total_sites_index, train_site_index))[0]
     test_datasets_index = np.where(np.isin(total_sites_index, test_site_index))[0]
-    X_train = total_trainingdatasets[train_datasets_index, :, :, :]
+    X_train = total_trainingdatasets[train_datasets_index, :]
     y_train = total_true_input[train_datasets_index]
-    X_test = total_trainingdatasets[test_datasets_index, :, :, :]
+    X_test = total_trainingdatasets[test_datasets_index, :]
     y_test = total_true_input[test_datasets_index]
     dates_train = total_dates[train_datasets_index]
     dates_test = total_dates[test_datasets_index]

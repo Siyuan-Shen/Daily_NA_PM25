@@ -63,8 +63,8 @@ class ScaleDotProductAttention(nn.Module):
             # Fills elements of self tensor with value where mask is True. And here we set
             # the function to fill pixels with -1e9 where mask is 0
             # The shape of mask must be broadcastable with the shape of the underlying tensor.
-            print("scores.shape:", scores.shape)
-            print("mask.shape:", mask.shape)
+            #print("scores.shape:", scores.shape)
+            #print("mask.shape:", mask.shape)
             scores = scores.masked_fill(mask == 0, -1e9)
 
         # 3. pass them softmax to make [0, 1] range

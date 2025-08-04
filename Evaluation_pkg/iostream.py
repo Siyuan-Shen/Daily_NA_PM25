@@ -16,6 +16,11 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
     entity = args.get('entity', 'ACAG-NorthAmericaDailyPM25')
     project = args.get('project', 'Daily_PM25_DL_2024')
     sweep_id = args.get('sweep_id', None)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
 
     if Apply_CNN_architecture:
         Model_structure_type = 'CNNModel'    
@@ -37,17 +42,33 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
                 os.makedirs(outdir)
             outfile = outdir + '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel_sweep-{}.npy'.format(Model_structure_type, evaluation_type,file_target,typeName, species, depth,width, height, begindate,enddate,nchannel,sweep_id)
         outfile = outdir + '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}.npy'.format(Model_structure_type, evaluation_type,file_target,typeName, species, depth,width, height, begindate,enddate,nchannel,description)
+    elif Apply_Transformer_architecture:
+        Model_structure_type = 'TransformerModel'
+        if (Spatial_CrossValidation_Switch and Spatial_CV_Apply_wandb_sweep_Switch) or (Hyperparameters_Search_Validation_Switch and HSV_Apply_wandb_sweep_Switch):
+            api = wandb.Api()
+            sweep = api.sweep(f"/{entity}/{project}/{sweep_id}")
+            outdir = outdir + 'sweep-{}/'.format(sweep.name)
+            if not os.path.isdir(outdir):
+                os.makedirs(outdir)
+            outfile = outdir + '{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel_sweep-{}.pt'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel, sweep_id)
+        outfile = outdir + '{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}.pt'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel, description)
     return outfile
 
 def save_SHAPValues_data_recording(shap_values_values:np.array, shap_values_data:np.array,species, version, begindates,enddates, evaluation_type, typeName,nchannel,**args):
     width = args.get('width', 11)
     height = args.get('height', 11)
     depth = args.get('depth', 3)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
+
     outdir = data_recording_outdir + '{}/{}/Results/results-SHAPValues_data_recording/{}/'.format(species, version,evaluation_type)
     if not os.path.isdir(outdir):
         os.makedirs(outdir)
-    SHAP_values_values_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SHAP_values_values',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates)
-    SHAP_values_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SHAP_values_data',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates)
+    SHAP_values_values_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SHAP_values_values',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates)
+    SHAP_values_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SHAP_values_data',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates)
     np.save(SHAP_values_values_outfile, shap_values_values)
     np.save(SHAP_values_data_outfile, shap_values_data)
     return 
@@ -56,11 +77,17 @@ def load_SHAPValues_data_recording(species, version, evaluation_type, typeName, 
     width = args.get('width', 11)
     height = args.get('height', 11)
     depth = args.get('depth', 3)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
+
     indir = data_recording_outdir + '{}/{}/Results/results-SHAPValues_data_recording/{}/'.format(species, version,evaluation_type)
     if not os.path.isdir(indir):
         raise ValueError('The {} directory does not exist!'.format(indir))
-    SHAP_values_values_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SHAP_values_values',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates)
-    SHAP_values_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SHAP_values_data',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates)
+    SHAP_values_values_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SHAP_values_values',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates)
+    SHAP_values_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SHAP_values_data',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates)
 
     if not os.path.isfile(SHAP_values_values_infile):
         raise ValueError('The {} file does not exist!'.format(SHAP_values_values_infile))
@@ -86,28 +113,6 @@ def save_loss_accuracy_recording(loss,accuracy,valid_loss,valid_accuracy,species
     np.save(valid_accuracy_outfile, valid_accuracy)
     return
 
-def load_loss_accuracy_recording(species,version,evaluation_type,typeName,begindate,enddate,nchannel,width=11,height=11,):
-    indir = data_recording_outdir + '{}/{}/Results/results-LossAccuracy/{}/'.format(species, version,evaluation_type)
-    if not os.path.isdir(indir):
-        raise ValueError('The {} directory does not exist!'.format(indir))
-    loss_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='loss',typeName=typeName,nchannel=nchannel,width=width,height=height,begindate=begindate,enddate=enddate)
-    accuracy_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='accuracy',typeName=typeName,nchannel=nchannel,width=width,height=height,begindate=begindate,enddate=enddate)
-    valid_loss_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='valid_loss',typeName=typeName,nchannel=nchannel,width=width,height=height,begindate=begindate,enddate=enddate)
-    valid_accuracy_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='valid_accuracy',typeName=typeName,nchannel=nchannel,width=width,height=height,begindate=begindate,enddate=enddate)
-
-    if not os.path.isfile(loss_infile):
-        raise ValueError('The {} file does not exist!'.format(loss_infile))
-    if not os.path.isfile(accuracy_infile):
-        raise ValueError('The {} file does not exist!'.format(accuracy_infile))
-    if not os.path.isfile(valid_loss_infile):
-        raise ValueError('The {} file does not exist!'.format(valid_loss_infile))
-    if not os.path.isfile(valid_accuracy_infile):
-        raise ValueError('The {} file does not exist!'.format(valid_accuracy_infile))
-    loss = np.load(loss_infile)
-    accuracy = np.load(accuracy_infile)
-    valid_loss = np.load(valid_loss_infile)
-    valid_accuracy = np.load(valid_accuracy_infile)
-    return loss, accuracy, valid_loss, valid_accuracy
 
 
 def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_statistics_recording,Monthly_statistics_recording,Annual_statistics_recording):
@@ -420,23 +425,28 @@ def save_data_recording(final_data_recording,obs_data_recording,geo_data_recordi
     entity = args.get('entity', 'ACAG-NorthAmericaDailyPM25')
     project = args.get('project', 'Daily_PM25_DL_2024')
     sweep_id = args.get('sweep_id', None)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
 
     outdir = data_recording_outdir + '{}/{}/Results/results-DataRecording/{}/'.format(species, version,evaluation_type)
 
     if not os.path.isdir(outdir):
         os.makedirs(outdir)
     
-    obs_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='ObsDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    final_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='FinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    geo_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='GeoDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    sites_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    dates_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='DatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    training_obs_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingObsDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    training_final_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingFinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    training_sites_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingSitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    training_dates_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingDatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    sites_lat_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SitesLatRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    sites_lon_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SitesLonRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    obs_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='ObsDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    final_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='FinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    geo_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='GeoDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    dates_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='DatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    training_obs_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingObsDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    training_final_data_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingFinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    training_sites_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingSitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    training_dates_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='TrainingDatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_lat_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SitesLatRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_lon_outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='SitesLonRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,max_len=max_len,num_layers=num_layers,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
 
     np.save(obs_data_outfile, obs_data_recording.data)
     np.save(final_data_outfile, final_data_recording.data)
@@ -470,20 +480,26 @@ def load_data_recording(species, version, begindates,enddates, evaluation_type, 
     entity = args.get('entity', 'ACAG-NorthAmericaDailyPM25')
     project = args.get('project', 'Daily_PM25_DL_2024')
     sweep_id = args.get('sweep_id', None)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
+
     indir = data_recording_outdir + '{}/{}/Results/results-DataRecording/{}/'.format(species, version,evaluation_type)
     if not os.path.isdir(indir):
         raise ValueError('The {} directory does not exist!'.format(indir))
-    obs_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='ObsDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    final_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='FinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    geo_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='GeoDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    sites_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    dates_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='DatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    training_obs_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingObsDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    training_final_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingFinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    training_sites_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingSitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    training_dates_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingDatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    sites_lat_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SitesLatRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
-    sites_lon_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SitesLonRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    obs_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='ObsDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    final_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='FinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    geo_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='GeoDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    dates_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='DatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    training_obs_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingObsDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    training_final_data_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingFinalDataRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    training_sites_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingSitesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    training_dates_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='TrainingDatesRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_lat_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SitesLatRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
+    sites_lon_infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='SitesLonRecording',typeName=typeName,nchannel=nchannel,width=width,height=height,depth=depth,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len,begindate=begindates,enddate=enddates,entity=entity,project=project,sweep_id=sweep_id)
 
     if not os.path.isfile(obs_data_infile):
         raise ValueError('The {} file does not exist!'.format(obs_data_infile))

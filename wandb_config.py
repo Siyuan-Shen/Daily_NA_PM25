@@ -1,7 +1,7 @@
 import wandb
 import os
 from Training_pkg.utils import description,Apply_CNN_architecture,Apply_3D_CNN_architecture, version, learning_rate0, epoch, batchsize,ResCNN3D_blocks_num,ResCNN3D_output_channels,ResNet_blocks_num
-
+from Model_Structure_pkg.utils import *
 def wandb_run_config():
     if Apply_CNN_architecture:
         run_config = {
@@ -19,6 +19,21 @@ def wandb_run_config():
             "batch_size": batchsize,  # Replace with your batch size variable
             "ResCNN3D_blocks_num": ResCNN3D_blocks_num,
             "ResCNN3D_output_channels": ResCNN3D_output_channels,
+        }
+    if Apply_Transformer_architecture:
+        run_config = {
+            "learning_rate0": learning_rate0,
+            "architecture": "Transformer",
+            "epoch": epoch,
+            "batch_size": batchsize,
+            'd_model': Transformer_d_model,
+            'n_head': Transformer_n_head,
+            'ffn_hidden': Transformer_ffn_hidden,
+            'num_layers': Transformer_num_layers,
+            'max_len': Transformer_max_len,
+            'spin_up_len': Transformer_spin_up_len,
+            'drop_prob': Transformer_drop_prob
+            
         }
     return run_config
 
@@ -94,7 +109,7 @@ def wandb_sweep_config():
         }
     if Apply_3D_CNN_architecture:
         sweep_configuration = {
-            'name':'HSV_3DCNN_Sweep_Normalized_Speices',  # Name of the sweep
+            'name':'HSV_3DCNN_Sweep_Normalized_Speices_Variables_test',  # Name of the sweep
             'entity': 'ACAG-NorthAmericaDailyPM25',  # Your wandb entity (team name)
             'project': version,  # Your wandb project name
             'method': "random",  # 'grid', 'random', 'bayes'
@@ -104,25 +119,79 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [ 0.001, 0.0001,0.00001]
+                    'values': [0.0001]
                 },
                 'batch_size': {
-                    'values': [64,128,256,512,1024,2048]
+                    'values': [128]
                 },
                 'epoch':{
-                    'values': [91,111,131,151,171]
+                    'values': [131]
                 },
                'channel_to_exclude': {
-                    'values': [['']
-                               ]
+                    'values': [ ['eta'],  ['tSATPM25'], 
+                                ['GC_PM25'],['GC_SO4'],['GC_NH4'],['GC_NIT'],['GC_BC'],['GC_OM'],['GC_SOA'],['GC_DST'],['GC_SSLT'],
+                                                     ['PBLH'],['RH'],['PRECTOT'],['T2M'],['V10M'],['U10M'],['PS'],#'USTAR',
+                                                      ['NH3_anthro_emi'],['SO2_anthro_emi'],['NO_anthro_emi'],['OC_anthro_emi'],['BC_anthro_emi'],['NMVOC_anthro_emi'],
+                                                      ['DST_offline_emi'],['SSLT_offline_emi'],
+                                                    ['Urban_Builtup_Lands'], #  'Crop_Nat_Vege_Mos','Permanent_Wetlands','Croplands',
+                                                    #  'major_roads','minor_roads','motorway',
+                                                      ['elevation'],['Population'],
+                                                   ['lat'],['lon'],['sin_days'],['cos_days']] 
                 },
                 'ResCNN3D_blocks_num': {
-                    'values': [[2,2,2,2],[1,1,1,1],[3,3,3,3],[4,4,4,4],[1,1,2,2],[2,2,3,3],[1,2,3,4],[4,3,2,1]]
+                    'values': [[1,1,1,1]]
                 },
 
                 'ResCNN3D_output_channels': {
-                    'values': [[64,128,256,512],[128,256,512,1024]]  # Example values for output channels
+                    'values': [[128,256,512,1024]]  # Example values for output channels
                 }
+            }
+        }
+    if Apply_Transformer_architecture:
+        sweep_configuration = {
+            'name': 'HSV_Transformer_Sweep_Normalized_Speices',
+            'entity': 'ACAG-NorthAmericaDailyPM25',
+            'project': version,
+            'method': "random",
+            'metric': {
+                'name': 'test_R2',
+                'goal': 'maximize'
+            },
+            'parameters': {
+                'learning_rate0': {
+                    'values': [0.001, 0.0001]
+                },
+                'batch_size': {
+                    'values': [64, 128, 256]
+                },
+                'epoch': {
+                    'values': [1]
+                },
+                'd_model': {
+                    'values': [64, 128]  # Example values for model dimension
+                },
+                'n_head': {
+                    'values': [4, 8]  # Example values for number of attention heads
+                },
+                'ffn_hidden': {
+                    'values': [128, 256]  # Example values for feed-forward network hidden layer dimension
+                },
+                'num_layers': {
+                    'values': [4, 6]  # Example values for number of encoder/decoder layers
+                },
+                'max_len': {
+                    'values': [30, 365]  # Example values for maximum length of the input sequence
+                },
+                'spin_up_len': {
+                    'values': [7, 30]  # Example values for spin-up length
+                },
+                'drop_prob': {
+                    'values': [0.1, 0.05]  # Example values for dropout probability
+                },
+                'channel_to_exclude': {
+                    'values': [[]]  # No channels to exclude for Transformer
+                }
+
             }
         }
     return sweep_configuration
@@ -140,3 +209,16 @@ def wandb_parameters_return(wandb_config):
         learning_rate0_value = wandb_config['learning_rate0']
         epoch_value = wandb_config['epoch']
         return batchsize_value, learning_rate0_value, epoch_value
+    if Apply_Transformer_architecture:
+        print('wandb_parameters_return: ', wandb_config)
+        batchsize_value = wandb_config['batch_size']
+        learning_rate0_value = wandb_config['learning_rate0']
+        epoch_value = wandb_config['epoch']
+        d_model_value = wandb_config['d_model']
+        n_head_value = wandb_config['n_head']
+        ffn_hidden_value = wandb_config['ffn_hidden']
+        num_layers_value = wandb_config['num_layers']
+        max_len_value = wandb_config['max_len']
+        spin_up_len_value = wandb_config['spin_up_len']
+        drop_prob_value = wandb_config['drop_prob']
+        return batchsize_value, learning_rate0_value, epoch_value, d_model_value, n_head_value, ffn_hidden_value, num_layers_value, max_len_value, spin_up_len_value, drop_prob_value

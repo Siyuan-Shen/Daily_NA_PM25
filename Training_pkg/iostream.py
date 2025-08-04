@@ -13,6 +13,11 @@ def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,endd
     width = args.get('width', 11)
     height = args.get('height', 11)
     depth = args.get('depth', 3)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
     
     outdir = model_outdir + '{}/{}/Results/results-Trained_Models/{}/'.format(species, version,evaluation_type)
     if not os.path.isdir(outdir):
@@ -25,12 +30,23 @@ def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,endd
         Model_structure_type = '3DCNNModel'
         model_outfile = outdir +  '{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
         torch.save(model, model_outfile)
+    
+    elif Apply_Transformer_architecture:
+        Model_structure_type = 'TransformerModel'
+        model_outfile = outdir +  '{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindates,enddates,nchannel,special_name, ifold)
+        torch.save(model, model_outfile)
     return
 
 def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, version, species, nchannel, special_name, ifold,**args):
     width = args.get('width', 11)
     height = args.get('height', 11)
     depth = args.get('depth', 3)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
+
     indir = model_outdir + '{}/{}/Results/results-Trained_Models/{}/'.format(species, version,evaluation_type)
     if Apply_CNN_architecture:
         Model_structure_type = 'CNNModel'
@@ -43,6 +59,15 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
     elif Apply_3D_CNN_architecture:
         Model_structure_type = '3DCNNModel'
         model_infile = indir + '{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
+        
+        if not os.path.isfile(model_infile):
+            raise ValueError('The {} file does not exist!'.format(model_infile))
+        
+        model = torch.load(model_infile)
+
+    elif Apply_Transformer_architecture:
+        Model_structure_type = 'TransformerModel'
+        model_infile = indir + '{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindates,enddates,nchannel,special_name, ifold)
         
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))

@@ -9,6 +9,7 @@ from Net_Architecture_config import cfg
 network_architecture_cfg = cfg['network-architecture']
 Apply_CNN_architecture = network_architecture_cfg['Apply_CNN_architecture']
 Apply_3D_CNN_architecture = network_architecture_cfg['Apply_3D_CNN_architecture']
+Apply_Transformer_architecture = network_architecture_cfg['Apply_Transformer_architecture']
 
 CNN_architecture_cfg = network_architecture_cfg['CNN-architecture']
 
@@ -75,3 +76,15 @@ ResCNN3D_blocks_num = CNN3D_architeture_cfg['ResNet3D']['blocks_num']
 ResCNN3D_output_channels = CNN3D_architeture_cfg['ResNet3D']['output_channels']
 Pooling_layer_type_3D = CNN3D_architeture_cfg['ResNet3D']['Pooling_layer_type_3D']
 ResNet3D_depth = CNN3D_architeture_cfg['ResNet3D']['Depth']
+
+
+## Transformer Architecture
+Transformer_cfg = network_architecture_cfg['Transformer-architecture']
+Transformer_trg_dim = Transformer_cfg['trg_dim']
+Transformer_d_model = Transformer_cfg['d_model']
+Transformer_n_head = Transformer_cfg['n_head']
+Transformer_ffn_hidden = Transformer_cfg['ffn_hidden']
+Transformer_num_layers = Transformer_cfg['num_layers']
+Transformer_max_len = Transformer_cfg['max_len']
+Transformer_spin_up_len = Transformer_cfg['spin_up_len']
+Transformer_drop_prob = Transformer_cfg['drop_prob']
