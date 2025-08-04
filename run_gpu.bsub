@@ -4,7 +4,7 @@
 #BSUB -G compute-rvmartin
 #BSUB -gpu "num=2:j_exclusive=no"
 #BSUB -a 'docker(syword/python3-pytorch:2025.06)'
-#BSUB -J "PM25 2D SpatialCV sweep 2GPU"
+#BSUB -J "PM25 3D SpatialCV sweep 2GPU"
 #BSUB -g /s.siyuan/Test
 #BSUB -N
 #BSUB -u s.siyuan@wustl.edu

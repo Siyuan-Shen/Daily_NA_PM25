@@ -26,7 +26,7 @@ training_dir_cfg = cfg['Pathway']['TrainingDataset']
 
 CNN_Training_infiles = training_dir_cfg['CNN_Training_infiles']
 CNN3D_Training_infiles = training_dir_cfg['CNN3D_Training_infiles']
-
+Transformer_Training_infiles = training_dir_cfg['Transformer_Training_infiles']
 ################################################################################
 # Results Path
 results_dir_cfg = cfg['Pathway']['Results']
@@ -35,6 +35,12 @@ model_outdir = results_dir_cfg['model_outdir']
 data_recording_outdir = results_dir_cfg['data_recording_outdir']
 figure_outdir = results_dir_cfg['figure_outdir']
 
+####################################################################################
+# Other Data Path
+
+Data_indir = cfg['Pathway']['Data_indir']
+mask_indir = Data_indir['mask_indir']
+LATLON_indir = Data_indir['LATLON_indir']
 ####################################################################################
 ###                                Training Settings                             ###
 ####################################################################################
@@ -50,6 +56,7 @@ runningdate       = identity_cfg['runningdate']
 # learning objective
 learning_objective_cfg = Training_Settings['learning-objective']
 species = learning_objective_cfg['species']
+normalize_type = learning_objective_cfg['normalize_type']
 bias = learning_objective_cfg['bias']
 normalize_bias = learning_objective_cfg['normalize_bias']
 normalize_species = learning_objective_cfg['normalize_species']
@@ -61,6 +68,7 @@ hyperparameters_cfg = Training_Settings['hyper-parameters']
 epoch = hyperparameters_cfg['epoch']
 batchsize = hyperparameters_cfg['batchsize']
 channel_names = hyperparameters_cfg['channel_names']
+training_data_normalization_type = hyperparameters_cfg['training_data_normalization_type']  # Options: "Gaussian", "MinMax"
 
 # Loss function
 loss_function_cfg = Training_Settings['Loss-Functions']

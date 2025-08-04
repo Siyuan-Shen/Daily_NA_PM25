@@ -1,22 +1,28 @@
 #########################################################################################################################################################
+Pathbegin_YEAR = 2018
+Pathend_YEAR = 2023
+AVD_OBS_version = 'AVD_d20240814'
+AVD_GEO_version = 'vAOD20240322vGEO20241212'
 
 cfg = {
     'Pathway' : {
+
         #### Ground Observation Data, Geophysical Species Data, and Geophysical Biases Data ####
         "learning_objective": {
-            "ground_observation_data_dir"      : "/my-projects2/Projects/Daily_PM25_DL_2024/data/GroundBased_Observations/AVD_d20240814/",
-            "geophysical_species_data_dir"     : "/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/AVD_d20240814/vAOD20240322vGEO20241212/2022-2023/",
-            "geophysical_biases_data_dir"      : "/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/AVD_d20240814/vAOD20240322vGEO20241212/2022-2023/",
-            "ground_observation_data_infile"   : "daily_PM25_data_20220101-20231231.npy",
+            "ground_observation_data_dir"      : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/GroundBased_Observations/{AVD_OBS_version}/",
+            "geophysical_species_data_dir"     : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
+            "geophysical_biases_data_dir"      : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
+            "ground_observation_data_infile"   : f"daily_PM25_data_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
             "geophysical_species_data_infile"  : "geophysical_PM25_datasets.npy",
             "geophysical_biases_data_infile"   : "geophysical_bias_datasets.npy",
-            "observation_datapoints_threshold" : 200 # Minimum number of observation data points for each site, typically 100 * number of years
+            "observation_datapoints_threshold" : 0 # Minimum number of observation data points for each site, typically 100 * number of years
         },
 
         #### Training Datasets infiles
         "TrainingDataset": {
-            "CNN_Training_infiles"    : "/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/AVD_d20240814/vAOD20240322vGEO20241212/2DCNN/2022-2023/CNN_training_datasets_{}_11x11_20220101-20231231.npy",
-            "CNN3D_Training_infiles"  : "/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/AVD_d20240814/vAOD20240322vGEO20241212/3DCNN/2022-2023/CNN_training_datasets_{}_3x11x11_20220101-20231231.npy"
+            "CNN_Training_infiles"          : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN3D_Training_infiles"        : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "Transformer_Training_infiles"  : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/Transformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
         },
 
         #### Validation Datasets outdirs
@@ -25,6 +31,12 @@ cfg = {
             "model_outdir"             : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
             "data_recording_outdir"    : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
             "figure_outdir"            : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
+        },
+
+        #### Other Data indir
+        "Data_indir" : {
+            "mask_indir"               : "/my-projects/mask/Land_Ocean_Mask/", ## Use in Estimation_pkg/data_func.py
+            "LATLON_indir"             : "/my-projects2/Projects/Daily_PM25_DL_2024/data/",
         },
     },
 
@@ -90,7 +102,7 @@ cfg = {
 
         ##### SHAP Analysis Settings ####
         "SHAP_Analysis_Settings": {
-            "SHAP_Analysis_switch": False,
+            "SHAP_Analysis_switch": False, ### Not controlled by Spatial_CrossValidation_Switch
             "SHAP_Analysis_Calculation_Switch": True,
             "SHAP_Analysis_visualization_Switch": True,
             "SHAP_Analysis_background_number": 2000,
@@ -99,18 +111,66 @@ cfg = {
         }
     },
     #########################################################################################################################################################
+    'Estimation-Settings' : {
+        'Estimation_Switch': False,
+        'Train_model_Switch': True,
+        'Map_estimation_Switch': True,
+        'Estimation_visualization_Switch': True,
+
+        ###### Training Settings ######
+        'Training_Settings': {
+            'Training_begin_dates': [20220101],
+            'Training_end_dates': [20231231],
+        },
+        ###### Estimation Settings ######
+        'Map_Estimation_Settings': {
+            'Eatimation_Daily_Switch': True,
+            'Estimation_trained_begin_dates': [20220101],
+            'Estimation_trained_end_dates': [20231231],
+            'Estimation_begindates': [20220101],
+            'Estimation_enddates': [20231231],
+            'Extent': [10.055,69.945,-169.945,-40.055],
+            'Estimation_Area': 'NorthAmerica',
+
+            'Save_Monthly_Average_Switch': True,
+            'Save_Monthly_Average_begindates': [20220101],
+            'Save_Monthly_Average_enddates': [20231231],
+
+            'Save_Annual_Average_Switch': True,
+            'Save_Annual_Average_beginyear': [2022],
+            'Save_Annual_Average_endyear': [2023],
+        },
+
+        ###### Estimation Visualization Settings ######
+        'Visualization_Settings': {
+            'Map_Plot_Switch':True,
+            'Daily_Plot_Switch': True,
+            'Daily_Plot_begindates': [20220101],
+            'Daily_Plot_enddates': [20231231],
+            'Monthly_Plot_Switch': True,
+            'Monthly_Plot_begindates': [20220101],
+            'Monthly_Plot_enddates': [20231231],
+            'Annual_Plot_Switch': True,
+            'Annual_Plot_beginyears': [2022],
+            'Annual_Plot_endyears': [2023],
+            
+        },
+
+    },
+    #########################################################################################################################################################
 
 
     'Training-Settings' : {
         "identity": {
             "version": "v0.1.0",
-            "description": "_3DCNN_BenchMark",
+            "description": "_3DCNN_Sweep_with_MinMaxNormTraining_AllVariables_ReLU",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
-            "runningdate": "2025-07-15"
+            "runningdate": "2025-07-29"
         },
         "learning-objective": {
             "species": "PM25",
+            "normalize_type": "MinMax", # Options: "Gaussian", "MinMax", only applicable to learning objects normalize_species or normalize_bias
             "bias": False,
             "normalize_bias": False,
             "normalize_species": True,
@@ -120,11 +180,13 @@ cfg = {
             "epoch": 131,
             "batchsize": 128,
             "channel_names": [
-                "eta", "tSATAOD", "tSATPM25", "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_BC", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
-                "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
-                "BC_anthro_emi", "NMVOC_anthro_emi", "DST_offline_emi", "SSLT_offline_emi",
-                "Urban_Builtup_Lands", "elevation", "Population", "lat", "lon", "sin_days", "cos_days"
-            ]
+                "GC_PM25", "GC_SO4"
+                #"eta", "tSATAOD", "tSATPM25", "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT","GC_BC",
+                #"PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                #"BC_anthro_emi", "NMVOC_anthro_emi", "DST_offline_emi", "SSLT_offline_emi",
+                #"Urban_Builtup_Lands", "elevation", "Population", "lat", "lon", "sin_days", "cos_days"
+            ],
+            "training_data_normalization_type": "MinMax", # Options: "Gaussian", "MinMax", applicable to training datasets
         },
 
         "Loss-Functions": {
@@ -171,8 +233,8 @@ cfg = {
 
         "activation_func": {
             "activation_func_name": "relu",
-            "ReLU": {"Settings": False},
-            "Tanh": {"Settings": True},
+            "ReLU": {"Settings": True},
+            "Tanh": {"Settings": False},
             "GeLU": {"Settings": False},
             "Sigmoid": {"Settings": False},
             "Mish": {"Settings": False},

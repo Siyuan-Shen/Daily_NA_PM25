@@ -33,12 +33,14 @@ class Transformer(nn.Module):
         
     
     def forward(self, src_input, target_input=None):
+
+        filled_target_input = torch.nan_to_num(target_input, nan=0.0) if target_input is not None else None
         src_mask = self.make_src_mask(src_input) if src_input is not None else None
         enc_output = self.encoder(src_input, src_mask)
         if target_input is not None:
             target_mask = self.make_trg_mask(target_input)
             # Inside inference loop
-            dec_output = self.decoder(target_input, enc_output, target_mask, src_mask)
+            dec_output = self.decoder(filled_target_input, enc_output, target_mask, src_mask)
         else:
             # Inference mode: autoregressive decoding
             batch_size = src_input.size(0)

@@ -23,8 +23,8 @@ from Model_Structure_pkg.utils import *
 from Training_pkg.utils import *
 from Training_pkg.utils import epoch as config_epoch, batchsize as config_batchsize, learning_rate0 as config_learning_rate0
 from Training_pkg.TensorData_func import Dataset_Val, Dataset
-from Training_pkg.TrainingModule import CNN_train, cnn_predict, CNN3D_train, cnn_predict_3D
-from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets
+from Training_pkg.TrainingModule import CNN_train, cnn_predict, CNN3D_train, cnn_predict_3D,Transformer_train,transformer_predict
+from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets,TransformerInputDatasets
 from Training_pkg.iostream import load_daily_datesbased_model
 from wandb_config import init_get_sweep_config
 from multiprocessing import Manager
@@ -53,6 +53,24 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
 
     if HSV_Spatial_splitting_Switch:
             Evaluation_type = 'Hyperparameters_Search_Validation_Spatial_Splitting'
+
+    if HSV_Apply_wandb_sweep_Switch:
+        sweep_mode = True
+        temp_sweep_config = init_get_sweep_config()
+        entity = temp_sweep_config.get("entity", "ACAG-NorthAmericaDailyPM25")
+        project = temp_sweep_config.get("project", version)
+        name = temp_sweep_config.get("name", None)
+        if Apply_Transformer_architecture:
+            d_model, n_head, ffn_hidden, num_layers, max_len,spin_up_len = temp_sweep_config.get("d_model", 64), temp_sweep_config.get("n_head", 8), temp_sweep_config.get("ffn_hidden", 256), temp_sweep_config.get("num_layers", 6), temp_sweep_config.get("max_len", 1000), temp_sweep_config.get("spin_up_len", 100)
+    else:
+        sweep_mode = False
+        temp_sweep_config = None
+        entity = None
+        project = None
+        name = None
+        if Apply_Transformer_architecture:
+            d_model, n_head, ffn_hidden, num_layers, max_len,spin_up_len = Transformer_d_model, Transformer_n_head, Transformer_ffn_hidden, Transformer_num_layers, Transformer_max_len, Transformer_spin_up_len
+
     #####################################################################
     if Apply_CNN_architecture:
         
@@ -78,6 +96,18 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
         TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
         depth, width, height = Init_CNN_Datasets.depth,Init_CNN_Datasets.width, Init_CNN_Datasets.height
+        sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
+    elif Apply_Transformer_architecture:
+        Model_structure_type = 'TransformerModel'
+        print('Init_CNN_Datasets starting...')
+        start_time = time.time()
+        Init_CNN_Datasets = TransformerInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
+        print('Init_CNN_Datasets finished, time elapsed: ', time.time() - start_time)
+        
+        total_sites_number = Init_CNN_Datasets.total_sites_number
+
+        true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
+        TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
     #####################################################################
 
@@ -116,6 +146,21 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                                                                                                                                                 desired_ground_observation_data=desired_ground_observation_data,
                                                                                                                                                 desired_geophysical_species_data=desired_geophysical_species_data)
                     
+                    elif Apply_Transformer_architecture:
+                        # Get the initial true_input and training datasets for the current model (within the desired time range)
+                        print('1...')
+                        desired_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data = Init_CNN_Datasets.get_desired_range_inputdatasets(start_date=HSV_Spatial_splitting_begindates[imodel],
+                                                                                                        end_date=HSV_Spatial_splitting_enddates[imodel],max_len=Transformer_max_len,spinup_len=Transformer_spin_up_len)
+                        # Normalize the training datasets
+                        print('2...')
+                        normalized_TrainingDatasets  = Init_CNN_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
+                        # Concatenate the training datasets and true input for the current model for training and tetsing purposes
+                        print('3...')
+                        cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                                                                                                                                                desired_normalized_trainingdatasets=normalized_TrainingDatasets,
+                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
+                                                                                                                                                desired_geophysical_species_data=desired_geophysical_species_data)
+                        
                     print('4...')
                     training_selected_sites, testing_selected_sites = randomly_select_training_testing_indices(sites_index=np.arange(total_sites_number), training_portion=HSV_Spatial_splitting_training_portion)
                     print('training_selected_sites: ',training_selected_sites.shape)
@@ -133,18 +178,6 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     
                     
                     if Apply_CNN_architecture:
-                        if HSV_Apply_wandb_sweep_Switch:
-                            sweep_mode = True
-                            temp_sweep_config = init_get_sweep_config()
-                            entity = temp_sweep_config.get("entity", "ACAG-NorthAmericaDailyPM25")
-                            project = temp_sweep_config.get("project", version)
-                            name = temp_sweep_config.get("name", None)
-                        else:
-                            sweep_mode = False
-                            temp_sweep_config = None
-                            entity = None
-                            project = None
-                            name = None
                            
                         if world_size > 1:
                             mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
@@ -178,18 +211,6 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     
                     if Apply_3D_CNN_architecture:
                         
-                        if HSV_Apply_wandb_sweep_Switch:
-                            sweep_mode = True
-                            temp_sweep_config = init_get_sweep_config()
-                            entity = temp_sweep_config.get("entity", "ACAG-NorthAmericaDailyPM25")
-                            project = temp_sweep_config.get("project", version)
-                            name = temp_sweep_config.get("name", None)
-                        else:
-                            sweep_mode = False
-                            temp_sweep_config = None
-                            entity = None
-                            project = None
-                            name = None
                         if world_size > 1:
                             mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                   X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
@@ -221,7 +242,38 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                         training_output = cnn_predict_3D(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                         mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                     
-                    
+                    if Apply_Transformer_architecture:
+                        if world_size > 1:
+                            mp.spawn(Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                  X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
+                                                Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
+                                                HSV_Spatial_splitting_enddates[imodel],0),nprocs=world_size)
+                        else:
+                            Transformer_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                  X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
+                                                Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
+                                                HSV_Spatial_splitting_enddates[imodel],0)
+                        try:
+                            channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
+                        except AttributeError:
+                            channels_to_exclude = []
+                        
+                        excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
+                        index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
+                        X_train = X_train[:,:,index_of_main_stream_channels_of_initial]
+                        X_test  = X_test[:,:,index_of_main_stream_channels_of_initial]
+
+                        # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in
+                        # different time ranges.
+                        Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=HSV_Spatial_splitting_begindates[imodel],
+                                                                    enddates=HSV_Spatial_splitting_enddates[imodel], version=version,species=species,
+                                                                    nchannel=len(main_stream_channel_names),special_name=description,ifold=0,d_model=d_model,
+                                                                    n_head=n_head,ffn_hidden=ffn_hidden,
+                                                                    num_layers=num_layers,max_len=max_len+spin_up_len)
+                        validation_output = transformer_predict(inputarray=X_test, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
+                                                        mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
+                        training_output = transformer_predict(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
+                                                        mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                     del Daily_Model
                     gc.collect()
                     
@@ -273,6 +325,12 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                                           main_stream_channel_names=main_stream_channel_names,test_begindate=HSV_Spatial_splitting_begindates[0],
                                             test_enddate=HSV_Spatial_splitting_enddates[-1],
                                           width=width,height=height,depth=depth,entity=entity,project=project,sweep_id=sweep_id,name=name)
+    elif Apply_Transformer_architecture:
+        csvfile_outfile = get_csvfile_outfile(Evaluation_type=Evaluation_type,typeName=typeName,Model_structure_type=Model_structure_type,
+                                          main_stream_channel_names=main_stream_channel_names,test_begindate=HSV_Spatial_splitting_begindates[0],
+                                            test_enddate=HSV_Spatial_splitting_enddates[-1],
+                                          d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden, num_layers=num_layers, max_len=max_len+spin_up_len, entity=entity,project=project,sweep_id=sweep_id,name=name)
+    
     print('csvfile_outfile: ', csvfile_outfile)
     output_csv(outfile=csvfile_outfile,status='w',Area='North America',
                 test_begindate=HSV_Spatial_splitting_begindates[0],test_enddate=HSV_Spatial_splitting_enddates[-1],

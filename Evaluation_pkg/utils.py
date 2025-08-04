@@ -69,9 +69,15 @@ def Get_typeName(bias, normalize_bias, normalize_species, absolute_species, log_
     if bias == True:
         typeName = '{}-bias'.format(species)
     elif normalize_bias:
-        typeName = 'Normalized-{}-bias'.format(species)
+        if normalize_type == 'Gaussian':
+            typeName = 'GaussianNormalized-{}-bias'.format(species)
+        elif normalize_type == 'MinMax':
+            typeName = 'MinMaxNormalized-{}-bias'.format(species)
     elif normalize_species == True:
-        typeName = 'Normaized-{}'.format(species)
+        if normalize_type == 'Gaussian':
+            typeName = 'GaussianNormalized-{}'.format(species)
+        elif normalize_type == 'MinMax':
+            typeName = 'MinMaxNormalized-{}'.format(species)
     elif absolute_species == True:
         typeName = 'Absolute-{}'.format(species)
     elif log_species == True:
@@ -136,6 +142,12 @@ def get_csvfile_outfile(Evaluation_type, typeName,Model_structure_type,main_stre
     project = args.get('project', 'Daily_PM25_DL_2024')
     sweep_id = args.get('sweep_id', None)
     name = args.get('name', None)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
+
     if Apply_CNN_architecture:
         
         csvfile_outdir = csv_outdir + '{}/{}/Results/results-{}/statistical_indicators/{}_{}_{}_{}_{}_{}Channel_{}x{}{}/'.format(species,version,Evaluation_type,
@@ -180,7 +192,26 @@ def get_csvfile_outfile(Evaluation_type, typeName,Model_structure_type,main_stre
                                                                                                                 Evaluation_type,Model_structure_type,typeName,
                                                                                                                 len(main_stream_channel_names),test_begindate,
                                                                                                                 test_enddate,depth,width,height,description)
-    
+    elif Apply_Transformer_architecture:
+        csvfile_outdir = csv_outdir + '{}/{}/Results/results-{}/statistical_indicators/{}_{}_{}_{}_{}_{}Channel_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens{}/'.format(species,version,Evaluation_type,
+                                                                                      Evaluation_type,Model_structure_type,typeName, species,version,
+                                                                                        len(main_stream_channel_names),d_model,n_head,ffn_hidden,num_layers,max_len,description)
+        if not os.path.isdir(csvfile_outdir):
+            os.makedirs(csvfile_outdir)
+        if (Spatial_CrossValidation_Switch and Spatial_CV_Apply_wandb_sweep_Switch) or (Hyperparameters_Search_Validation_Switch and HSV_Apply_wandb_sweep_Switch):
+
+            csvfile_outdir = csvfile_outdir + 'sweep-{}/'.format(name)
+            if not os.path.isdir(csvfile_outdir):
+                os.makedirs(csvfile_outdir)
+            csvfile_outfile = csvfile_outdir + '{}_{}_{}_{}_{}_{}Channel_{}-{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_sweep-{}.csv'.format(species,version,
+                                                                                                                Evaluation_type,Model_structure_type,typeName,
+                                                                                                                len(main_stream_channel_names),test_begindate,
+                                                                                                                test_enddate,d_model,n_head,ffn_hidden,num_layers,max_len,sweep_id)
+        else:
+            csvfile_outfile = csvfile_outdir + '{}_{}_{}_{}_{}_{}Channel_{}-{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens{}.csv'.format(species,version,
+                                                                                                                Evaluation_type,Model_structure_type,typeName,
+                                                                                                                len(main_stream_channel_names),test_begindate,
+                                                                                                                test_enddate,d_model,n_head,ffn_hidden,num_layers,max_len,description)
     return csvfile_outfile
 
     

@@ -4,6 +4,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from Training_pkg.utils import *
+from Model_Structure_pkg.utils import *
 
 class SelfDesigned_LossFunction(nn.Module):
     def __init__(self,losstype,size_average=None,reduce=None,reduction:str='mean')->None:
@@ -13,11 +14,32 @@ class SelfDesigned_LossFunction(nn.Module):
         self.GeoMSE_Lamba1_Penalty1 = GeoMSE_Lamba1_Penalty1
         self.GeoMSE_Lamba1_Penalty2 = GeoMSE_Lamba1_Penalty2
         self.GeoMSE_Gamma  = GeoMSE_Gamma
-    def forward(self,model_output,target,geophsical_species,geopysical_mean,geopysical_std):
+    def forward(self,model_output,target,geophsical_species,geopysical_mean,geopysical_std,mask=None):
         if self.Loss_Type == 'MSE':
-            loss = F.mse_loss(model_output, target,reduction=self.reduction)
-            #print('MSE Loss: {}'.format(loss))
-            return loss
+            if Apply_Transformer_architecture == True:
+                """
+                This is the mask
+                Computes the mean squared error loss with a mask.
+                
+                predictions: (B, T, D)
+                targets:     (B, T, D)
+                mask:        (B, T) or (B, T, 1) with 1 for valid, 0 for invalid
+                """
+
+                model_output = torch.squeeze(model_output) 
+                print('model_output:', model_output.shape, 'target:', target.shape, 'mask:', mask.shape)
+                squared_error = (model_output - target) ** 2
+                
+                #print('predictions:', predictions)
+                masked_loss = squared_error * mask
+                #print('squared_error:', squared_error[0,:,:],'mask:', mask[0,:,:], 'masked_loss:', masked_loss[0,:,:])
+                loss = masked_loss.sum() / mask.sum().clamp(min=1e-8)  # avoid divide by zero
+                #print('MSE Loss: {}'.format(loss))
+                return loss
+            else:
+                loss = F.mse_loss(model_output, target)
+                #print('MSE Loss: {}'.format(loss))
+                return loss
         
         elif self.Loss_Type == 'GeoMSE':
             geophsical_species = geophsical_species * geopysical_std + geopysical_mean
