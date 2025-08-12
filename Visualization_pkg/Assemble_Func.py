@@ -1,7 +1,7 @@
 import numpy as np
 import os
 from Evaluation_pkg.utils import get_YYYY_MM
-from Visualization_pkg.Evaluation_plots import longterm_regression_plot,every_point_regression_plot
+from Visualization_pkg.Evaluation_plots import longterm_regression_plot,every_point_regression_plot,plot_final_obs_comparison,plot_R2_rRMSE_timeseries
 from Visualization_pkg.iostream import get_figure_outfile_path
 from Training_pkg.utils import *
 from Training_pkg.Statistic_func import regress2, linear_regression
@@ -11,7 +11,12 @@ def plot_longterm_Annual_Monthly_Daily_Scatter_plots(Evaluation_type,typeName,fi
     width = args.get('width', 11)
     height = args.get('height', 11)
     depth = args.get('depth', 3)
-    
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
+
     fig_outdir = figure_outdir + '{}/{}/Figures/Scatter_Plot/{}/'.format(species, version,Evaluation_type)
     if not os.path.exists(fig_outdir):
         os.makedirs(fig_outdir)
@@ -38,8 +43,10 @@ def plot_longterm_Annual_Monthly_Daily_Scatter_plots(Evaluation_type,typeName,fi
     every_monthly_point_outfile = get_figure_outfile_path(outdir=fig_outdir,evaluation_type=Evaluation_type,
                                                         figure_type='EveryMonthlyPoints',typeName=typeName,
                                                         begindate=plot_begin_date,enddate=plot_end_date,
-                                                        nchannel=nchannel, width=width, height=height, depth=depth,)
-    
+                                                        nchannel=nchannel, width=width, height=height, depth=depth,
+                                                        d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden,
+                                                        num_layers=num_layers, max_len=max_len)
+
     Allpoints_monthly_temp_final_data = np.array([],dtype=np.float64)
     Allpoints_monthly_temp_obs_data = np.array([],dtype=np.float64)
     for imonth, MM in enumerate(MONTHs):
@@ -80,7 +87,9 @@ def plot_longterm_Annual_Monthly_Daily_Scatter_plots(Evaluation_type,typeName,fi
     every_annual_point_outfile = get_figure_outfile_path(outdir=fig_outdir,evaluation_type=Evaluation_type,
                                                         figure_type='EveryAnnualPoints',typeName=typeName,
                                                         begindate=plot_begin_date,enddate=plot_end_date,
-                                                        nchannel=nchannel, width=width, height=height, depth=depth,)
+                                                        nchannel=nchannel, width=width, height=height, depth=depth,
+                                                        d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden,
+                                                        num_layers=num_layers, max_len=max_len)
     Allpoints_annual_final_data = np.array([],dtype=np.float64)
     Allpoints_annual_obs_data = np.array([],dtype=np.float64)
     for iyear, YYYY in enumerate(total_unique_YYYY):
@@ -119,7 +128,9 @@ def plot_longterm_Annual_Monthly_Daily_Scatter_plots(Evaluation_type,typeName,fi
     longterm_fig_outfile = get_figure_outfile_path(outdir=fig_outdir,evaluation_type=Evaluation_type,
                                                    figure_type='Longterm',typeName=typeName,
                                                    begindate=plot_begin_date,enddate=plot_end_date,
-                                                   nchannel=nchannel, width=width, height=height, depth=depth,)
+                                                   nchannel=nchannel, width=width, height=height, depth=depth,
+                                                   d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden,
+                                                   num_layers=num_layers, max_len=max_len)
     for isite in temp_sites:
         temp_sites_index = np.where(sites_recording[temp_index] == isite)[0]
         
@@ -133,11 +144,48 @@ def plot_longterm_Annual_Monthly_Daily_Scatter_plots(Evaluation_type,typeName,fi
     return
 
 
-def plot_timeseries_statistics_plots():
-    #### Plot Daily timeseries and monthly whole range R2/rRMSE plots in different regions
+def plot_timeseries_statistics_plots(Evaluation_type,typeName,final_data_recording,obs_data_recording,
+                                                     sites_recording, dates_recording,plot_begin_date,plot_end_date,nchannel,**args):
+    width = args.get('width', 11)
+    height = args.get('height', 11)
+    depth = args.get('depth', 3)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
 
+    fig_outdir = figure_outdir + '{}/{}/Figures/Scatter_Plot/{}/'.format(species, version,Evaluation_type)
+    if not os.path.exists(fig_outdir):
+        os.makedirs(fig_outdir)
+    temp_index = temp_index = np.where((dates_recording >= plot_begin_date) & (dates_recording <= plot_end_date))[0]
+    ### First print the all data points daily scatter plot
+    print('Plotting the daily scatter plot for {} from {} to {}'.format(species, plot_begin_date, plot_end_date))
+    R2_rRMSE_timeseries_outfile = get_figure_outfile_path(outdir=fig_outdir,evaluation_type=Evaluation_type,
+                                                        figure_type='R2_rRMSE_timeseries',typeName=typeName,
+                                                        begindate=plot_begin_date,enddate=plot_end_date,
+                                                        nchannel=nchannel, width=width, height=height, depth=depth,
+                                                        d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden,
+                                                        num_layers=num_layers, max_len=max_len)
+    temp_final_data = final_data_recording[temp_index].copy()
+    temp_obs_data = obs_data_recording[temp_index].copy()
+    plot_R2_rRMSE_timeseries(final_data=temp_final_data, obs_data=temp_obs_data,
+                             sites_data=sites_recording[temp_index], dates_data=dates_recording[temp_index],
+                             outfile=R2_rRMSE_timeseries_outfile)
+    
+    ### Then print observation and model derived data comparison plot
+    print('Plotting the observation and model derived data comparison plot for {} from {} to {}'.
+            format(species, plot_begin_date, plot_end_date))
+    final_obs_comparison_outfile = get_figure_outfile_path(outdir=fig_outdir,evaluation_type=Evaluation_type,
+                                                        figure_type='Model_Obs_Comparison',typeName=typeName,
+                                                        begindate=plot_begin_date,enddate=plot_end_date,
+                                                        nchannel=nchannel, width=width, height=height, depth=depth,
+                                                        d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden,
+                                                        num_layers=num_layers, max_len=max_len)
+    plot_final_obs_comparison(final_data=temp_final_data, obs_data=temp_obs_data,
+                              sites_data=sites_recording[temp_index], dates_data=dates_recording[temp_index],
+                              area='North America', outfile=final_obs_comparison_outfile)
     return
-
 def plot_R2_rRMSE_Spatial_Distribution_plots():
     #### Plot R2/rRMSE at each sites on the map
 

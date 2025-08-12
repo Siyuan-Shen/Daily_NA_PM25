@@ -18,5 +18,5 @@ class Decoder(nn.Module):
         for layer in self.layers:
             x = layer(x, enc_output, target_mask, src_mask)
         x = self.linear(x)
-        x.squeeze(-1)  # Remove the last dimension
+        #x = x.unsqueeze(-1)  # Remove the last dimension
         return x

@@ -86,29 +86,33 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
     elif Apply_3D_CNN_architecture:
         Model_structure_type = '3DCNNModel'
-        print('Init_CNN_Datasets starting...')
+        print('Init_3DCNN_Datasets starting...')
         start_time = time.time()
         Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
-        print('Init_CNN_Datasets finished, time elapsed: ', time.time() - start_time)
-        
+        print('Init_3DCNN_Datasets finished, time elapsed: ', time.time() - start_time)
+
         total_sites_number = Init_CNN_Datasets.total_sites_number
 
         true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
         TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
         depth, width, height = Init_CNN_Datasets.depth,Init_CNN_Datasets.width, Init_CNN_Datasets.height
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
+        
+
     elif Apply_Transformer_architecture:
         Model_structure_type = 'TransformerModel'
-        print('Init_CNN_Datasets starting...')
+        print('Init_Transformer_Datasets starting...')
         start_time = time.time()
-        Init_CNN_Datasets = TransformerInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
-        print('Init_CNN_Datasets finished, time elapsed: ', time.time() - start_time)
-        
-        total_sites_number = Init_CNN_Datasets.total_sites_number
+        Init_Transformer_Datasets = TransformerInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
+        print('Init_Transformer_Datasets finished, time elapsed: ', time.time() - start_time)
 
-        true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
-        TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
-        sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
+        total_sites_number = Init_Transformer_Datasets.total_sites_number
+
+        true_input_mean, true_input_std = Init_Transformer_Datasets.true_input_mean, Init_Transformer_Datasets.true_input_std
+        TrainingDatasets_mean, TrainingDatasets_std = Init_Transformer_Datasets.TrainingDatasets_mean, Init_Transformer_Datasets.TrainingDatasets_std
+        sites_lat, sites_lon = Init_Transformer_Datasets.sites_lat, Init_Transformer_Datasets.sites_lon
+
+        
     #####################################################################
 
     # Start the hyperparameters search validation
@@ -126,7 +130,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
             training_dates_recording = np.array([],dtype=int)
             manager = Manager()
             run_id_container = manager.dict() 
-            
+
             if HSV_Spatial_splitting_Switch:
                 
                 for imodel in range(len(HSV_Spatial_splitting_begindates)):
@@ -149,14 +153,14 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     elif Apply_Transformer_architecture:
                         # Get the initial true_input and training datasets for the current model (within the desired time range)
                         print('1...')
-                        desired_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data = Init_CNN_Datasets.get_desired_range_inputdatasets(start_date=HSV_Spatial_splitting_begindates[imodel],
-                                                                                                        end_date=HSV_Spatial_splitting_enddates[imodel],max_len=Transformer_max_len,spinup_len=Transformer_spin_up_len)
+                        desired_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data = Init_Transformer_Datasets.get_desired_range_inputdatasets(start_date=HSV_Spatial_splitting_begindates[imodel],
+                                                                                                        end_date=HSV_Spatial_splitting_enddates[imodel],max_len=max_len,spinup_len=spin_up_len)
                         # Normalize the training datasets
                         print('2...')
-                        normalized_TrainingDatasets  = Init_CNN_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
+                        normalized_TrainingDatasets  = Init_Transformer_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
                         # Concatenate the training datasets and true input for the current model for training and tetsing purposes
                         print('3...')
-                        cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                        cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_Transformer_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
                                                                                                                                                 desired_normalized_trainingdatasets=normalized_TrainingDatasets,
                                                                                                                                                 desired_ground_observation_data=desired_ground_observation_data,
                                                                                                                                                 desired_geophysical_species_data=desired_geophysical_species_data)
@@ -165,7 +169,8 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     training_selected_sites, testing_selected_sites = randomly_select_training_testing_indices(sites_index=np.arange(total_sites_number), training_portion=HSV_Spatial_splitting_training_portion)
                     print('training_selected_sites: ',training_selected_sites.shape)
                     print('testing_selected_sites: ',testing_selected_sites.shape) 
-                
+
+                    print('cctnd_trainingdatasets[0]: ', cctnd_trainingdatasets[0])
                     X_train, y_train, X_test, y_test, dates_train, dates_test, sites_train, sites_test, train_datasets_index, test_datasets_index = Split_Datasets_based_site_index(train_site_index=training_selected_sites,
                                                                                                                                         test_site_index=testing_selected_sites,
                                                                                                                                         total_trainingdatasets=cctnd_trainingdatasets,
@@ -274,9 +279,14 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                                                         mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                         training_output = transformer_predict(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                         mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
+                        
+                        validation_output = np.squeeze(validation_output)
+                        training_output = np.squeeze(training_output)
+
                     del Daily_Model
                     gc.collect()
                     
+
                     # Get the final output for the validation datasets
                     final_output = Get_final_output(Validation_Prediction=validation_output, validation_geophysical_species=cctnd_geophysical_species_data[test_datasets_index],
                                                     bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
@@ -284,22 +294,29 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     training_final_output = Get_final_output(Validation_Prediction=training_output, validation_geophysical_species=cctnd_geophysical_species_data[train_datasets_index],
                                                     bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
                                                     log_species=False, mean=true_input_mean, std=true_input_std)
-
+                    
+                    print('final_output.shape: ', final_output.shape)
+                    print('training_final_output.shape: ', training_final_output.shape)
+                    print('cctnd_ground_observation_data[test_datasets_index].shape: ', cctnd_ground_observation_data[test_datasets_index].shape)
+                    print('cctnd_geophysical_species_data[test_datasets_index].shape: ', cctnd_geophysical_species_data[test_datasets_index].shape)
+                    print('sites_test.shape: ', sites_test.shape)
+                    print('dates_test.shape: ', dates_test.shape)
+                    
+                    if Apply_Transformer_architecture:
+                        sites_test = np.tile(sites_test[:,np.newaxis], (1, max_len+spin_up_len)).flatten()
+                        sites_train = np.tile(sites_train[:,np.newaxis], (1, max_len+spin_up_len)).flatten()
                     final_data_recording = np.concatenate((final_data_recording, final_output), axis=0)
-                    obs_data_recording = np.concatenate((obs_data_recording, cctnd_ground_observation_data[test_datasets_index]), axis=0)
-                    geo_data_recording = np.concatenate((geo_data_recording, cctnd_geophysical_species_data[test_datasets_index]), axis=0)
+                    obs_data_recording = np.concatenate((obs_data_recording, cctnd_ground_observation_data[test_datasets_index].flatten()), axis=0)
+                    geo_data_recording = np.concatenate((geo_data_recording, cctnd_geophysical_species_data[test_datasets_index].flatten()), axis=0)
                     sites_recording = np.concatenate((sites_recording, sites_test), axis=0)
-                    dates_recording = np.concatenate((dates_recording, dates_test), axis=0)
+                    dates_recording = np.concatenate((dates_recording, dates_test.flatten()), axis=0)
 
                     training_final_data_recording = np.concatenate((training_final_data_recording, training_final_output), axis=0)
-                    training_obs_data_recording = np.concatenate((training_obs_data_recording, cctnd_ground_observation_data[train_datasets_index]), axis=0)
+                    training_obs_data_recording = np.concatenate((training_obs_data_recording, cctnd_ground_observation_data[train_datasets_index].flatten()), axis=0)
                     training_sites_recording = np.concatenate((training_sites_recording, sites_train), axis=0)
-                    training_dates_recording = np.concatenate((training_dates_recording, dates_train), axis=0)
-                
-                
-                
-    
-    
+                    training_dates_recording = np.concatenate((training_dates_recording, dates_train.flatten()), axis=0)
+
+
                                                                                                                                                                                                                                        
     Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording = calculate_statistics(test_begindates=HSV_Spatial_splitting_begindates[0],
                                                                                                                 test_enddates=HSV_Spatial_splitting_enddates[-1],final_data_recording=final_data_recording,
@@ -378,7 +395,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         
         wandb.finish()
 
-        del Init_CNN_Datasets, final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
+        del final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
         del training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording
         del Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording
         gc.collect()

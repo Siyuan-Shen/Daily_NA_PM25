@@ -15,7 +15,32 @@ def calculate_statistics(test_begindates,test_enddates, final_data_recording,obs
     print('test_begindates type:', type(test_begindates))
     print('test_begindates:', test_begindates)
     YYYY_series_dict,MM_series_dict, total_unique_YYYY = get_YYYY_MM(test_begindates, test_enddates)
+    ## Exclude the Nan values from the final_data_recording, obs_data_recording, geo_data_recording, training_final_data_recording, training_obs_data_recording
+    nan_indices = np.isnan(obs_data_recording)
+    training_nan_indices = np.isnan(training_obs_data_recording)
+
+    final_data_recording = final_data_recording[~nan_indices]
+    obs_data_recording = obs_data_recording[~nan_indices]
+    geo_data_recording = geo_data_recording[~nan_indices]
+    training_final_data_recording = training_final_data_recording[~training_nan_indices]
+    training_obs_data_recording = training_obs_data_recording[~training_nan_indices]
+
+    dates_recording = dates_recording[~nan_indices]
+    sites_recording = sites_recording[~nan_indices]
     
+    training_dates_recording = training_dates_recording[~training_nan_indices]
+    training_sites_recording = training_sites_recording[~training_nan_indices]
+
+    # print sizes:
+    print('final_data_recording size:', final_data_recording.shape)
+    print('obs_data_recording size:', obs_data_recording.shape)
+    print('geo_data_recording size:', geo_data_recording.shape)
+    print('training_final_data_recording size:', training_final_data_recording.shape)
+    print('training_obs_data_recording size:', training_obs_data_recording.shape)
+    print('dates_recording size:', dates_recording.shape)
+    print('sites_recording size:', sites_recording.shape)
+    print('training_dates_recording size:', training_dates_recording.shape)
+    print('training_sites_recording size:', training_sites_recording.shape)
     # Daily statistics
     # Purely_Spatial statistics
     for iday in dates_series:
@@ -31,7 +56,7 @@ def calculate_statistics(test_begindates,test_enddates, final_data_recording,obs
         
         if len(temp_index) > 0 and len(temp_training_index) > 0:
             temp_test_R2, temp_train_R2, temp_geo_R2, temp_RMSE, temp_NRMSE, intercept, slope = calculation_process_of_statistics(temp_final_data, temp_obs_data, temp_geo_data, temp_training_final_data, temp_training_obs_data)
-            print('temp_test_R2:', temp_test_R2, 'temp_train_R2:', temp_train_R2, 'temp_geo_R2:', temp_geo_R2, 'temp_RMSE:', temp_RMSE, 'temp_NRMSE:', temp_NRMSE)
+            print('iday: ', iday, 'temp_test_R2:', temp_test_R2, 'temp_train_R2:', temp_train_R2, 'temp_geo_R2:', temp_geo_R2, 'temp_RMSE:', temp_RMSE, 'temp_NRMSE:', temp_NRMSE)
             if temp_test_R2 > 0:
                 Daily_statistics_recording['Purely_Spatial']['test_R2'] = np.concatenate((Daily_statistics_recording['Purely_Spatial'].get('test_R2', []), [temp_test_R2]))
             if temp_RMSE > 0:
@@ -90,6 +115,7 @@ def calculate_statistics(test_begindates,test_enddates, final_data_recording,obs
             temp_training_obs_data = np.concatenate((temp_training_obs_data, training_obs_data_recording[temp_training_index].copy()))
                 
         temp_test_R2, temp_train_R2, temp_geo_R2, temp_RMSE, temp_NRMSE, intercept, slope = calculation_process_of_statistics(temp_final_data, temp_obs_data, temp_geo_data, temp_training_final_data, temp_training_obs_data)
+        
         Daily_statistics_recording['Monthly_Scale'][MM]['test_R2'] = temp_test_R2
         Daily_statistics_recording['Monthly_Scale'][MM]['RMSE'] = temp_RMSE
         Daily_statistics_recording['Monthly_Scale'][MM]['NRMSE'] = temp_NRMSE
@@ -157,6 +183,7 @@ def calculate_statistics(test_begindates,test_enddates, final_data_recording,obs
                         temp_training_obs_data = np.concatenate((temp_training_obs_data, [temp_monthly_training_obs_data]))
             
             temp_test_R2, temp_train_R2, temp_geo_R2, temp_RMSE, temp_NRMSE, intercept, slope = calculation_process_of_statistics(temp_final_data, temp_obs_data, temp_geo_data, temp_training_final_data, temp_training_obs_data)
+            print('YYYY:', YYYY, 'MM:', MM, 'temp_test_R2:', temp_test_R2, 'temp_train_R2:', temp_train_R2, 'temp_geo_R2:', temp_geo_R2, 'temp_RMSE:', temp_RMSE, 'temp_NRMSE:', temp_NRMSE)
             if temp_test_R2 > 0:
                 Monthly_statistics_recording['Purely_Spatial'][MM]['test_R2'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial'][MM].get('test_R2', []), [temp_test_R2]))
                 Monthly_statistics_recording['Purely_Spatial']['AllMonths']['test_R2'] = np.concatenate((Monthly_statistics_recording['Purely_Spatial']['AllMonths'].get('test_R2', []), [temp_test_R2]))
@@ -263,6 +290,7 @@ def calculate_statistics(test_begindates,test_enddates, final_data_recording,obs
             Allpoints_annual_training_final_data = np.concatenate((Allpoints_annual_training_final_data, temp_training_final_data))
             Allpoints_annual_training_obs_data = np.concatenate((Allpoints_annual_training_obs_data, temp_training_obs_data))
         annual_test_R2, annual_train_R2, annual_geo_R2, annual_RMSE, annual_NRMSE, intercept, slope = calculation_process_of_statistics(temp_final_data, temp_obs_data, temp_geo_data, temp_training_final_data, temp_training_obs_data)
+        print('YYYY:', YYYY, 'annual_test_R2:', annual_test_R2, 'annual_train_R2:', annual_train_R2, 'annual_geo_R2:', annual_geo_R2, 'annual_RMSE:', annual_RMSE, 'annual_NRMSE:', annual_NRMSE)
         if annual_test_R2 > 0:
             Annual_statistics_recording['Purely_Spatial']['test_R2'] = np.concatenate((Annual_statistics_recording['Purely_Spatial'].get('test_R2', []), [annual_test_R2]))
         if annual_RMSE > 0:

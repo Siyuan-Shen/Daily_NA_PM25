@@ -50,8 +50,8 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
             outdir = outdir + 'sweep-{}/'.format(sweep.name)
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
-            outfile = outdir + '{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel_sweep-{}.pt'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel, sweep_id)
-        outfile = outdir + '{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}.pt'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel, description)
+            outfile = outdir + '{}_{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel_sweep-{}.npy'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel, sweep_id)
+        outfile = outdir + '{}_{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}.npy'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel, description)
     return outfile
 
 def save_SHAPValues_data_recording(shap_values_values:np.array, shap_values_data:np.array,species, version, begindates,enddates, evaluation_type, typeName,nchannel,**args):
@@ -130,7 +130,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
                          'Test R2 - Std', 'Test geo R2 - Std', 'Train R2 - Std',
                          'Test RMSE - Std', 'Test NRMSE - Std','Test slope - Std'])
         ## Write the All points for Daily
-       
+        print('Writing the All points for Daily...')
         writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area ,'Daily - Allpoints',
                         str(np.round(Daily_statistics_recording['All_points']['test_R2'], 4)),
                         str(np.round(Daily_statistics_recording['All_points']['geo_R2'], 4)),
@@ -156,7 +156,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
                         0.0, 0.0, 0.0, 0.0,0.0,0.0])
         ## Write the Purely Spatial for Daily 
         
-
+        print('Writing the Purely Spatial for Daily...')
         writer.writerow(['{}-{}'.format(test_begindate,test_enddate),  Area ,'Daily - Purely Spatial',
                         
                         str(np.round(np.mean(Daily_statistics_recording['Purely_Spatial']['test_R2']), 4)),
@@ -192,6 +192,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
         ## Write the Monthly Sacle for Daily data
 
         for imonth in MONTH[1:]:
+            print('Writing the Monthly Scale for Daily data - {}'.format(imonth))
             writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Daily - Monthly Scale - {}'.format(imonth),
                             str(np.round(Daily_statistics_recording['Monthly_Scale'][imonth]['test_R2'], 4)),
                             str(np.round(Daily_statistics_recording['Monthly_Scale'][imonth]['geo_R2'], 4)),
@@ -217,7 +218,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0,])
         
         ## Write the Monthly All Points Statistics
-
+        print('Writing the Monthly All Points Statistics...')
         writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Monthly - All Months Allpoints',
                             str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['test_R2'], 4)),
                             str(np.round(Monthly_statistics_recording['All_points']['AllMonths']['geo_R2'], 4)),
@@ -244,6 +245,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
                             
                             
         for imonth in MONTH[1:]:
+            print('Writing the Monthly Scale for Daily data - {}'.format(imonth))
             writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Monthly - Allpoints - {}'.format(imonth),
                             str(np.round(Monthly_statistics_recording['All_points'][imonth]['test_R2'], 4)),
                             str(np.round(Monthly_statistics_recording['All_points'][imonth]['geo_R2'], 4)),
@@ -270,6 +272,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
         
 
         ## Write the Monthly Purely Spatial Statistics
+        print('Writing the Monthly Purely Spatial Statistics...')
         writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Monthly - Purely Spatial (All Months)',
                                 str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['test_R2']), 4)),
                                 str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['geo_R2']), 4)),
@@ -300,6 +303,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
                                 str(np.round(np.std(Monthly_statistics_recording['Purely_Spatial']['AllMonths']['slope']), 4)),
                                 ])
         for imonth in MONTH[1:]:
+            print('Writing the Monthly Purely Spatial Statistics - {}'.format(imonth))
             writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Monthly - Purely Spatial - {}'.format(imonth),
                                 str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial'][imonth]['test_R2']), 4)),
                                 str(np.round(np.mean(Monthly_statistics_recording['Purely_Spatial'][imonth]['geo_R2']), 4)),
@@ -332,6 +336,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
                                 ])
         
         ## Write the Annual All Points Statistics
+        print('Writing the Annual All Points Statistics...')
         writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Annual - Allpoints',
                         str(np.round(Annual_statistics_recording['All_points']['test_R2'], 4)),
                         str(np.round(Annual_statistics_recording['All_points']['geo_R2'], 4)),
@@ -356,6 +361,7 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
 
                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0,])
         ## Write the Annual Purely Spatial Statistics
+        print('Writing the Annual Purely Spatial Statistics...')
         writer.writerow(['{}-{}'.format(test_begindate,test_enddate), Area , 'Annual - Purely Spatial',
                         str(np.round(np.mean(Annual_statistics_recording['Purely_Spatial']['test_R2']), 4)),
                         str(np.round(np.mean(Annual_statistics_recording['Purely_Spatial']['geo_R2']), 4)),

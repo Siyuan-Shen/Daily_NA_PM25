@@ -11,6 +11,7 @@ from sklearn.metrics import mean_squared_error,r2_score
 from matplotlib.ticker import ScalarFormatter
 from Training_pkg.Statistic_func import linear_regression, regress2
 from Visualization_pkg.utils import return_sign
+from Training_pkg.utils import *
 
 nrows = 2
 ncols = 2
@@ -187,3 +188,48 @@ def longterm_regression_plot(plot_obs_pm25:np.array,plot_pre_pm25:np.array,
 
     fig.savefig(outfile, dpi=1000,transparent = True,bbox_inches='tight' )
     plt.show()
+
+def plot_R2_rRMSE_timeseries(final_data, obs_data, sites_data,dates_data,outfile):
+    ## left y-axis is the R2, right y-axis is the rRMSE
+    unique_sites = np.unique(sites_data)
+    unique_dates = np.unique(dates_data)
+    ## Convert dates from YYYYMMDD to datetime objects for plotting
+    # Convert integer date in YYYYMMDD format to datetime64 for plotting
+    dates = np.array([np.datetime64(f"{int(date)//10000:04d}-{(int(date)%10000)//100:02d}-{int(date)%100:02d}", 'D') for date in unique_dates])
+    r2_array = np.array([np.corrcoef(final_data[dates_data == date], obs_data[dates_data == date])[0, 1]**2 for date in unique_dates])
+    rrmse_array = np.array([np.sqrt(np.mean((final_data[dates_data == date] - obs_data[dates_data == date])**2)) / np.mean(obs_data[dates_data == date]) for date in unique_dates])
+    fig, ax1 = plt.subplots(figsize=(12, 6))
+    ax1.plot(dates, r2_array, 'b-', label='R2', linewidth=2)
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('R2', color='b')
+    ax1.tick_params(axis='y', labelcolor='b')
+    ax2 = ax1.twinx()
+    ax2.plot(dates, rrmse_array, 'r-', label='rRMSE', linewidth=2)
+    ax2.set_ylabel('rRMSE', color='r')
+    ax2.tick_params(axis='y', labelcolor='r')
+    ax1.set_title('R2 and rRMSE Timeseries for {} at {} Sites'.format(species, len(unique_sites)))
+    fig.tight_layout()
+    fig.savefig(outfile, dpi=1000,transparent = True,bbox_inches='tight' )
+    plt.show()
+
+
+def plot_final_obs_comparison(final_data, obs_data, sites_data, dates_data,outfile,area='North America',):
+    unique_sites = np.unique(sites_data)
+    unique_dates = np.unique(dates_data)
+    dates = np.array([np.datetime64(f"{int(date)//10000:04d}-{(int(date)%10000)//100:02d}-{int(date)%100:02d}", 'D') for date in unique_dates])
+    daily_average_final_data = np.array([np.mean(final_data[dates_data == date]) for date in unique_dates])
+    daily_average_obs_data = np.array([np.mean(obs_data[dates_data == date]) for date in unique_dates])
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    ax.plot(dates, daily_average_obs_data, 'r-', label='Observed Data', linewidth=3)
+    ax.plot(dates, daily_average_final_data, 'b-', label='Model Derived Data', linewidth=3)
+    ax.set_xlabel('Date',fontdict={'fontsize':14})
+    ax.set_ylabel(r'$PM_{2.5}$ Concentration', fontdict={'fontsize':14})
+    ax.set_title(area + r' Daily Average Final vs Observed $PM_{2.5}$ Concentration Timeseries',fontsize=16)
+    ax.legend(fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    fig.tight_layout()
+    fig.savefig(outfile, dpi=1000,transparent = True,bbox_inches='tight' )
+    plt.show()
+
