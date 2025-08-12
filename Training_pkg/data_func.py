@@ -52,7 +52,7 @@ class TransformerInputDatasets():
             site = str(isite)
             
             if np.isnan(self.geophysical_species_data[site]['geoPM25']).any():
-                print('Warning: Site {} has NaN values in PM2.5 data!'.format(site))
+                #print('Warning: Site {} has NaN values in PM2.5 data!'.format(site))
                 if np.isnan(self.geophysical_species_data[site]['geoPM25']).all():
                     del temp_observation_data[site]
                     del temp_geophysical_species_data[site]
@@ -71,7 +71,7 @@ class TransformerInputDatasets():
                     temp_bias_data[site]['dates'] = np.delete(temp_bias_data[site]['dates'], indice, axis=0)
                 '''
             elif len(self.ground_observation_data[site]['PM25']) < self.datapoints_threshold:
-                    print('Warning: Site {} has less than {} data points!'.format(site, self.datapoints_threshold))
+                    #print('Warning: Site {} has less than {} data points!'.format(site, self.datapoints_threshold))
                     del temp_observation_data[site]
                     del temp_geophysical_species_data[site]
                     del temp_bias_data[site]
@@ -127,7 +127,9 @@ class TransformerInputDatasets():
             elif normalize_type == 'MinMax':
                 bias_mean = np.min(total_bias_data)
                 bias_std = np.max(total_bias_data) - np.min(total_bias_data)
-
+            elif normalize_type == 'Robust':
+                bias_mean = np.median(total_bias_data)
+                bias_std = np.percentile(total_bias_data, 75) - np.percentile(total_bias_data, 25)
 
             for index, isite in enumerate(Bias_data.keys()):
                 Bias_data[str(isite)]['geobias'] = (Bias_data[str(isite)]['geobias'] - bias_mean) / bias_std
@@ -157,6 +159,9 @@ class TransformerInputDatasets():
             elif normalize_type == 'MinMax':
                 PM_mean = np.min(total_PM_data)
                 PM_std = np.max(total_PM_data) - np.min(total_PM_data)
+            elif normalize_type == 'Robust':
+                PM_mean = np.median(total_PM_data)
+                PM_std = np.percentile(total_PM_data, 75) - np.percentile(total_PM_data, 25)
             for index,isite in enumerate(PM_data.keys()):
                 PM_data[str(isite)]['PM25'] = (PM_data[str(isite)]['PM25'] - PM_mean) / PM_std
             true_input = PM_data
@@ -262,6 +267,9 @@ class TransformerInputDatasets():
         elif training_data_normalization_type == 'MinMax':
             TrainingDatasets_mean = np.min(total_trainingdatasets, axis=0)
             TrainingDatasets_std = np.max(total_trainingdatasets, axis=0) - np.min(total_trainingdatasets, axis=0)
+        elif training_data_normalization_type == 'Robust':
+            TrainingDatasets_mean = np.median(total_trainingdatasets, axis=0)
+            TrainingDatasets_std = np.percentile(total_trainingdatasets, 75, axis=0) - np.percentile(total_trainingdatasets, 25, axis=0)
 
         return TrainingDatasets_mean, TrainingDatasets_std
     
@@ -314,13 +322,13 @@ class TransformerInputDatasets():
             temp_desired_observation_data = np.full((number_of_batch_each_site, max_len+spinup_len, Transformer_trg_dim), np.nan, dtype=np.float32)
             temp_desired_true_input = np.full((number_of_batch_each_site, max_len+spinup_len, Transformer_trg_dim), np.nan, dtype=np.float32)
             temp_desired_geophysical_species_data = np.full((number_of_batch_each_site, max_len+spinup_len, Transformer_trg_dim), np.nan, dtype=np.float32)
-            temp_desired_trainingdatasets = np.full((number_of_batch_each_site, max_len+ spinup_len, self.trainingdatasets[str(isite)]['data'].shape[1]), np.nan, dtype=np.float32)
+            temp_desired_trainingdatasets = np.full((number_of_batch_each_site, max_len+ spinup_len, self.trainingdatasets[str(isite)]['data'].shape[1]), 0.0, dtype=np.float32)
 
             
             for i in range(number_of_batch_each_site):
                 site = str(isite)
                 ## temp_start_date is the start date + i * max_len - spinup_len
-                temp_start_date =str_start_date + timedelta(days=i * max_len)
+                temp_start_date = str_start_date + timedelta(days=i * max_len)
                 temp_end_date   = temp_start_date + timedelta(days=max_len - 1)
                 temp_start_date_with_spinup = temp_start_date - timedelta(days=spinup_len)
 
@@ -328,7 +336,7 @@ class TransformerInputDatasets():
                 temp_start_date_with_spinup = int(temp_start_date_with_spinup.strftime('%Y%m%d'))
                 temp_end_date = int(temp_end_date.strftime('%Y%m%d'))
 
-                print('Processing site {}: Batch {} with start date {} and end date {}, and spin-up period start date {}'.format(site, i, temp_start_date, temp_end_date, temp_start_date_with_spinup))
+                #print('Processing site {}: Batch {} with start date {} and end date {}, and spin-up period start date {}'.format(site, i, temp_start_date, temp_end_date, temp_start_date_with_spinup))
 
 
                 ## create a date range for the current batch with spin-up period
@@ -336,10 +344,10 @@ class TransformerInputDatasets():
                 total_dates_array[i, :len(temp_dates_range)] = temp_dates_range
 
                 ## Find the indices of the dates in the desired_true_input and desired_trainingdatasets for the current batch
-                print('desired_true_input[site][\'dates\']: ', desired_true_input[site]['dates'])
+                #print('desired_true_input[site][\'dates\']: ', desired_true_input[site]['dates'])
                 
                 if len(np.where(desired_true_input[site]['dates'] >= temp_start_date)[0]) == 0 or len(np.where(desired_true_input[site]['dates'] <= temp_end_date)[0]) == 0:
-                    print('Warning: Site {} has no data in the desired range of input datasets!'.format(site))
+                    #print('Warning: Site {} has no data in the desired range of input datasets!'.format(site))
                     continue
                 else:
                     start_index = np.where(desired_true_input[site]['dates'] >= temp_start_date)[0][0]
@@ -361,7 +369,7 @@ class TransformerInputDatasets():
                     else:
                         temp_desired_true_input[i,batch_indices] = np.expand_dims(self.true_input[site]['PM25'][start_index:end_index+1], axis=-1)
                     temp_desired_geophysical_species_data[i,batch_indices] = np.expand_dims(self.geophysical_species_data[site]['geoPM25'][start_index:end_index+1], axis=-1)
-                    temp_desired_trainingdatasets[i,training_batch_indices,:] = self.trainingdatasets[site]['data'][trainingdatasets_start_index:trainingdatasets_end_index+1]
+                    temp_desired_trainingdatasets[i,training_batch_indices,:] = self.trainingdatasets[site]['data'][trainingdatasets_start_index:trainingdatasets_end_index+1,:]
 
             ## Assign the desired range of input datasets to the desired dictionaries
             desired_ground_observation_data[site]['PM25'] = temp_desired_observation_data
@@ -419,7 +427,7 @@ class TransformerInputDatasets():
         total_dates = total_dates[~nan_indices]
         total_sites_index = total_sites_index[~nan_indices]
 
-        print('total_sites_index.shape: ',total_sites_index.shape)
+        #print('total_sites_index.shape: ',total_sites_index.shape)
         return total_trainingdatasets, total_true_input, total_ground_observation_data,total_geophysical_species_data, total_sites_index, total_dates
     
 
@@ -439,8 +447,8 @@ class CNNInputDatasets():
             temp_data = self.ground_observation_data[isite]['PM25']
             index = np.where(temp_data < 0)[0]
             if len(index) > 0:
-                print('First check - Warning: Site {} has negative values in PM2.5 data!'.format(isite))
-                print('Negative values: ', temp_data[index])
+                #print('First check - Warning: Site {} has negative values in PM2.5 data!'.format(isite))
+               # print('Negative values: ', temp_data[index])
                 self.ground_observation_data[isite]['PM25'][index] = np.nan
             else:
                 None
@@ -454,8 +462,8 @@ class CNNInputDatasets():
             temp_data = self.ground_observation_data[isite]['PM25']
             index = np.where(temp_data < 0)[0]
             if len(index) > 0:
-                print('Second check - Warning: Site {} has negative values in PM2.5 data!'.format(isite))
-                print('Negative values: ', temp_data[index])
+                #print('Second check - Warning: Site {} has negative values in PM2.5 data!'.format(isite))
+                #print('Negative values: ', temp_data[index])
                 self.ground_observation_data[isite]['PM25'][index] = np.nan
             else:
                 None
@@ -477,8 +485,8 @@ class CNNInputDatasets():
             temp_data = self.ground_observation_data[isite]['PM25']
             index = np.where(temp_data < 0)[0]
             if len(index) > 0:
-                print('Third check - Warning: Site {} has negative values in PM2.5 data!'.format(isite))
-                print('Negative values: ', temp_data[index])
+                #print('Third check - Warning: Site {} has negative values in PM2.5 data!'.format(isite))
+                #print('Negative values: ', temp_data[index])
                 self.ground_observation_data[isite]['PM25'][index] = np.nan
             else:
                 None
@@ -503,7 +511,7 @@ class CNNInputDatasets():
             site = str(isite)
             
             if np.isnan(self.geophysical_species_data[site]['geoPM25']).any():
-                print('Warning: Site {} has NaN values in PM2.5 data!'.format(site))
+                #print('Warning: Site {} has NaN values in PM2.5 data!'.format(site))
                 if np.isnan(self.geophysical_species_data[site]['geoPM25']).all():
                     del temp_observation_data[site]
                     del temp_geophysical_species_data[site]
@@ -521,7 +529,7 @@ class CNNInputDatasets():
                     temp_bias_data[site]['dates'] = np.delete(temp_bias_data[site]['dates'], indice, axis=0)
 
             elif len(self.ground_observation_data[site]['PM25']) < self.datapoints_threshold:
-                    print('Warning: Site {} has less than {} data points!'.format(site, self.datapoints_threshold))
+                    #print('Warning: Site {} has less than {} data points!'.format(site, self.datapoints_threshold))
                     del temp_observation_data[site]
                     del temp_geophysical_species_data[site]
                     del temp_bias_data[site]
@@ -575,7 +583,9 @@ class CNNInputDatasets():
             elif normalize_type == 'MinMax':
                 bias_mean = np.min(total_bias_data)
                 bias_std = np.max(total_bias_data) - np.min(total_bias_data)
-
+            elif normalize_type == 'Robust':
+                bias_mean = np.median(total_bias_data)
+                bias_std = np.percentile(total_bias_data, 75) - np.percentile(total_bias_data, 25)
 
             for index, isite in enumerate(Bias_data.keys()):
                 Bias_data[str(isite)]['geobias'] = (Bias_data[str(isite)]['geobias'] - bias_mean) / bias_std
@@ -605,6 +615,9 @@ class CNNInputDatasets():
             elif normalize_type == 'MinMax':
                 PM_mean = np.min(total_PM_data)
                 PM_std = np.max(total_PM_data) - np.min(total_PM_data)
+            elif normalize_type == 'Robust':
+                PM_mean = np.median(total_PM_data)
+                PM_std = np.percentile(total_PM_data, 75) - np.percentile(total_PM_data, 25)
             for index,isite in enumerate(PM_data.keys()):
                 PM_data[str(isite)]['PM25'] = (PM_data[str(isite)]['PM25'] - PM_mean) / PM_std
             true_input = PM_data
@@ -678,18 +691,21 @@ class CNNInputDatasets():
         for isite in self.delete_all_data_sites:
             if str(isite) in data.keys():
                 del data[str(isite)]
-                print('Site {} has been deleted from the training datasets.'.format(isite))
+                #print('Site {} has been deleted from the training datasets.'.format(isite))
             else:
-                print('Site {} is not in the training datasets.'.format(isite))
-        
+                None
+
+                #print('Site {} is not in the training datasets.'.format(isite))
+
         for i, isite,in enumerate(self.delete_specific_data_sites):
             if str(isite) in data.keys():
                 indices = self.delete_specific_data_indices[i]
                 data[str(isite)]['data'] = np.delete(data[str(isite)]['data'], indices, axis=0)
                 data[str(isite)]['dates'] = np.delete(data[str(isite)]['dates'], indices, axis=0)
-                print('Site {} has been deleted from the training datasets at indices {}.'.format(isite, indices))
+                #print('Site {} has been deleted from the training datasets at indices {}.'.format(isite, indices))
             else:
-                print('Site {} is not in the training datasets.'.format(isite))
+                None
+                #print('Site {} is not in the training datasets.'.format(isite))
         return data
     
     def _derive_trainingdatasets_normalization_matrix(self):
@@ -708,6 +724,9 @@ class CNNInputDatasets():
         elif training_data_normalization_type == 'MinMax':
             TrainingDatasets_mean = np.min(total_trainingdatasets, axis=0)
             TrainingDatasets_std = np.max(total_trainingdatasets, axis=0) - np.min(total_trainingdatasets, axis=0)
+        elif training_data_normalization_type == 'Robust':
+            TrainingDatasets_mean = np.median(total_trainingdatasets, axis=0)
+            TrainingDatasets_std = np.percentile(total_trainingdatasets, 75, axis=0) - np.percentile(total_trainingdatasets, 25, axis=0)
 
         return TrainingDatasets_mean, TrainingDatasets_std
     
@@ -735,24 +754,38 @@ class CNNInputDatasets():
         ## Here we need to get the desired range of input datasets based on the start_date and end_date
         for isite in self.ground_observation_data.keys():
             site = str(isite)
-            start_index = np.where(desired_true_input[site]['dates'] >= start_date)[0][0]
-            end_index = np.where(desired_true_input[site]['dates'] <= end_date)[0][-1]
-            trainingdatasets_start_index = np.where(desired_trainingdatasets[site]['dates'] >= start_date)[0][0]
-            trainingdatasets_end_index = np.where(desired_trainingdatasets[site]['dates'] <= end_date)[0][-1]
-
-            desired_trainingdatasets[site]['data'] = self.trainingdatasets[site]['data'][trainingdatasets_start_index:trainingdatasets_end_index+1]
-            if self.bias == True or self.normalize_bias == True:
-                desired_true_input[site]['geobias'] = self.true_input[site]['geobias'][start_index:end_index+1]
+            if len(np.where(desired_true_input[site]['dates'] >= start_date)[0]) == 0 or len(np.where(desired_true_input[site]['dates'] <= end_date)[0]) == 0:
+                #print('The start_date or end_date is out of range for site {}!'.format(site))
+                desired_trainingdatasets[site]['data'] = np.empty((0, len(self.total_channel_names), self.height, self.width), dtype=np.float32)
+                if self.bias == True or self.normalize_bias == True:
+                    desired_true_input[site]['geobias'] = np.array([])
+                else:
+                    desired_true_input[site]['PM25'] = np.array([])
+                desired_ground_observation_data[site]['PM25'] = np.array([])
+                desired_geophysical_species_data[site]['geoPM25'] = np.array([])
+                desired_trainingdatasets[site]['dates'] = np.array([])
+                desired_true_input[site]['dates'] = np.array([])
+                desired_ground_observation_data[site]['dates'] = np.array([])
+                desired_geophysical_species_data[site]['dates'] = np.array([])
             else:
-                desired_true_input[site]['PM25'] = self.true_input[site]['PM25'][start_index:end_index+1]
-            desired_ground_observation_data[site]['PM25'] = self.ground_observation_data[site]['PM25'][start_index:end_index+1]
-            desired_geophysical_species_data[site]['geoPM25'] = self.geophysical_species_data[site]['geoPM25'][start_index:end_index+1]
+                start_index = np.where(desired_true_input[site]['dates'] >= start_date)[0][0]
+                end_index = np.where(desired_true_input[site]['dates'] <= end_date)[0][-1]
+                trainingdatasets_start_index = np.where(desired_trainingdatasets[site]['dates'] >= start_date)[0][0]
+                trainingdatasets_end_index = np.where(desired_trainingdatasets[site]['dates'] <= end_date)[0][-1]
 
-            desired_trainingdatasets[site]['dates'] = self.trainingdatasets[site]['dates'][trainingdatasets_start_index:trainingdatasets_end_index+1]            
-            desired_true_input[site]['dates'] = self.true_input[site]['dates'][start_index:end_index+1]
-            desired_ground_observation_data[site]['dates'] = self.ground_observation_data[site]['dates'][start_index:end_index+1]
-            desired_geophysical_species_data[site]['dates'] = self.geophysical_species_data[site]['dates'][start_index:end_index+1]
-            
+                desired_trainingdatasets[site]['data'] = self.trainingdatasets[site]['data'][trainingdatasets_start_index:trainingdatasets_end_index+1]
+                if self.bias == True or self.normalize_bias == True:
+                    desired_true_input[site]['geobias'] = self.true_input[site]['geobias'][start_index:end_index+1]
+                else:
+                    desired_true_input[site]['PM25'] = self.true_input[site]['PM25'][start_index:end_index+1]
+                desired_ground_observation_data[site]['PM25'] = self.ground_observation_data[site]['PM25'][start_index:end_index+1]
+                desired_geophysical_species_data[site]['geoPM25'] = self.geophysical_species_data[site]['geoPM25'][start_index:end_index+1]
+
+                desired_trainingdatasets[site]['dates'] = self.trainingdatasets[site]['dates'][trainingdatasets_start_index:trainingdatasets_end_index+1]            
+                desired_true_input[site]['dates'] = self.true_input[site]['dates'][start_index:end_index+1]
+                desired_ground_observation_data[site]['dates'] = self.ground_observation_data[site]['dates'][start_index:end_index+1]
+                desired_geophysical_species_data[site]['dates'] = self.geophysical_species_data[site]['dates'][start_index:end_index+1]
+                
         return desired_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data
 
     def normalize_trainingdatasets(self,desired_trainingdatasets):
@@ -864,7 +897,7 @@ class CNN3DInputDatasets():
             site = str(isite)
             if np.isnan(self.geophysical_species_data[site]['geoPM25']).any():
                 
-                print('Warning: Site {} has NaN values in PM2.5 data!'.format(site))
+                #print('Warning: Site {} has NaN values in PM2.5 data!'.format(site))
                 if np.isnan(self.geophysical_species_data[site]['geoPM25']).all():
                     del temp_observation_data[site]
                     del temp_geophysical_species_data[site]
@@ -881,7 +914,7 @@ class CNN3DInputDatasets():
                     temp_bias_data[site]['geobias'] = np.delete(temp_bias_data[site]['geobias'], indice, axis=0)
                     temp_bias_data[site]['dates'] = np.delete(temp_bias_data[site]['dates'], indice, axis=0)
             elif len(self.ground_observation_data[site]['PM25']) < self.datapoints_threshold:
-                    print('Warning: Site {} has less than {} data points!'.format(site, self.datapoints_threshold))
+                    #print('Warning: Site {} has less than {} data points!'.format(site, self.datapoints_threshold))
                     del temp_observation_data[site]
                     del temp_geophysical_species_data[site]
                     del temp_bias_data[site]
@@ -913,6 +946,9 @@ class CNN3DInputDatasets():
             elif normalize_type == 'MinMax':
                 bias_mean = np.min(total_bias_data)
                 bias_std = np.max(total_bias_data) - np.min(total_bias_data)
+            elif normalize_type == 'Robust':
+                bias_mean = np.median(total_bias_data)
+                bias_std = np.percentile(total_bias_data, 75) - np.percentile(total_bias_data, 25)
 
             for isite in Bias_data.keys():
                 Bias_data[str(isite)]['geobias'] = (Bias_data[str(isite)]['geobias'] - bias_mean) / bias_std
@@ -925,7 +961,7 @@ class CNN3DInputDatasets():
             true_input = PM_data
             mean = 0
             std = 1
-            return true_input, mean, std
+            return true_input, mean, s
         
         elif self.normalize_species:
             PM_data = copy.deepcopy(self.ground_observation_data)
@@ -940,6 +976,9 @@ class CNN3DInputDatasets():
             elif normalize_type == 'MinMax':    
                 PM_mean = np.min(total_PM_data)
                 PM_std = np.max(total_PM_data) - np.min(total_PM_data)
+            elif normalize_type == 'Robust':
+                PM_mean = np.median(total_PM_data)
+                PM_std = np.percentile(total_PM_data, 75) - np.percentile(total_PM_data, 25)
             for index,isite in enumerate(PM_data.keys()):
                 PM_data[str(isite)]['PM25'] = (PM_data[str(isite)]['PM25'] - PM_mean) / PM_std
             true_input = PM_data
@@ -992,11 +1031,12 @@ class CNN3DInputDatasets():
         for isite in self.delete_all_data_sites:
             if str(isite) in data.keys():
                 del data[str(isite)]
-                print('Site {} has been deleted from the training datasets.'.format(isite))
+                #print('Site {} has been deleted from the training datasets.'.format(isite))
             else:
-                print('Site {} is not in the training datasets.'.format(isite))
-        
-        
+                #print('Site {} is not in the training datasets.'.format(isite))
+                None
+
+
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(self._convert_to_3Dinputdatasets, data, isite) for isite in self.ground_observation_data.keys()]
             for future in futures:
@@ -1006,10 +1046,11 @@ class CNN3DInputDatasets():
                 indices = self.delete_specific_data_indices[i]
                 data[str(isite)]['data'] = np.delete(data[str(isite)]['data'], indices, axis=0)
                 data[str(isite)]['dates'] = np.delete(data[str(isite)]['dates'], indices, axis=0)
-                print('Site {} has been deleted from the training datasets at indices {}.'.format(isite, indices))
+                #print('Site {} has been deleted from the training datasets at indices {}.'.format(isite, indices))
             else:
-                print('Site {} is not in the training datasets.'.format(isite))
-        
+                #print('Site {} is not in the training datasets.'.format(isite))
+                None
+
         print('Training Data Shape: ' ,data['0']['data'].shape)
 
         return data
@@ -1044,6 +1085,9 @@ class CNN3DInputDatasets():
         elif training_data_normalization_type == 'MinMax':  
             TrainingDatasets_mean = np.min(total_trainingdatasets, axis=0)
             TrainingDatasets_std = np.max(total_trainingdatasets, axis=0) - np.min(total_trainingdatasets, axis=0)
+        elif training_data_normalization_type == 'Robust':
+            TrainingDatasets_mean = np.median(total_trainingdatasets, axis=0)
+            TrainingDatasets_std = np.percentile(total_trainingdatasets, 75, axis=0) - np.percentile(total_trainingdatasets, 25, axis=0)
         return TrainingDatasets_mean, TrainingDatasets_std
     
     def get_desired_range_inputdatasets(self,start_date,end_date):
@@ -1056,24 +1100,40 @@ class CNN3DInputDatasets():
         ## Here we need to get the desired range of input datasets based on the start_date and end_date
         for isite in self.ground_observation_data.keys():
             site = str(isite)
-            print('isite: ',isite, 'start_date: ',start_date, 'end_date: ',end_date,'dates: ',desired_true_input[site]['dates'][0],' - ', desired_true_input[site]['dates'][-1])
-            start_index = np.where(desired_true_input[site]['dates'] >= start_date)[0][0]
-            end_index = np.where(desired_true_input[site]['dates'] <= end_date)[0][-1]
-            trainingdatasets_start_index = np.where(desired_trainingdatasets[site]['dates'] >= start_date)[0][0]
-            trainingdatasets_end_index = np.where(desired_trainingdatasets[site]['dates'] <= end_date)[0][-1]
+            #print('isite: ',isite, 'start_date: ',start_date, 'end_date: ',end_date,'dates: ',desired_true_input[site]['dates'][0],' - ', desired_true_input[site]['dates'][-1])
+            if len(np.where(desired_true_input[site]['dates'] >= start_date)[0]) == 0 or len(np.where(desired_true_input[site]['dates'] <= end_date)[0]) == 0:
 
-            desired_trainingdatasets[site]['data'] = self.trainingdatasets[site]['data'][trainingdatasets_start_index:trainingdatasets_end_index+1]
-            if self.bias == True or self.normalize_bias == True:
-                desired_true_input[site]['geobias'] = self.true_input[site]['geobias'][start_index:end_index+1]
+                #print('The start_date or end_date is out of range for site {}!'.format(site))
+                desired_trainingdatasets[site]['data'] = np.empty((0, len(self.total_channel_names), self.depth, self.height, self.width), dtype=np.float32)
+                if self.bias == True or self.normalize_bias == True:
+                    desired_true_input[site]['geobias'] = np.array([])
+                else:
+                    desired_true_input[site]['PM25'] = np.array([])
+                desired_ground_observation_data[site]['PM25'] = np.array([])
+                desired_geophysical_species_data[site]['geoPM25'] = np.array([])
+                desired_trainingdatasets[site]['dates'] = np.array([])
+                desired_true_input[site]['dates'] = np.array([])
+                desired_ground_observation_data[site]['dates'] = np.array([])
+                desired_geophysical_species_data[site]['dates'] = np.array([])
+
             else:
-                desired_true_input[site]['PM25'] = self.true_input[site]['PM25'][start_index:end_index+1]
-            desired_ground_observation_data[site]['PM25'] = self.ground_observation_data[site]['PM25'][start_index:end_index+1]
-            desired_geophysical_species_data[site]['geoPM25'] = self.geophysical_species_data[site]['geoPM25'][start_index:end_index+1]
+                start_index = np.where(desired_true_input[site]['dates'] >= start_date)[0][0]
+                end_index = np.where(desired_true_input[site]['dates'] <= end_date)[0][-1]
+                trainingdatasets_start_index = np.where(desired_trainingdatasets[site]['dates'] >= start_date)[0][0]
+                trainingdatasets_end_index = np.where(desired_trainingdatasets[site]['dates'] <= end_date)[0][-1]
 
-            desired_trainingdatasets[site]['dates'] = self.trainingdatasets[site]['dates'][trainingdatasets_start_index:trainingdatasets_end_index+1]            
-            desired_true_input[site]['dates'] = self.true_input[site]['dates'][start_index:end_index+1]
-            desired_ground_observation_data[site]['dates'] = self.ground_observation_data[site]['dates'][start_index:end_index+1]
-            desired_geophysical_species_data[site]['dates'] = self.geophysical_species_data[site]['dates'][start_index:end_index+1]
+                desired_trainingdatasets[site]['data'] = self.trainingdatasets[site]['data'][trainingdatasets_start_index:trainingdatasets_end_index+1]
+                if self.bias == True or self.normalize_bias == True:
+                    desired_true_input[site]['geobias'] = self.true_input[site]['geobias'][start_index:end_index+1]
+                else:
+                    desired_true_input[site]['PM25'] = self.true_input[site]['PM25'][start_index:end_index+1]
+                desired_ground_observation_data[site]['PM25'] = self.ground_observation_data[site]['PM25'][start_index:end_index+1]
+                desired_geophysical_species_data[site]['geoPM25'] = self.geophysical_species_data[site]['geoPM25'][start_index:end_index+1]
+
+                desired_trainingdatasets[site]['dates'] = self.trainingdatasets[site]['dates'][trainingdatasets_start_index:trainingdatasets_end_index+1]            
+                desired_true_input[site]['dates'] = self.true_input[site]['dates'][start_index:end_index+1]
+                desired_ground_observation_data[site]['dates'] = self.ground_observation_data[site]['dates'][start_index:end_index+1]
+                desired_geophysical_species_data[site]['dates'] = self.geophysical_species_data[site]['dates'][start_index:end_index+1]
             
         return desired_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data
 

@@ -19,7 +19,7 @@ def linear_regression(x, y):
     
     # Check if there are enough data points after filtering
     if len(x) == 0 or len(y) == 0:
-        print("No valid data points after removing NaN values.")
+        #print("No valid data points after removing NaN values.")
         return -999.0
     
     N = len(x)
@@ -61,7 +61,7 @@ def Cal_RMSE(x,y):
     
     # Check if there are enough data points after filtering
     if len(x) == 0 or len(y) == 0:
-        print("No valid data points after removing NaN values.")
+        #print("No valid data points after removing NaN values.")
         return -999.0
     RMSE = np.sqrt(mean_squared_error(x, y))
     RMSE = round(RMSE, 2)
@@ -80,7 +80,7 @@ def Cal_NRMSE(final_data,obs_data):
     
     # Check if there are enough data points after filtering
     if len(final_data) == 0 or len(obs_data) == 0:
-        print("No valid data points after removing NaN values.")
+        #print("No valid data points after removing NaN values.")
         return -999.0
     RMSE = np.sqrt(mean_squared_error(final_data, obs_data))
     RMSE = round(RMSE, 2)
@@ -101,7 +101,7 @@ def Cal_PWM_rRMSE(x,y,population):
     population = population[mask]
     # Check if there are enough data points after filtering
     if len(x) == 0 or len(y) == 0:
-        print("No valid data points after removing NaN values.")
+        #print("No valid data points after removing NaN values.")
         return -999.0
     Total_Population = np.sum(population)
     Weighted_RMSE = np.sum(population*np.square(x-y)) 
@@ -146,7 +146,7 @@ def linear_slope(x, y):
     
     # Check if there are enough data points after filtering
     if len(x) == 0 or len(y) == 0:
-        print("No valid data points after removing NaN values.")
+        #print("No valid data points after removing NaN values.")
         return -999.0
     
     N = len(x)
@@ -225,7 +225,7 @@ def regress2(_x, _y, _method_type_1 = "ordinary least square",
     
     # Check if there are enough data points after filtering
     if len(_x) <= 2 or len(_y) <= 2:
-        print("No valid data points after removing NaN values.")
+        #print("No valid data points after removing NaN values.")
         return {"slope": float(-999.0), "intercept": -999.0, "r": -999.0, 'r_square': -999.0,
             "std_slope": -999.0, "std_intercept": -999.0,
             "predict": -999.0}

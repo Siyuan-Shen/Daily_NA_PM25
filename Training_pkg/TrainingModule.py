@@ -33,7 +33,7 @@ def Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id,
     print('fold {} is starting...'.format(ifold))
     print('world_size: {}'.format(world_size))
     try:
-        print(f"[Rank {rank}] Starting CNN_train")
+        print(f"[Rank {rank}] Starting Transformer_train")
         # Your original CNN_train logic goes here...
     except Exception as e:
         print(f"[Rank {rank}] Exception occurred: {e}")
@@ -55,12 +55,16 @@ def Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id,
         wandb_config = run_config
     
     BATCH_SIZE, learning_rate, TOTAL_EPOCHS, d_model, n_head, ffn_hidden, num_layers, max_len, spin_up_len, drop_prob = wandb_parameters_return(wandb_config=wandb_config)
+    print('BATCH_SIZE: ', BATCH_SIZE, ' learning_rate: ', learning_rate, 'TOTAL_EPOCHS: ', TOTAL_EPOCHS,
+          ' d_model: ', d_model, ' n_head: ', n_head, ' ffn_hidden: ', ffn_hidden, ' num_layers: ', num_layers,
+          ' max_len: ', max_len, ' spin_up_len: ', spin_up_len, ' drop_prob: ', drop_prob)
     try:
         channels_to_exclude = wandb_config.get("channel_to_exclude", [])
     except AttributeError:
         channels_to_exclude = []
     total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
     index_of_main_stream_channels_of_initial = [init_total_channel_names.index(channel) for channel in main_stream_channel_names]
+    print('X_train:', X_train[0,:])
     X_train = X_train[:, :,index_of_main_stream_channels_of_initial]
     X_test = X_test[:, :,index_of_main_stream_channels_of_initial]
 
@@ -72,13 +76,13 @@ def Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id,
     if rank != 0:
         os.environ['WANDB_MODE'] = 'disabled'
     
-    if world_size == 1:
+    if world_size <= 1:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         Daily_Model = Transformer(input_dim=X_train.shape[2], trg_dim=Transformer_trg_dim, d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden, num_layers=num_layers, max_len=max_len+spin_up_len, drop_prob=drop_prob,device=device)
         Daily_Model.to(device)
         torch.manual_seed(21)
         train_loader = DataLoader(Dataset(X_train, y_train), BATCH_SIZE, shuffle=True)
-        validation_loader = DataLoader(Dataset(X_test, y_test), 2000, shuffle=True)
+        validation_loader = DataLoader(Dataset(X_test, y_test), 100, shuffle=False)
     elif world_size > 1:
         ddp_setup(rank, world_size)
         device = rank
@@ -89,7 +93,7 @@ def Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id,
         train_dataset = Dataset(X_train, y_train)
         validation_dataset = Dataset(X_test, y_test)
         train_loader = DataLoader(train_dataset, BATCH_SIZE, shuffle=False,sampler=DistributedSampler(train_dataset))
-        validation_loader = DataLoader(validation_dataset, 2000, shuffle=False,sampler=DistributedSampler(validation_dataset))
+        validation_loader = DataLoader(validation_dataset, 100, shuffle=False,sampler=DistributedSampler(validation_dataset))
     
     print('*' * 25, type(train_loader), '*' * 25)
     losses = []
@@ -111,27 +115,39 @@ def Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id,
         correct = 0
         counts = 0
         temp_losses = []
+        
         if world_size > 1:
             train_loader.sampler.set_epoch(epoch)
         for i, (images, labels) in enumerate(train_loader):
             Daily_Model.train()
             images = images.to(device)
+            #labels = labels.unsqueeze(-1)
+            if torch.isnan(images).any():
+                print(f"NaN values found in images GG at epoch {epoch}, iteration {i}.")
+                nan_indices = torch.isnan(images).nonzero(as_tuple=True)
+                print(f"NaN indices in images:", images[nan_indices], ' and the labels are: ', labels[nan_indices[0],:])
             mask = ~torch.isnan(labels)  # Create a mask for valid target data (not NaN)
             filled_labels = torch.nan_to_num(labels, nan=0.0)  # Fill NaN values in target data with 0.0
-            filled_labels = filled_labels.to(device)
+            filled_labels = filled_labels.to(device)  # Ensure filled_labels has the correct shape
             optimizer.zero_grad()
-            outputs = Daily_Model(images)
-            outputs = torch.squeeze(outputs)  # Ensure outputs are squeezed to match target shape
+            outputs = Daily_Model(images,filled_labels)
             loss = criterion(outputs, filled_labels, images[:,:,GeoSpecies_index],input_mean[GeoSpecies_index],input_std[GeoSpecies_index],mask=mask)
             loss.backward()
             optimizer.step()
+            torch.cuda.empty_cache()
             temp_losses.append(loss.item())
 
             # Calculate R2
-            y_hat = outputs.cpu().detach().numpy()
-            y_true = filled_labels.cpu().detach().numpy()
+            y_hat = np.squeeze(outputs.cpu().detach().numpy())[np.where(mask.squeeze().cpu().detach().numpy())]
+            y_true = np.squeeze(filled_labels.cpu().detach().numpy())[np.where(mask.squeeze().cpu().detach().numpy())]
+            
             R2 = linear_regression(y_hat, y_true)
             R2 = np.round(R2, 4)
+            #print('size of outputs:', outputs.shape, 'size of mask', mask.shape, 'size of y_hat:', y_hat.shape, 'size of y_true:', y_true.shape,'size of filled_labels:', filled_labels.shape,
+            #'size of images:', images.shape)
+            #print('y_hat:', y_hat[0:20])
+            #print('y_true:', y_true[0:20])
+            print('R2:', R2)
             correct += R2
             counts  += 1    
             if (i+1)%10 == 0 and rank == 0:
@@ -143,30 +159,40 @@ def Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id,
         valid_counts  = 0
         temp_losses = []
         scheduler.step()
+        total_valid_y_hat = []
+        total_valid_y_true = []
+        with torch.no_grad():
+            for i, (valid_images, valid_labels) in enumerate(validation_loader):
+                
+                Daily_Model.eval()
+                valid_images = valid_images.to(device)
+                valid_mask = ~torch.isnan(valid_labels)
+                valid_filled_labels = torch.nan_to_num(valid_labels, nan=0.0)
+                valid_filled_labels = valid_filled_labels.to(device)
+                valid_output = Daily_Model(valid_images)
+                valid_loss = criterion(valid_output, valid_filled_labels, valid_images[:,:,GeoSpecies_index],input_mean[GeoSpecies_index],input_std[GeoSpecies_index],mask=valid_mask)
+                temp_losses.append(valid_loss.item())
+                test_y_hat = valid_output.cpu().detach().numpy()
+                test_y_true = valid_filled_labels.cpu().detach().numpy()
+                test_y_hat = np.squeeze(test_y_hat)[np.where(valid_mask.squeeze().cpu().detach().numpy())]
+                test_y_true = np.squeeze(test_y_true)[np.where(valid_mask.squeeze().cpu().detach().numpy())]
 
-        for i, (valid_images, valid_labels) in enumerate(validation_loader):
-            Daily_Model.eval()
-            valid_images = valid_images.to(device)
-            valid_mask = ~torch.isnan(valid_labels)
-            valid_filled_labels = torch.nan_to_num(valid_labels, nan=0.0)
-            valid_filled_labels = valid_filled_labels.to(device)
-            valid_output = Daily_Model(valid_images)
-            valid_output = torch.squeeze(valid_output)  # Ensure outputs are squeezed to match target shape
-            valid_loss = criterion(valid_output, valid_filled_labels, valid_images[:,:,GeoSpecies_index],input_mean[:,GeoSpecies_index],input_std[:,GeoSpecies_index],mask=valid_mask)
-            temp_losses.append(valid_loss.item())
-            test_y_hat = valid_output.cpu().detach().numpy()
-            test_y_true = valid_filled_labels.cpu().detach().numpy()
-            valid_R2 = linear_regression(test_y_hat, test_y_true)
-            valid_R2 = np.round(valid_R2, 4)
-            valid_correct += valid_R2
-            valid_counts += 1
-            if rank == 0:  # Only print from the main process
-                    print('Epoch : %d/%d, Iter : %d/%d,  Validate Loss: %.4f, Validate R2: %.4f' % (epoch + 1, TOTAL_EPOCHS,
-                                                                    i + 1, len(X_train) // BATCH_SIZE,
-                                                                    valid_loss.item(), valid_R2))
+                valid_R2 = linear_regression(test_y_hat, test_y_true)
+                valid_R2 = np.round(valid_R2, 4)
+                print('test_y_hat:', test_y_hat[0:200])
+                print('test_y_true:', test_y_true[0:200])
+                valid_correct += valid_R2
+                valid_counts += 1
+                print('valid_R2:', valid_R2)
+                total_valid_y_hat.append(test_y_hat)
+                total_valid_y_true.append(test_y_true)
+                if rank == 0:  # Only print from the main process
+                        print('Epoch : %d/%d, Iter : %d/%d,  Validate Loss: %.4f, Validate R2: %.4f' % (epoch + 1, TOTAL_EPOCHS,
+                                                                        i + 1, len(X_train) // BATCH_SIZE,
+                                                                        valid_loss.item(), valid_R2))
         valid_losses.append(np.mean(temp_losses))
         accuracy = correct / counts
-        valid_accuracy = valid_correct / valid_counts
+        valid_accuracy = np.round(linear_regression(np.concatenate(total_valid_y_hat), np.concatenate(total_valid_y_true)), 4)
         print('Epoch : %d/%d, Train Loss: %.4f, Train R2: %.4f' % (epoch + 1, TOTAL_EPOCHS, np.mean(temp_losses), accuracy))
         if rank == 0 and ifold == 0:
             wandb.log({
@@ -222,7 +248,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
             wandb_initialize(temp_sweep_config,rank,sweep_mode,sweep_id)
         else:
             wandb_initialize(run_config,rank,sweep_mode,sweep_id)
-
+        print(f"type(run_id_container): {type(run_id_container)}")
         run_id_container["run_id"] = wandb.run.id
         run_id_container["run_name"] = wandb.run.name   
     if sweep_mode:
@@ -252,7 +278,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
     if rank != 0:
         os.environ['WANDB_MODE'] = 'disabled'
     
-    if world_size == 1:
+    if world_size <= 1:
         Daily_Model = initial_3dcnn_net(main_stream_nchannel=len(main_stream_channel_names),wandb_config=wandb_config)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         Daily_Model.to(device)
@@ -325,7 +351,8 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         valid_counts  = 0
         temp_losses = []
         scheduler.step()
-
+        total_valid_y_hat = []
+        total_valid_y_true = []
         for i, (valid_images, valid_labels) in enumerate(validation_loader):
             Daily_Model.eval()
             valid_images = valid_images.to(device)
@@ -339,14 +366,16 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
             Valid_R2 = linear_regression(test_y_hat, test_y_true)
             Valid_R2 = np.round(Valid_R2, 4)
             valid_correct += Valid_R2
-            valid_counts  += 1    
+            valid_counts  += 1
+            total_valid_y_hat.append(test_y_hat)
+            total_valid_y_true.append(test_y_true)
             if rank == 0:  # Only print from the main process
                 print('Epoch : %d/%d, Iter : %d/%d,  Validate Loss: %.4f, Validate R2: %.4f' % (epoch + 1, TOTAL_EPOCHS,
                                                                 i + 1, len(X_train) // BATCH_SIZE,
                                                                 valid_loss.item(), Valid_R2))
         valid_losses.append(np.mean(temp_losses))
         accuracy = correct / counts
-        test_accuracy = valid_correct / valid_counts
+        test_accuracy = np.round(linear_regression(np.concatenate(total_valid_y_hat), np.concatenate(total_valid_y_true)), 4)
         print('Epoch: ',epoch, ', Training Loss: ', loss.item(),', Training accuracy:',accuracy, ', \nTesting Loss:', valid_loss.item(),', Testing accuracy:', test_accuracy)
         if rank == 0 and ifold == 0:  # Log only from the main process
             wandb.log({
@@ -429,7 +458,7 @@ def CNN_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_conta
     if rank != 0:
         os.environ['WANDB_MODE'] = 'disabled'
 
-    if world_size == 1:
+    if world_size <= 1:
         Daily_Model = initial_cnn_network(width=width, main_stream_nchannel=len(main_stream_channel_names),side_stream_nchannel=len(side_stream_channel_names),wandb_config=wandb_config)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         Daily_Model.to(device)

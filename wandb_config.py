@@ -159,34 +159,34 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [0.001, 0.0001]
+                    'values': [0.0001, 0.001]
                 },
                 'batch_size': {
-                    'values': [64, 128, 256]
+                    'values': [32,]
                 },
                 'epoch': {
-                    'values': [1]
+                    'values': [111, 131,151]
                 },
                 'd_model': {
-                    'values': [64, 128]  # Example values for model dimension
+                    'values': [32, 64, 128]  # Example values for model dimension
                 },
                 'n_head': {
-                    'values': [4, 8]  # Example values for number of attention heads
+                    'values': [4,  8,]  # Example values for number of attention heads
                 },
                 'ffn_hidden': {
-                    'values': [128, 256]  # Example values for feed-forward network hidden layer dimension
+                    'values': [32, 64,128]  # Example values for feed-forward network hidden layer dimension
                 },
                 'num_layers': {
-                    'values': [4, 6]  # Example values for number of encoder/decoder layers
+                    'values': [3, 4, 6, 8]  # Example values for number of encoder/decoder layers
                 },
                 'max_len': {
-                    'values': [30, 365]  # Example values for maximum length of the input sequence
+                    'values': [30, 60, 90, 365]  # Example values for maximum length of the input sequence
                 },
                 'spin_up_len': {
-                    'values': [7, 30]  # Example values for spin-up length
+                    'values': [1, 3, 7]  # Example values for spin-up length
                 },
                 'drop_prob': {
-                    'values': [0.1, 0.05]  # Example values for dropout probability
+                    'values': [0.01,  0.001]  # Example values for dropout probability
                 },
                 'channel_to_exclude': {
                     'values': [[]]  # No channels to exclude for Transformer

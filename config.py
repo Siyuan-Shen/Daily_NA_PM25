@@ -50,7 +50,7 @@ cfg = {
         "Hyperparameters_Search_Validation_Switch": False,
         "HSV_Apply_wandb_sweep_Switch"            : True,
         "wandb_sweep_count"                       : 100,
-        "Use_recorded_data_to_show_validation_results": False,
+        "Use_recorded_data_to_show_validation_results": False, # Default: False. Not applicable.
 
 
         "Training-Settings": {
@@ -163,30 +163,31 @@ cfg = {
     'Training-Settings' : {
         "identity": {
             "version": "v0.1.0",
-            "description": "_3DCNN_Sweep_with_MinMaxNormTraining_AllVariables_ReLU",
+            "description": "_Transformer_baseline1",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
-            "runningdate": "2025-07-29"
+            "runningdate": "2025-08-08"
         },
         "learning-objective": {
             "species": "PM25",
-            "normalize_type": "MinMax", # Options: "Gaussian", "MinMax", only applicable to learning objects normalize_species or normalize_bias
+            "normalize_type": "Gaussian", # Options: "Gaussian", "MinMax", "Robust",only applicable to learning objects normalize_species or normalize_bias
             "bias": False,
             "normalize_bias": False,
             "normalize_species": True,
-            "absolute_species": False
+            "absolute_species": False,
+            "log_species": False,
         },
         "hyper-parameters": {
-            "epoch": 131,
-            "batchsize": 128,
+            "epoch": 131, # 3DCNN:131; Transformer:131
+            "batchsize": 32,# 3DCNN:128; Transformer:32
             "channel_names": [
-                "GC_PM25", "GC_SO4"
-                #"eta", "tSATAOD", "tSATPM25", "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT","GC_BC",
-                #"PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
-                #"BC_anthro_emi", "NMVOC_anthro_emi", "DST_offline_emi", "SSLT_offline_emi",
-                #"Urban_Builtup_Lands", "elevation", "Population", "lat", "lon", "sin_days", "cos_days"
+                "eta", "tSATAOD", "tSATPM25", 
+                "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                "BC_anthro_emi", "NMVOC_anthro_emi", "DST_offline_emi", "SSLT_offline_emi",
+                "Urban_Builtup_Lands", "elevation", "Population", "lat", "lon", "sin_days", "cos_days"
             ],
-            "training_data_normalization_type": "MinMax", # Options: "Gaussian", "MinMax", applicable to training datasets
+            "training_data_normalization_type": "Gaussian", # Options: "Gaussian", "MinMax","Robust", applicable to training datasets
         },
 
         "Loss-Functions": {
@@ -213,7 +214,7 @@ cfg = {
         },
 
         "learning_rate": {
-            "learning_rate0": 0.0001,
+            "learning_rate0": 0.001,
             "ExponentialLR": {
                 "Settings": False,
                 "gamma": 0.9
@@ -233,8 +234,8 @@ cfg = {
 
         "activation_func": {
             "activation_func_name": "relu",
-            "ReLU": {"Settings": True},
-            "Tanh": {"Settings": False},
+            "ReLU": {"Settings": False},
+            "Tanh": {"Settings": True},
             "GeLU": {"Settings": False},
             "Sigmoid": {"Settings": False},
             "Mish": {"Settings": False},

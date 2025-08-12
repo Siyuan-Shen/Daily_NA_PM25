@@ -26,9 +26,10 @@ class Dataset(torch.utils.data.Dataset):  # 'Characterizes a dataset for PyTorch
             The number of sites. For example, for overall observation it is 10870.
         '''
         super(Dataset, self).__init__()
-        self.traindatasets = torch.squeeze(torch.Tensor(traindata))  # Read training data from npy file
-        self.truedatasets = torch.squeeze(torch.Tensor(truedata))
 
+
+        self.traindatasets = torch.Tensor(traindata) #torch.squeeze(torch.Tensor(traindata))
+        self.truedatasets = torch.Tensor(truedata) #torch.squeeze(torch.Tensor(trued
         print(self.truedatasets.shape)
         print(self.traindatasets.shape)
         self.transforms = transform  # 转为tensor形式
