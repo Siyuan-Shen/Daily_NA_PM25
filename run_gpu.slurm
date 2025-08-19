@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name="Daily _3DCNN_Sweep_with_MinMaxNormTraining_AllVariables_ReLU 4GPU"
+#SBATCH --job-name="Daily 3DCNN 19-23 Spatial CV 4GPU"
 #SBATCH --partition=general-gpu
 #SBATCH --mem=800G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus=4
-# SBATCH --exclude=c2-gpu-[009]
+#SBATCH --exclude=c2-gpu-[004,005]
 #SBATCH --output=job_output/job-%j-output.txt
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=s.siyuan@wustl.edu
@@ -26,6 +26,7 @@ export WANDB_DIR=/my-projects2/tmp/wandb_dir
 export TMPDIR=/my-projects2/tmp/tmpdir
 export XDG_CONFIG_HOME=/my-projects2/tmp/config_home
 export WANDB_CACHE_DIR=/my-projects2/tmp/wandb_cache
+export WANDB_AGENT_MAX_INITIAL_FAILURES=100
 mkdir -p $WANDB_DIR $TMPDIR $XDG_CONFIG_HOME $WANDB_CACHE_DIR
 
 # Create a frozen snapshot of current code
@@ -55,6 +56,6 @@ sleep $pause_time
 
 # Buffer_size=[80]
 # sed -i '/\[BLCO\-CrossValidation\]/,/^\[/{/Buffer_size/s/=.*/= '"$Buffer_size"'/}' config.toml
-
+nvidia-smi
 python3 main.py
 

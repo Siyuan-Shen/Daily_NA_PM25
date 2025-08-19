@@ -108,9 +108,6 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
     
     if not Use_recorded_data_to_show_validation_results_Spatial_CV:
 
-            Training_losses_recording, Training_acc_recording, valid_losses_recording, valid_acc_recording = initialize_Loss_Accuracy_Recordings(kfolds=Spatial_CV_folds,n_models=len(Spatial_CV_training_begindates),epoch=epoch,batchsize=batchsize)
-            
-
             final_data_recording = np.array([],dtype=float)
             obs_data_recording = np.array([],dtype=float)
             geo_data_recording = np.array([],dtype=float)
@@ -131,13 +128,10 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         # Normalize the training datasets
                         print('2...')
                         normalized_TrainingDatasets  = Init_CNN_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
-                        
+                        del desired_trainingdatasets
+                        gc.collect()
                         # Concatenate the training datasets and true input for the current model for training and tetsing purposes
-                        print('3...')
-                        cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
-                                                                                                                                                desired_normalized_trainingdatasets=normalized_TrainingDatasets,
-                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
-                                                                                                                                                desired_geophysical_species_data=desired_geophysical_species_data)
+                        
                     elif Apply_Transformer_architecture:
                         # Get the initial true_input and training datasets for the current model (within the desired time range)
                         print('1...')
@@ -146,19 +140,30 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         # Normalize the training datasets
                         print('2...')
                         normalized_TrainingDatasets  = Init_Transformer_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
-                        # Concatenate the training datasets and true input for the current model for training and tetsing purposes
-                        print('3...')
-                        cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_Transformer_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
-                                                                                                                                                desired_normalized_trainingdatasets=normalized_TrainingDatasets,
-                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
-                                                                                                                                                desired_geophysical_species_data=desired_geophysical_species_data)
+                        del desired_trainingdatasets
+                        gc.collect()
                         
-                    print('4...')
+                        
+                    
                     sites_index=np.arange(total_sites_number)
                     for ifold, (training_selected_sites,testing_selected_sites) in enumerate(rkf.split(sites_index)):
                         print('training_selected_sites: ',training_selected_sites.shape)
                         print('testing_selected_sites: ',testing_selected_sites.shape) 
-                    
+                        if Apply_3D_CNN_architecture or Apply_CNN_architecture:
+                            print('3...')
+                            cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                                                                                                                                                desired_normalized_trainingdatasets=normalized_TrainingDatasets,
+                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
+                                                                                                                                                desired_geophysical_species_data=desired_geophysical_species_data)
+                        elif Apply_Transformer_architecture:
+                            # Concatenate the training datasets and true input for the current model for training and testing purposes
+                            print('3...')
+                            cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_Transformer_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                                                                                                                                                desired_normalized_trainingdatasets=normalized_TrainingDatasets,
+                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
+                                                                                                                                                desired_geophysical_species_data=desired_geophysical_species_data)
+                        print('4...')
+
                         X_train, y_train, X_test, y_test, dates_train, dates_test, sites_train, sites_test, train_datasets_index, test_datasets_index = Split_Datasets_based_site_index(train_site_index=training_selected_sites,
                                                                                                                                             test_site_index=testing_selected_sites,
                                                                                                                                             total_trainingdatasets=cctnd_trainingdatasets,
@@ -167,6 +172,10 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                                                                                                             total_dates=cctnd_dates)
                         print('cctnd_ground_observation_data[test_datasets_index]: ', cctnd_ground_observation_data[test_datasets_index])
                         print('cctnd_geophysical_species_data[test_datasets_index]: ', cctnd_geophysical_species_data[test_datasets_index])
+
+                        del cctnd_trainingdatasets, cctnd_true_input
+                        gc.collect()
+
                         print('test_datasets_index: ', test_datasets_index)
 
                         if Apply_CNN_architecture:
@@ -270,7 +279,7 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                             training_output = np.squeeze(training_output)
 
                     
-                        del Daily_Model
+                        del Daily_Model, X_train, y_train, X_test, y_test
                         gc.collect()
                         
                         # Get the final output for the validation datasets

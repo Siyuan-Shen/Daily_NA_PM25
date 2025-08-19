@@ -1,10 +1,10 @@
 #!/bin/bash
 #BSUB -q general
-#BSUB -R "rusage[mem=500GB] span[hosts=1] select[gpuhost && port8543=1]"
+#BSUB -R "rusage[mem=600GB] span[hosts=1] select[gpuhost && port8543=1]"
 #BSUB -G compute-rvmartin
-#BSUB -gpu "num=2:j_exclusive=no"
+#BSUB -gpu "num=4:j_exclusive=no"
 #BSUB -a 'docker(syword/python3-pytorch:2025.06)'
-#BSUB -J "PM25 3D SpatialCV sweep 2GPU"
+#BSUB -J "PM25 3D SpatialCV 4GPU"
 #BSUB -g /s.siyuan/Test
 #BSUB -N
 #BSUB -u s.siyuan@wustl.edu

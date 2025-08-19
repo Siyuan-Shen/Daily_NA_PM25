@@ -168,8 +168,8 @@ class TransformerInputDatasets():
             return true_input, PM_mean, PM_std
     
     def _get_lat_lon_arrays(self):
-        lat_array = np.zeros(self.total_sites_number,dtype=np.float64)
-        lon_array = np.zeros(self.total_sites_number,dtype=np.float64)
+        lat_array = np.zeros(self.total_sites_number,dtype=np.float32)
+        lon_array = np.zeros(self.total_sites_number,dtype=np.float32)
 
         for i,isite in enumerate(self.ground_observation_data.keys()):
             site = str(isite)
@@ -225,7 +225,7 @@ class TransformerInputDatasets():
                 data = temp_data
                 print('Init Training Data Shape: ' ,data['0']['data'].shape)
                 for isite in self.ground_observation_data.keys():
-                    data[str(isite)]['dates'] = np.array(data[str(isite)]['dates'], dtype=np.int64)
+                    data[str(isite)]['dates'] = np.array(data[str(isite)]['dates'], dtype=np.int32)
             else:
                 with ThreadPoolExecutor() as executor:
                     print('channel_name: ', channel_name)
@@ -312,7 +312,7 @@ class TransformerInputDatasets():
         ## The first spinup_len days are used for the spin-up period,
         ## and the rest max_len days are used for the actual training period.
         ## The dates in total_dates_array are in YYYYMMDD format.
-        total_dates_array = np.zeros((number_of_batch_each_site, max_len+spinup_len), dtype=np.int64)
+        total_dates_array = np.zeros((number_of_batch_each_site, max_len+spinup_len), dtype=np.int32)
         str_start_date = datetime.strptime(str(start_date), '%Y%m%d')
         str_end_date = datetime.strptime(str(end_date), '%Y%m%d')
 
@@ -400,19 +400,19 @@ class TransformerInputDatasets():
         
         
         datasets = [desired_normalized_trainingdatasets[str(isite)]['data'] for isite in self.ground_observation_data.keys()]
-        total_trainingdatasets = np.concatenate(datasets, axis=0)
+        total_trainingdatasets = np.concatenate(datasets, axis=0).astype(np.float32)
 
         datasets = [desired_true_input[str(isite)]['data'] for isite in self.ground_observation_data.keys()]
-        total_true_input = np.concatenate(datasets, axis=0)
+        total_true_input = np.concatenate(datasets, axis=0).astype(np.float32)
 
         datasets = [desired_ground_observation_data[str(isite)]['PM25'] for isite in self.ground_observation_data.keys()]
-        total_ground_observation_data = np.concatenate(datasets, axis=0)
+        total_ground_observation_data = np.concatenate(datasets, axis=0).astype(np.float32)
         
         datasets = [desired_geophysical_species_data[str(isite)]['geoPM25'] for isite in self.ground_observation_data.keys()]
-        total_geophysical_species_data = np.concatenate(datasets, axis=0)
+        total_geophysical_species_data = np.concatenate(datasets, axis=0).astype(np.float32)
         
         datasets = [desired_normalized_trainingdatasets[str(isite)]['dates'] for isite in self.ground_observation_data.keys()]
-        total_dates = np.concatenate(datasets, axis=0)
+        total_dates = np.concatenate(datasets, axis=0).astype(np.float32)
 
         datasets = [int(isite)*np.ones(len(desired_normalized_trainingdatasets[str(isite)]['dates']),dtype=int) for isite in self.ground_observation_data.keys()]
         total_sites_index = np.concatenate(datasets, axis=0)
@@ -624,8 +624,8 @@ class CNNInputDatasets():
             return true_input, PM_mean, PM_std
 
     def _get_lat_lon_arrays(self):
-        lat_array = np.zeros(self.total_sites_number,dtype=np.float64)
-        lon_array = np.zeros(self.total_sites_number,dtype=np.float64)
+        lat_array = np.zeros(self.total_sites_number,dtype=np.float32)
+        lon_array = np.zeros(self.total_sites_number,dtype=np.float32)
 
         for i,isite in enumerate(self.ground_observation_data.keys()):
             site = str(isite)
@@ -961,7 +961,7 @@ class CNN3DInputDatasets():
             true_input = PM_data
             mean = 0
             std = 1
-            return true_input, mean, s
+            return true_input, mean, std
         
         elif self.normalize_species:
             PM_data = copy.deepcopy(self.ground_observation_data)
@@ -985,8 +985,8 @@ class CNN3DInputDatasets():
             return true_input, PM_mean, PM_std
 
     def _get_lat_lon_arrays(self):
-        lat_array = np.zeros(self.total_sites_number,dtype=np.float64)
-        lon_array = np.zeros(self.total_sites_number,dtype=np.float64)
+        lat_array = np.zeros(self.total_sites_number,dtype=np.float32)
+        lon_array = np.zeros(self.total_sites_number,dtype=np.float32)
 
         for i,isite in enumerate(self.ground_observation_data.keys()):
             site = str(isite)
@@ -1153,23 +1153,23 @@ class CNN3DInputDatasets():
         
         
         datasets = [desired_normalized_trainingdatasets[str(isite)]['data'] for isite in self.ground_observation_data.keys()]
-        total_trainingdatasets = np.concatenate(datasets, axis=0)
-        
+        total_trainingdatasets = np.concatenate(datasets, axis=0).astype(np.float32)
+
         if self.bias == True or self.normalize_bias == True:
             datasets = [desired_true_input[str(isite)]['geobias'] for isite in self.ground_observation_data.keys()]
-            total_true_input = np.concatenate(datasets, axis=0)
+            total_true_input = np.concatenate(datasets, axis=0).astype(np.float32)
         else:
             datasets = [desired_true_input[str(isite)]['PM25'] for isite in self.ground_observation_data.keys()]
-            total_true_input = np.concatenate(datasets, axis=0)
-        
+            total_true_input = np.concatenate(datasets, axis=0).astype(np.float32)
+
         datasets = [desired_ground_observation_data[str(isite)]['PM25'] for isite in self.ground_observation_data.keys()]
-        total_ground_observation_data = np.concatenate(datasets, axis=0)
-        
+        total_ground_observation_data = np.concatenate(datasets, axis=0).astype(np.float32)
+
         datasets = [desired_geophysical_species_data[str(isite)]['geoPM25'] for isite in self.ground_observation_data.keys()]
-        total_geophysical_species_data = np.concatenate(datasets, axis=0)
+        total_geophysical_species_data = np.concatenate(datasets, axis=0).astype(np.float32)
         
         datasets = [desired_normalized_trainingdatasets[str(isite)]['dates'] for isite in self.ground_observation_data.keys()]
-        total_dates = np.concatenate(datasets, axis=0)
+        total_dates = np.concatenate(datasets, axis=0).astype(np.int32)
 
         datasets = [int(isite)*np.ones(len(desired_normalized_trainingdatasets[str(isite)]['dates']),dtype=int) for isite in self.ground_observation_data.keys()]
         total_sites_index = np.concatenate(datasets, axis=0)
