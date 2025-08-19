@@ -1,7 +1,7 @@
 #########################################################################################################################################################
 Pathbegin_YEAR = 2018
 Pathend_YEAR = 2023
-AVD_OBS_version = 'AVD_d20240814'
+AVD_OBS_version = 'AVD_d20250804'
 AVD_GEO_version = 'vAOD20240322vGEO20241212'
 
 cfg = {
@@ -80,9 +80,9 @@ cfg = {
         ##### Spatial Cross Validation Settings #####
         "Training-Settings": {
             "Spatial_CV_folds": 10,
-            "Spatial_CV_training_begindates": [20220101],
-            "Spatial_CV_training_enddates": [20231231],
-            "Spatial_CV_validation_begindates": [20220101],
+            "Spatial_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
+            "Spatial_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
+            "Spatial_CV_validation_begindates": [20190101],
             "Spatial_CV_validation_enddates": [20231231],
             "additional_validation_regions": [
                 "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
@@ -92,7 +92,7 @@ cfg = {
 
         ##### Spatial Cross Visualization Settings ####
         "Visualization_Settings": {
-            "regression_plot_switch": True,
+            "regression_plot_switch": False,
             "plot_begindates": [20220101,20220101],
             "plot_enddates": [20231231,20221231]
         },
@@ -163,7 +163,7 @@ cfg = {
     'Training-Settings' : {
         "identity": {
             "version": "v0.1.0",
-            "description": "_Transformer_baseline1",
+            "description": "_AVD_d20250804_2019_2023",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "2025-08-08"
@@ -179,9 +179,9 @@ cfg = {
         },
         "hyper-parameters": {
             "epoch": 131, # 3DCNN:131; Transformer:131
-            "batchsize": 32,# 3DCNN:128; Transformer:32
+            "batchsize": 128,# 3DCNN:128; Transformer:32
             "channel_names": [
-                "eta", "tSATAOD", "tSATPM25", 
+                 "tSATAOD", "tSATPM25", #"eta",
                 "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
                 "BC_anthro_emi", "NMVOC_anthro_emi", "DST_offline_emi", "SSLT_offline_emi",
@@ -214,7 +214,7 @@ cfg = {
         },
 
         "learning_rate": {
-            "learning_rate0": 0.001,
+            "learning_rate0": 0.0001, # 3DCNN:0.0001
             "ExponentialLR": {
                 "Settings": False,
                 "gamma": 0.9
