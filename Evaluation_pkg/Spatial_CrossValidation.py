@@ -106,8 +106,11 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
         TrainingDatasets_mean, TrainingDatasets_std = Init_Transformer_Datasets.TrainingDatasets_mean, Init_Transformer_Datasets.TrainingDatasets_std
         sites_lat, sites_lon = Init_Transformer_Datasets.sites_lat, Init_Transformer_Datasets.sites_lon
     
+
+    ### Start Training, Validation, and Recording
     if not Use_recorded_data_to_show_validation_results_Spatial_CV:
 
+            ### Initialize the arrays for recording
             final_data_recording = np.array([],dtype=float)
             obs_data_recording = np.array([],dtype=float)
             geo_data_recording = np.array([],dtype=float)
@@ -119,14 +122,17 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
             training_sites_recording = np.array([],dtype=int)
             training_dates_recording = np.array([],dtype=int)
 
+            ### Start the training process in each specified time range
             for imodel in range(len(Spatial_CV_training_begindates)):
+                    
+                    ### Get the training and targets in desired range
                     if Apply_CNN_architecture or Apply_3D_CNN_architecture:
                         # Get the initial true_input and training datasets for the current model (within the desired time range)
-                        print('1...')
+                        print('1...',' Start Date: ', Spatial_CV_training_begindates[imodel], ' End Date: ', Spatial_CV_training_enddates[imodel])
                         desired_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data = Init_CNN_Datasets.get_desired_range_inputdatasets(start_date=Spatial_CV_training_begindates[imodel],
                                                                                                         end_date=Spatial_CV_training_enddates[imodel]) # initial datasets
                         # Normalize the training datasets
-                        print('2...')
+                        print('2...', 'Desired Training Datasets: ', desired_trainingdatasets.keys())
                         normalized_TrainingDatasets  = Init_CNN_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
                         del desired_trainingdatasets
                         gc.collect()
@@ -134,11 +140,11 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         
                     elif Apply_Transformer_architecture:
                         # Get the initial true_input and training datasets for the current model (within the desired time range)
-                        print('1...')
+                        print('1...',' Start Date: ', Spatial_CV_training_begindates[imodel], ' End Date: ', Spatial_CV_training_enddates[imodel])
                         desired_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data = Init_Transformer_Datasets.get_desired_range_inputdatasets(start_date=Spatial_CV_training_begindates[imodel],
                                                                                                         end_date=Spatial_CV_training_enddates[imodel],max_len=max_len,spinup_len=spin_up_len)
                         # Normalize the training datasets
-                        print('2...')
+                        print('2...', 'Desired Training Datasets: ', desired_trainingdatasets.keys())
                         normalized_TrainingDatasets  = Init_Transformer_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
                         del desired_trainingdatasets
                         gc.collect()
@@ -146,9 +152,15 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         
                     
                     sites_index=np.arange(total_sites_number)
+
+                    ### Start folds loop
                     for ifold, (training_selected_sites,testing_selected_sites) in enumerate(rkf.split(sites_index)):
                         print('training_selected_sites: ',training_selected_sites.shape)
                         print('testing_selected_sites: ',testing_selected_sites.shape) 
+
+
+
+                        ### Concatenate the datasets
                         if Apply_3D_CNN_architecture or Apply_CNN_architecture:
                             print('3...')
                             cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
@@ -163,7 +175,7 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                                                                                                                 desired_ground_observation_data=desired_ground_observation_data,
                                                                                                                                                 desired_geophysical_species_data=desired_geophysical_species_data)
                         print('4...')
-
+                        ### Split the datesets based on the indices of training and testing indices
                         X_train, y_train, X_test, y_test, dates_train, dates_test, sites_train, sites_test, train_datasets_index, test_datasets_index = Split_Datasets_based_site_index(train_site_index=training_selected_sites,
                                                                                                                                             test_site_index=testing_selected_sites,
                                                                                                                                             total_trainingdatasets=cctnd_trainingdatasets,
@@ -178,6 +190,8 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
 
                         print('test_datasets_index: ', test_datasets_index)
 
+                        ## Start Training
+                        ## 2D CNN Training
                         if Apply_CNN_architecture:
                             if world_size > 1:
                                 mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
@@ -208,10 +222,10 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                             training_output = cnn_predict(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
-                        
-                        
 
-                        if Apply_3D_CNN_architecture:
+
+                        # 3D CNN Training
+                        elif Apply_3D_CNN_architecture:
 
                             if world_size > 1:
                                 mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
@@ -241,8 +255,9 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                             validation_output = cnn_predict_3D(inputarray=X_test, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                             training_output = cnn_predict_3D(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
-                                                            mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
-                        if Apply_Transformer_architecture:
+                                                               mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
+                        # Transformer Training
+                        elif Apply_Transformer_architecture:
                             if world_size > 1:
                                 mp.spawn(Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                     X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
@@ -346,35 +361,8 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
         final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording, sites_lat_array, sites_lon_array = load_data_recording(species=species,version=version,begindates=Spatial_CV_training_begindates[0],
                                                                                                                                                                                                                                          enddates=Spatial_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
                                                                                                                                                                                                                                          evaluation_type=Evaluation_type,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,num_layers=num_layers,max_len=max_len+spin_up_len,special_name=description,project=project,entity=entity,sweep_id=sweep_id)
-        ### Plot the long-term, annual, monthly and daily scatter plots
-    if Spatial_CV_regression_plot_switch:
-        if Apply_CNN_architecture:
-            args = {'width': width, 'height': height}
-        elif Apply_3D_CNN_architecture:
-            args = {'width': width, 'height': height, 'depth': depth}
-        elif Apply_Transformer_architecture:
-            args = {'d_model': d_model, 'n_head': n_head, 'ffn_hidden': ffn_hidden, 'num_layers': num_layers, 'max_len': max_len+spin_up_len}
         
-        for ifigure in range(len(Spatial_CV_plot_begindates)):
-            plot_begin_date = Spatial_CV_plot_begindates[ifigure]
-            plot_end_date = Spatial_CV_plot_enddates[ifigure]
-            plot_longterm_Annual_Monthly_Daily_Scatter_plots(Evaluation_type=Evaluation_type,typeName=typeName,
-                                                             final_data_recording=final_data_recording,
-                                                             obs_data_recording=obs_data_recording,
-                                                             sites_recording=sites_recording,
-                                                             dates_recording=dates_recording,
-                                                             plot_begin_date=plot_begin_date,
-                                                             plot_end_date=plot_end_date,
-                                                             nchannel=len(main_stream_channel_names),**args,)
-            plot_timeseries_statistics_plots(Evaluation_type=Evaluation_type,typeName=typeName,
-                                                             final_data_recording=final_data_recording,
-                                                             obs_data_recording=obs_data_recording,
-                                                             sites_recording=sites_recording,
-                                                             dates_recording=dates_recording,
-                                                             plot_begin_date=plot_begin_date,
-                                                             plot_end_date=plot_end_date,
-                                                             nchannel=len(main_stream_channel_names),**args,)
-            
+    ### Calculate statistics and record them to the whole time range
     Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording = calculate_statistics(test_begindates=Spatial_CV_validation_begindates[0],
                                                                                                                 test_enddates=Spatial_CV_validation_enddates[-1],final_data_recording=final_data_recording,
                                                                                                                 obs_data_recording=obs_data_recording,geo_data_recording=geo_data_recording,
@@ -406,7 +394,42 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                 Daily_statistics_recording=Daily_statistics_recording,
                 Monthly_statistics_recording=Monthly_statistics_recording,
                 Annual_statistics_recording=Annual_statistics_recording,)
+
     
+        
+        ### Plot the long-term, annual, monthly and daily scatter plots
+    if Spatial_CV_regression_plot_switch:
+        if Apply_CNN_architecture:
+            args = {'width': width, 'height': height}
+        elif Apply_3D_CNN_architecture:
+            args = {'width': width, 'height': height, 'depth': depth}
+        elif Apply_Transformer_architecture:
+            args = {'d_model': d_model, 'n_head': n_head, 'ffn_hidden': ffn_hidden, 'num_layers': num_layers, 'max_len': max_len+spin_up_len}
+        
+        for ifigure in range(len(Spatial_CV_plot_begindates)):
+            plot_begin_date = Spatial_CV_plot_begindates[ifigure]
+            plot_end_date = Spatial_CV_plot_enddates[ifigure]
+            plot_longterm_Annual_Monthly_Daily_Scatter_plots(Evaluation_type=Evaluation_type,typeName=typeName,
+                                                             final_data_recording=final_data_recording,
+                                                             obs_data_recording=obs_data_recording,
+                                                             sites_recording=sites_recording,
+                                                             dates_recording=dates_recording,
+                                                             plot_begin_date=plot_begin_date,
+                                                             plot_end_date=plot_end_date,
+                                                             nchannel=len(main_stream_channel_names),**args,)
+            plot_timeseries_statistics_plots(Evaluation_type=Evaluation_type,typeName=typeName,
+                                                             final_data_recording=final_data_recording,
+                                                             obs_data_recording=obs_data_recording,
+                                                             sites_recording=sites_recording,
+                                                             dates_recording=dates_recording,
+                                                             plot_begin_date=plot_begin_date,
+                                                             plot_end_date=plot_end_date,
+                                                             nchannel=len(main_stream_channel_names),**args,)
+
+    
+    
+
+    ### Recording the results to wandb
     if not Use_recorded_data_to_show_validation_results:
         run_id = run_id_container.get("run_id", None)
         run_name = run_id_container.get("run_name", None)
@@ -447,7 +470,7 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
         wandb.finish()
 
 
-    
+    ####   Calculate the statistics and recording to each time period that is interested
     for idate in range(len(Spatial_CV_validation_begindates)):
         test_begindate =  Spatial_CV_validation_begindates[idate]
         test_enddate = Spatial_CV_validation_enddates[idate]          
@@ -461,7 +484,7 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                                                                                 training_dates_recording=training_dates_recording,
                                                                                                                 Statistics_list=Statistics_list,)
         print('Start to save the validation results to csv file... for {}'.format(Model_structure_type))     
-
+        ## Output the statistics to csv files
         if Apply_CNN_architecture:
             csvfile_outfile = get_csvfile_outfile(Evaluation_type=Evaluation_type,typeName=typeName,Model_structure_type=Model_structure_type,
                                             main_stream_channel_names=main_stream_channel_names,test_begindate=test_begindate,test_enddate=test_enddate,
@@ -488,8 +511,11 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
 
 
     
-
-    del Init_CNN_Datasets, final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
+    if Apply_3D_CNN_architecture or Apply_CNN_architecture:
+        del Init_CNN_Datasets
+    elif Apply_Transformer_architecture:
+        del Init_Transformer_Datasets
+    del final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
     del training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording
     gc.collect()
                 

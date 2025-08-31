@@ -143,6 +143,8 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                         print('2...')
                         normalized_TrainingDatasets  = Init_CNN_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
                         
+                        del desired_trainingdatasets
+                        gc.collect()
                         # Concatenate the training datasets and true input for the current model for training and tetsing purposes
                         print('3...')
                         cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
@@ -158,6 +160,8 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                         # Normalize the training datasets
                         print('2...')
                         normalized_TrainingDatasets  = Init_Transformer_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
+                        del desired_trainingdatasets
+                        gc.collect()
                         # Concatenate the training datasets and true input for the current model for training and tetsing purposes
                         print('3...')
                         cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_Transformer_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
@@ -181,6 +185,8 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     print('cctnd_geophysical_species_data[test_datasets_index]: ', cctnd_geophysical_species_data[test_datasets_index])
                     print('test_datasets_index: ', test_datasets_index)
                     
+                    del cctnd_trainingdatasets, cctnd_true_input
+                    gc.collect()
                     
                     if Apply_CNN_architecture:
                            

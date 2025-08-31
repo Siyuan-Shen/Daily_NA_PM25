@@ -24,6 +24,7 @@ import torch.multiprocessing as mp
 
 
 def map_predict():
+    
     return
 
 def cnn_mapdata_predict_func():

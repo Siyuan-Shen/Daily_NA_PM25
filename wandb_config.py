@@ -119,31 +119,23 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [0.0001]
+                    'values': [0.01,0.001,0.0001]
                 },
                 'batch_size': {
-                    'values': [128]
+                    'values': [32,64,128,256,512,1024]
                 },
                 'epoch':{
-                    'values': [131]
+                    'values': [31,51,71,91,131,151]
                 },
                'channel_to_exclude': {
-                    'values': [ ['eta'],  ['tSATPM25'], 
-                                ['GC_PM25'],['GC_SO4'],['GC_NH4'],['GC_NIT'],['GC_BC'],['GC_OM'],['GC_SOA'],['GC_DST'],['GC_SSLT'],
-                                                     ['PBLH'],['RH'],['PRECTOT'],['T2M'],['V10M'],['U10M'],['PS'],#'USTAR',
-                                                      ['NH3_anthro_emi'],['SO2_anthro_emi'],['NO_anthro_emi'],['OC_anthro_emi'],['BC_anthro_emi'],['NMVOC_anthro_emi'],
-                                                      ['DST_offline_emi'],['SSLT_offline_emi'],
-                                                    ['Urban_Builtup_Lands'], #  'Crop_Nat_Vege_Mos','Permanent_Wetlands','Croplands',
-                                                    #  'major_roads','minor_roads','motorway',
-                                                      ['elevation'],['Population'],
-                                                   ['lat'],['lon'],['sin_days'],['cos_days']] 
+                    'values': [[]] 
                 },
                 'ResCNN3D_blocks_num': {
-                    'values': [[1,1,1,1]]
+                    'values': [[1,0,0,1],[1,1,1,1]]
                 },
 
                 'ResCNN3D_output_channels': {
-                    'values': [[128,256,512,1024]]  # Example values for output channels
+                    'values': [[128,256,512,512],[128,256,512,1024],[64,128,256,512]]  # Example values for output channels
                 }
             }
         }

@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name="Daily 3DCNN 19-23 Spatial CV 4GPU"
+#SBATCH --job-name="Daily 3DCNN 22-23 CV NAPS-20240813 Use AOD Filtered Obs 4GPU"
 #SBATCH --partition=general-gpu
 #SBATCH --mem=800G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus=4
-#SBATCH --exclude=c2-gpu-[004,005]
+# SBATCH --exclude=c2-gpu-[004,005]
 #SBATCH --output=job_output/job-%j-output.txt
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=s.siyuan@wustl.edu
@@ -19,7 +19,7 @@
 #SBATCH --container-mounts=/storage1/fs1/rvmartin/Active/s.siyuan:/my-projects,/storage1/fs1/rvmartin2/Active/s.siyuan:/my-projects2
 #SBATCH --container-workdir=/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25
 
-VERSION=v0.1.0
+VERSION=v0.2.0
 
 # Redirect W&B and tmp paths inside the container
 export WANDB_DIR=/my-projects2/tmp/wandb_dir

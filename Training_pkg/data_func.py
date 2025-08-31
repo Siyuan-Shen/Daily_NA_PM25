@@ -259,7 +259,6 @@ class TransformerInputDatasets():
         
         # Concatenate all at once (much faster than incremental concatenation)
         total_trainingdatasets = np.concatenate(datasets, axis=0)
-
         # Compute mean and std along the feature axis
         if training_data_normalization_type == 'Gaussian':
             TrainingDatasets_mean = np.mean(total_trainingdatasets, axis=0)
@@ -302,10 +301,10 @@ class TransformerInputDatasets():
             raise ValueError('The start_date and end_date are too close, please check the input dates!')
         
         ## This is used to get the desired range of input datasets
-        desired_true_input = self.true_input.copy()
-        desired_trainingdatasets = self.trainingdatasets.copy()
-        desired_ground_observation_data = self.ground_observation_data.copy()
-        desired_geophysical_species_data = self.geophysical_species_data.copy()
+        desired_true_input = copy.deepcopy(self.true_input)
+        desired_trainingdatasets = copy.deepcopy(self.trainingdatasets)
+        desired_ground_observation_data = copy.deepcopy(self.ground_observation_data)
+        desired_geophysical_species_data = copy.deepcopy(self.geophysical_species_data)
 
         ## Create a total_dates_array to store the dates for each batch
         ## The shape of total_dates_array is (number_of_batch_each_site, max_len+spinup_len)
@@ -370,7 +369,9 @@ class TransformerInputDatasets():
                         temp_desired_true_input[i,batch_indices] = np.expand_dims(self.true_input[site]['PM25'][start_index:end_index+1], axis=-1)
                     temp_desired_geophysical_species_data[i,batch_indices] = np.expand_dims(self.geophysical_species_data[site]['geoPM25'][start_index:end_index+1], axis=-1)
                     temp_desired_trainingdatasets[i,training_batch_indices,:] = self.trainingdatasets[site]['data'][trainingdatasets_start_index:trainingdatasets_end_index+1,:]
-
+                    for ichannel in range(self.trainingdatasets[site]['data'].shape[1]):
+                        temp_desired_trainingdatasets_nan_value_indices = np.where(np.isnan(temp_desired_trainingdatasets[i,training_batch_indices,ichannel]))
+                        temp_desired_trainingdatasets[i,training_batch_indices,ichannel][temp_desired_trainingdatasets_nan_value_indices] = np.nanmean(temp_desired_trainingdatasets[i,training_batch_indices,ichannel])
             ## Assign the desired range of input datasets to the desired dictionaries
             desired_ground_observation_data[site]['PM25'] = temp_desired_observation_data
             desired_true_input[site]['data'] = temp_desired_true_input
@@ -439,7 +440,7 @@ class CNNInputDatasets():
         self.normalize_bias = normalize_bias
         self.normalize_species = normalize_species
         self.absolute_species = absolute_species
-
+        self.total_channel_names = total_channel_names
 
         self.ground_observation_data = self._load_daily_PM25_data() 
         ## First time examin the ground_observation_data, wether it has negative values
@@ -747,10 +748,10 @@ class CNNInputDatasets():
     def get_desired_range_inputdatasets(self,start_date,end_date):
 
         ## This is used to get the desired range of input datasets
-        desired_true_input = self.true_input.copy()
-        desired_trainingdatasets = self.trainingdatasets.copy()
-        desired_ground_observation_data = self.ground_observation_data.copy()
-        desired_geophysical_species_data = self.geophysical_species_data.copy()
+        desired_true_input = copy.deepcopy(self.true_input)
+        desired_trainingdatasets = copy.deepcopy(self.trainingdatasets)
+        desired_ground_observation_data = copy.deepcopy(self.ground_observation_data)
+        desired_geophysical_species_data = copy.deepcopy(self.geophysical_species_data)
         ## Here we need to get the desired range of input datasets based on the start_date and end_date
         for isite in self.ground_observation_data.keys():
             site = str(isite)
@@ -1093,10 +1094,10 @@ class CNN3DInputDatasets():
     def get_desired_range_inputdatasets(self,start_date,end_date):
 
         ## This is used to get the desired range of input datasets
-        desired_true_input = self.true_input.copy()
-        desired_trainingdatasets = self.trainingdatasets.copy()
-        desired_ground_observation_data = self.ground_observation_data.copy()
-        desired_geophysical_species_data = self.geophysical_species_data.copy()
+        desired_true_input = copy.deepcopy(self.true_input)
+        desired_trainingdatasets = copy.deepcopy(self.trainingdatasets)
+        desired_ground_observation_data = copy.deepcopy(self.ground_observation_data)
+        desired_geophysical_species_data = copy.deepcopy(self.geophysical_species_data)
         ## Here we need to get the desired range of input datasets based on the start_date and end_date
         for isite in self.ground_observation_data.keys():
             site = str(isite)
@@ -1150,8 +1151,8 @@ class CNN3DInputDatasets():
         ## We first get the desired range of input datasets based on the start_date and end_date
         ## Then we normalize the desired training datasets based on the mean and std matrix.
         ## Here we need to concatenate the normalized training datasets and true inputs, respectively.
-        
-        
+
+        print('ground_observation_data.keys() :', self.ground_observation_data.keys())
         datasets = [desired_normalized_trainingdatasets[str(isite)]['data'] for isite in self.ground_observation_data.keys()]
         total_trainingdatasets = np.concatenate(datasets, axis=0).astype(np.float32)
 

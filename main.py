@@ -40,6 +40,10 @@ if __name__ == "__main__":
         spatial_cross_validation(total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
                                 side_stream_channel_names=side_channel_names,sweep_id=sweep_id)
     
+
+
+
+    
     #### Start Running the main functions ####
     total_channel_names, main_stream_channel_names, side_channel_names = Get_channel_names(channels_to_exclude=[])
     if Hyperparameters_Search_Validation_Switch:
