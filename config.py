@@ -1,18 +1,40 @@
 #########################################################################################################################################################
 Pathbegin_YEAR = 2018
 Pathend_YEAR = 2023
-AVD_OBS_version = 'AVD_d20250804'
+AVD_OBS_version = 'AVD_d20240814'
 AVD_GEO_version = 'vAOD20240322vGEO20241212'
+
+Use_AOD_nan_values_filtered_Obs = True ## True: use the AOD that is not filled to filter the obs, high quality geophysical a priori; False: use the filled AOD
+Include_NAPS = True ### True: include NAPS data; False: not include NAPS data
+NAPS_version = 'NAPS-20240813' # 'NAPS_20250807', 'NAPS-20240813'
+
+if Include_NAPS:
+    observation_data_NAPS_insertion = NAPS_version
+    geophysical_data_NAPS_insertion = NAPS_version
+    training_data_NAPS_insertion = NAPS_version
+else:
+    observation_data_NAPS_insertion = 'No_NAPS'
+    geophysical_data_NAPS_insertion = 'No_NAPS'
+    training_data_NAPS_insertion = 'No_NAPS'
+
+if Use_AOD_nan_values_filtered_Obs:
+    observation_data_insertion = '_AODFiltered_{}'.format(AVD_GEO_version)
+    geophysical_data_insertion = 'Filter_AOD_nan_obs'
+    training_data_insertion = 'Filter_AOD_nan_obs'
+else:
+    observation_data_insertion = ''
+    geophysical_data_insertion = 'Filled_AOD'
+    training_data_insertion = 'Filled_AOD'
 
 cfg = {
     'Pathway' : {
 
         #### Ground Observation Data, Geophysical Species Data, and Geophysical Biases Data ####
         "learning_objective": {
-            "ground_observation_data_dir"      : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/GroundBased_Observations/{AVD_OBS_version}/",
-            "geophysical_species_data_dir"     : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
-            "geophysical_biases_data_dir"      : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
-            "ground_observation_data_infile"   : f"daily_PM25_data_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "ground_observation_data_dir"      : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/GroundBased_Observations/{AVD_OBS_version}/{observation_data_NAPS_insertion}/",
+            "geophysical_species_data_dir"     : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
+            "geophysical_biases_data_dir"      : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
+            "ground_observation_data_infile"   : f"daily_PM25_data{observation_data_insertion}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
             "geophysical_species_data_infile"  : "geophysical_PM25_datasets.npy",
             "geophysical_biases_data_infile"   : "geophysical_bias_datasets.npy",
             "observation_datapoints_threshold" : 0 # Minimum number of observation data points for each site, typically 100 * number of years
@@ -20,9 +42,9 @@ cfg = {
 
         #### Training Datasets infiles
         "TrainingDataset": {
-            "CNN_Training_infiles"          : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
-            "CNN3D_Training_infiles"        : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
-            "Transformer_Training_infiles"  : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{AVD_GEO_version}/Transformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN_Training_infiles"          : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN3D_Training_infiles"        : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "Transformer_Training_infiles"  : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/Transformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
         },
 
         #### Validation Datasets outdirs
@@ -80,9 +102,9 @@ cfg = {
         ##### Spatial Cross Validation Settings #####
         "Training-Settings": {
             "Spatial_CV_folds": 10,
-            "Spatial_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
-            "Spatial_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
-            "Spatial_CV_validation_begindates": [20190101],
+            "Spatial_CV_training_begindates": [20220101],
+            "Spatial_CV_training_enddates": [20231231],
+            "Spatial_CV_validation_begindates": [20220101],
             "Spatial_CV_validation_enddates": [20231231],
             "additional_validation_regions": [
                 "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
@@ -92,7 +114,7 @@ cfg = {
 
         ##### Spatial Cross Visualization Settings ####
         "Visualization_Settings": {
-            "regression_plot_switch": False,
+            "regression_plot_switch": True,
             "plot_begindates": [20220101,20220101],
             "plot_enddates": [20231231,20221231]
         },
@@ -162,11 +184,11 @@ cfg = {
 
     'Training-Settings' : {
         "identity": {
-            "version": "v0.1.0",
-            "description": "_AVD_d20250804_2019_2023",
+            "version": "v0.2.0",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2022_2023",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
-            "runningdate": "2025-08-08"
+            "runningdate": "2025-08-31"
         },
         "learning-objective": {
             "species": "PM25",
@@ -178,13 +200,13 @@ cfg = {
             "log_species": False,
         },
         "hyper-parameters": {
-            "epoch": 131, # 3DCNN:131; Transformer:131
-            "batchsize": 128,# 3DCNN:128; Transformer:32
+            "epoch": 131, # 2DCNN: 131; 3DCNN:131; Transformer:111
+            "batchsize": 128,# 2DCNN: 256; 3DCNN:128; Transformer:32
             "channel_names": [
                  "tSATAOD", "tSATPM25", #"eta",
                 "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
-                "BC_anthro_emi", "NMVOC_anthro_emi", "DST_offline_emi", "SSLT_offline_emi",
+                "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
                 "Urban_Builtup_Lands", "elevation", "Population", "lat", "lon", "sin_days", "cos_days"
             ],
             "training_data_normalization_type": "Gaussian", # Options: "Gaussian", "MinMax","Robust", applicable to training datasets
@@ -214,7 +236,7 @@ cfg = {
         },
 
         "learning_rate": {
-            "learning_rate0": 0.0001, # 3DCNN:0.0001
+            "learning_rate0": 0.0001, # 2D CNN: 0.001; 3DCNN:0.0001, transformer: 0.001
             "ExponentialLR": {
                 "Settings": False,
                 "gamma": 0.9

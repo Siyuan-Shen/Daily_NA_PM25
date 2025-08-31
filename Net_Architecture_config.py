@@ -14,7 +14,7 @@ cfg  = {
             "ResNet": {
                 "Settings": True,
                 "Blocks": "BasicBlock",
-                "blocks_num": [2, 2, 2, 2],
+                "blocks_num": [1, 1, 1, 1],
                 "Pooling_layer_type": "MaxPooling2d"
             },
 
@@ -105,7 +105,7 @@ cfg  = {
             "n_head": 4,  # Number of attention heads; default is 8
             "ffn_hidden": 64,  # Dimension of the feed-forward network hidden layer
             "num_layers": 6,  # Number of encoder/decoder layers; default is 6
-            "max_len": 60,  # Maximum length of the input sequence; default is 30. This is for the range that the model calculate the loss.
+            "max_len": 30,  # Maximum length of the input sequence; default is 30. This is for the range that the model calculate the loss.
             "spin_up_len": 1,  # Spin-up length for the model; default is 7. This is for the range that the model DO NOT calculate the loss.
             "drop_prob": 0.01,  # Dropout probability; default is 0.1
         },
