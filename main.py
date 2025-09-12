@@ -7,6 +7,9 @@ from Evaluation_pkg.Hyperparameter_Search_Validation import Hyperparameters_Sear
 from Evaluation_pkg.Spatial_CrossValidation import spatial_cross_validation
 from Evaluation_pkg.SHAPvalue_analysis import Spatial_CV_SHAP_Analysis
 from Evaluation_pkg.utils import *
+
+from Estimation_pkg.Estimation import Estimation_Func
+from Estimation_pkg.utils import *
 from Training_pkg.utils import *
 from Model_Structure_pkg.utils import *
 from config import cfg
@@ -72,7 +75,9 @@ if __name__ == "__main__":
     if Spatial_CV_SHAP_Analysis_Switch:
         Spatial_CV_SHAP_Analysis(total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
                                  side_stream_channel_names=side_channel_names)
-            
+
+    if Estimation_Switch:
+        Estimation_Func(total_channel_names, main_stream_channel_names, side_channel_names,)
     end_time = time.time()
     world_size = torch.cuda.device_count()
     print('Total time taken: {:.2f} secons, with {} GPUs'.format(end_time - start_time, world_size))
