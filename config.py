@@ -94,7 +94,7 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        "Spatial_CrossValidation_Switch": True,
+        "Spatial_CrossValidation_Switch": False,
         "Spatial_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Spatial_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -115,8 +115,8 @@ cfg = {
         ##### Spatial Cross Visualization Settings ####
         "Visualization_Settings": {
             "regression_plot_switch": True,
-            "plot_begindates": [20220101,20220101],
-            "plot_enddates": [20231231,20221231]
+            "plot_begindates": [20220101],
+            "plot_enddates": [20221231]
         },
         "Forced_Slope_Unity": {
             "ForcedSlopeUnity": True
@@ -134,8 +134,8 @@ cfg = {
     },
     #########################################################################################################################################################
     'Estimation-Settings' : {
-        'Estimation_Switch': False,
-        'Train_model_Switch': True,
+        'Estimation_Switch': True,
+        'Train_model_Switch': False,
         'Map_estimation_Switch': True,
         'Estimation_visualization_Switch': True,
 
@@ -149,8 +149,8 @@ cfg = {
             'Eatimation_Daily_Switch': True,
             'Estimation_trained_begin_dates': [20220101],
             'Estimation_trained_end_dates': [20231231],
-            'Estimation_begindates': [20220101],
-            'Estimation_enddates': [20231231],
+            'Estimation_begindates': [[20220101]],
+            'Estimation_enddates': [[20231231]],
             'Extent': [10.055,69.945,-169.945,-40.055],
             'Estimation_Area': 'NorthAmerica',
 
@@ -184,8 +184,8 @@ cfg = {
 
     'Training-Settings' : {
         "identity": {
-            "version": "v0.2.0",
-            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2022_2023",
+            "version": "v0.2.1",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "2025-08-31"

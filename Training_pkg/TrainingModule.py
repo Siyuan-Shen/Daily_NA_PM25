@@ -233,8 +233,8 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
     print('fold {} is starting...'.format(ifold))
     print('world_size: {}'.format(world_size))
     try:
-        print(f"[Rank {rank}] Starting CNN_train")
-        # Your original CNN_train logic goes here...
+        print(f"[Rank {rank}] Starting 3DCNN_train")
+        # Your original 3DCNN_train logic goes here...
     except Exception as e:
         print(f"[Rank {rank}] Exception occurred: {e}")
         import traceback

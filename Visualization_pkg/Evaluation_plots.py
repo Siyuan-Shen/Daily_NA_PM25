@@ -48,7 +48,7 @@ def shap_value_plot(shap_values_with_feature_names:shap._explanation.Explanation
         cbar = fig.get_axes()[-1]  # Retrieve the colorbar axis
         cbar.set_yticks([ 0, 1.0])
         cbar.set_yticklabels(["0","1"])
-        plt.xlabel(r'Impact on PM$_{2.5}$ ($\mu$g/m$^3$)')
+        plt.xlabel(r'Impact on PM$_{2.5}$ ($\mu g/m^3$)')
         cbar.set_ylabel('Predictor variables values')
         plt.savefig(outfile,format='png',dpi=1000, bbox_inches='tight')
         plt.close()

@@ -1,5 +1,6 @@
 from config import cfg
 import datetime
+import numpy as np
 
 
 Estimation_Settings = cfg['Estimation-Settings']
@@ -52,19 +53,19 @@ Geophysical_version = 'vAOD20240322vGEO20241212'
 
 ############################################################################################
 # The indir of input mapdata.
-Geophysical_indir        = '{MapData_Indir}Geophysical_Variables/'
-GEOS_Chem_indir          = '{MapData_Indir}GEOS-Chem_input/'
-Meteorology_indir        = '{MapData_Indir}Meteorology_input/'
-Anthropogenic_Emissions_input_indir = '{MapData_fromRegionalComponentProject_Indir}Anthropogenic_Emissions_input/'
-Offline_Emissions_input_indir       = '{MapData_fromRegionalComponentProject_Indir}Offline_Emissions_input/'
+Geophysical_indir        = f'{MapData_Indir}Geophysical_Variables/'
+GEOS_Chem_indir          = f'{MapData_Indir}GEOS-Chem_input/'
+Meteorology_indir        = f'{MapData_Indir}Meteorology_input/'
+Anthropogenic_Emissions_input_indir = f'{MapData_fromRegionalComponentProject_Indir}Anthropogenic_Emissions_input/'
+Offline_Emissions_input_indir       = f'{MapData_fromRegionalComponentProject_Indir}Offline_Emissions_input/'
 
-LandCover_input_indir               = '{MapData_fromRegionalComponentProject_Indir}LandCover_input/'
-Population_input_indir              = '{MapData_fromRegionalComponentProject_Indir}Population_input/'
-OpenStreetMap_log_road_indir        = '{MapData_fromRegionalComponentProject_Indir}OpenStreetMap_log_road_map_data/'
-OpenStreetMap_road_density_indir    = '{MapData_fromRegionalComponentProject_Indir}OpenStreetMap_RoadDensity_input/'
-OpenStreetMap_nearest_dist_indir    = '{MapData_fromRegionalComponentProject_Indir}OpenStreetMap_RoadDensity_NearestDistances_forEachPixels_input/'
-Geographical_Variables_input_indir  = '{MapData_fromRegionalComponentProject_Indir}Geographical_Variables_input/'
-Spatiotemporal_input_indir          = '{MapData_Indir}Spatiotemporal_input/'
+LandCover_input_indir               = f'{MapData_fromRegionalComponentProject_Indir}LandCover_input/'
+Population_input_indir              = f'{MapData_fromRegionalComponentProject_Indir}Population_input/'
+OpenStreetMap_log_road_indir        = f'{MapData_fromRegionalComponentProject_Indir}OpenStreetMap_log_road_map_data/'
+OpenStreetMap_road_density_indir    = f'{MapData_fromRegionalComponentProject_Indir}OpenStreetMap_RoadDensity_input/'
+OpenStreetMap_nearest_dist_indir    = f'{MapData_fromRegionalComponentProject_Indir}OpenStreetMap_RoadDensity_NearestDistances_forEachPixels_input/'
+Geographical_Variables_input_indir  = f'{MapData_fromRegionalComponentProject_Indir}Geographical_Variables_input/'
+Spatiotemporal_input_indir          = f'{MapData_Indir}Spatiotemporal_input/'
 
 def inputfiles_table(YYYY, MM, DD):
 
@@ -205,6 +206,11 @@ def getGrg_YYYY_MM_DD(date):
     MM = MONTHs[int(np.floor((date%10000)/100))-1]
     DD = DAYs[int(date%100)-1]
     return YYYY, MM, DD
+
+def get_previous_date_YYYY_MM_DD(date,nday):
+    YYYY, MM, DD = getGrg_YYYY_MM_DD(date)
+    previous_date = datetime.datetime(int(YYYY), int(MM), int(DD)) - datetime.timedelta(days=nday)
+    return int(previous_date.strftime('%Y%m%d'))
 
 def Grg2Jul(gdate):
     """

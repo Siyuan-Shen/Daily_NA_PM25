@@ -18,7 +18,7 @@ def get_landtype(YYYY,extent)->np.array:
     landtype = Contiguous_US_mask + Canada_mask + Alaska_mask
     lat_index,lon_index = get_extent_index(extent=extent)
     '''
-    landtype_infile = mask_indir + 'NewLandMask-0.01.mat'
+    landtype_infile = '/my-projects/mask/Land_Ocean_Mask/NewLandMask-0.01.mat'
     LandMask = mat.loadmat(landtype_infile)
     MASKp1 = LandMask['MASKp1']
     MASKp2 = LandMask['MASKp2']
@@ -31,6 +31,13 @@ def get_landtype(YYYY,extent)->np.array:
     landtype = np.zeros((13000,36000),dtype=np.float32)
     landtype = MASKp_land
     lat_index,lon_index = get_GL_extent_index(extent=extent)
+    
+    output = np.zeros((len(lat_index),len(lon_index)), dtype=int)
+
+    for ix in range(len(lat_index)):
+        output[ix,:] = landtype[lat_index[ix],lon_index]
+    return output
+
 
 def get_GL_extent_index(extent)->np.array:
     '''

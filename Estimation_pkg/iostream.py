@@ -27,15 +27,16 @@ def get_Estimation_recording_filename(outdir, file_target,typeName,Area,YYYY,MM,
             os.makedirs(outdir)
         recording_filename = outdir + f'{file_target}_{Model_structure_type}_{typeName}_{Area}_{YYYY}{MM}{DD}_{depth}x{width}x{height}_{nchannel}Channel{description}.npy'
     return recording_filename
+    
 def save_Estimation_Map(mapdata,outdir, file_target,typeName,Area,YYYY,MM,DD,nchannel, **args):
     width = args.get('width', 11)
     height = args.get('height', 11)
     depth = args.get('depth', 3)
     
     if Apply_CNN_architecture:
-        outfile = get_Estimation_recording_filename(outdir, file_target,typeName,Area,YYYY,MM,DD,nchannel,width,height)
+        outfile = get_Estimation_recording_filename(outdir, file_target,typeName,Area,YYYY,MM,DD,nchannel,width=width,height=height)
     elif Apply_3D_CNN_architecture:
-        outfile = get_Estimation_recording_filename(outdir, file_target,typeName,Area,YYYY,MM,DD,nchannel,width,height,depth)
+        outfile = get_Estimation_recording_filename(outdir, file_target,typeName,Area,YYYY,MM,DD,nchannel,width=width,height=height,depth=depth)
 
     np.save(outfile, mapdata)
     print(f'Saved the {file_target} map data to {outfile}')
