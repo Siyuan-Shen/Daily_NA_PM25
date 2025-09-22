@@ -27,6 +27,7 @@ training_dir_cfg = cfg['Pathway']['TrainingDataset']
 CNN_Training_infiles = training_dir_cfg['CNN_Training_infiles']
 CNN3D_Training_infiles = training_dir_cfg['CNN3D_Training_infiles']
 Transformer_Training_infiles = training_dir_cfg['Transformer_Training_infiles']
+CNN_Transformer_Training_infiles = training_dir_cfg['CNN_Transformer_Training_infiles']
 ################################################################################
 # Results Path
 results_dir_cfg = cfg['Pathway']['Results']
@@ -68,6 +69,8 @@ hyperparameters_cfg = Training_Settings['hyper-parameters']
 epoch = hyperparameters_cfg['epoch']
 batchsize = hyperparameters_cfg['batchsize']
 channel_names = hyperparameters_cfg['channel_names']
+CNN_Embedding_channel_names = hyperparameters_cfg['CNN_Embedding_channel_names']
+Transformer_Embedding_channel_names = hyperparameters_cfg['Transformer_Embedding_channel_names']
 training_data_normalization_type = hyperparameters_cfg['training_data_normalization_type']  # Options: "Gaussian", "MinMax"
 
 # Loss function
@@ -123,70 +126,108 @@ Mish_ACF = activation_function_cfg['Mish']['Settings']
 ELU_ACF = activation_function_cfg['ELU']['Settings']
 
 
-def Get_channel_names(channels_to_exclude:list):
-    if ResNet_Settings or ResNet_MLP_Settings or ResNet_Classification_Settings or ResNet_MultiHeadNet_Settings:
-        if len(channels_to_exclude) == 0:
-            total_channel_names = channel_names.copy()
-            main_stream_channel_names = channel_names.copy()
-            side_channel_names = []
-        else:
-            total_channel_names = channel_names.copy()
-            main_stream_channel_names = channel_names.copy()
-            side_channel_names = []
-            for ichannel in range(len(channels_to_exclude)):
-                if channels_to_exclude[ichannel] in total_channel_names:
-                    total_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
-                if channels_to_exclude[ichannel] in main_stream_channel_names:
-                    main_stream_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
-    elif LateFusion_Settings:
-        if len(channels_to_exclude) == 0:
-            total_channel_names = channel_names.copy()
-            main_stream_channel_names = LateFusion_initial_channels.copy()
-            side_channel_names = LateFusion_LateFusion_channels.copy()
-        else:
-            total_channel_names = channel_names.copy()
-            main_stream_channel_names = LateFusion_initial_channels.copy()
-            side_channel_names = LateFusion_LateFusion_channels.copy()
-            for ichannel in range(len(channels_to_exclude)):
-                if channels_to_exclude[ichannel] in total_channel_names:
-                    total_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
-                if channels_to_exclude[ichannel] in main_stream_channel_names:
-                    main_stream_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
-                if channels_to_exclude[ichannel] in side_channel_names:
-                    side_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the side channel list.'.format(channels_to_exclude[ichannel]))
-    elif MultiHeadLateFusion_Settings:
-        if len(channels_to_exclude) == 0:
-            total_channel_names = channel_names.copy()
-            main_stream_channel_names = MultiHeadLateFusion_initial_channels.copy()
-            side_channel_names = MultiHeadLateFusion_LateFusion_channels.copy()
-        else:
-            total_channel_names = channel_names.copy()
-            main_stream_channel_names = MultiHeadLateFusion_initial_channels.copy()
-            side_channel_names = MultiHeadLateFusion_LateFusion_channels.copy()
-            for ichannel in range(len(channels_to_exclude)):
-                if channels_to_exclude[ichannel] in total_channel_names:
-                    total_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
-                if channels_to_exclude[ichannel] in main_stream_channel_names:
-                    main_stream_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
-                if channels_to_exclude[ichannel] in side_channel_names:
-                    side_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the side channel list.'.format(channels_to_exclude[ichannel]))
+def Get_channel_names(channels_to_exclude:list,**args):
 
+    init_channels = args.get('init_channels',[])
+    if Apply_CNN_architecture:
+        if ResNet_Settings or ResNet_MLP_Settings or ResNet_Classification_Settings or ResNet_MultiHeadNet_Settings:
+            if len(channels_to_exclude) == 0:
+                total_channel_names = channel_names.copy()
+                main_stream_channel_names = channel_names.copy()
+                side_channel_names = []
+            else:
+                total_channel_names = channel_names.copy()
+                main_stream_channel_names = channel_names.copy()
+                side_channel_names = []
+                for ichannel in range(len(channels_to_exclude)):
+                    if channels_to_exclude[ichannel] in total_channel_names:
+                        total_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
+                    if channels_to_exclude[ichannel] in main_stream_channel_names:
+                        main_stream_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
+        elif LateFusion_Settings:
+            if len(channels_to_exclude) == 0:
+                total_channel_names = channel_names.copy()
+                main_stream_channel_names = LateFusion_initial_channels.copy()
+                side_channel_names = LateFusion_LateFusion_channels.copy()
+            else:
+                total_channel_names = channel_names.copy()
+                main_stream_channel_names = LateFusion_initial_channels.copy()
+                side_channel_names = LateFusion_LateFusion_channels.copy()
+                for ichannel in range(len(channels_to_exclude)):
+                    if channels_to_exclude[ichannel] in total_channel_names:
+                        total_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
+                    if channels_to_exclude[ichannel] in main_stream_channel_names:
+                        main_stream_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
+                    if channels_to_exclude[ichannel] in side_channel_names:
+                        side_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the side channel list.'.format(channels_to_exclude[ichannel]))
+        elif MultiHeadLateFusion_Settings:
+            if len(channels_to_exclude) == 0:
+                total_channel_names = channel_names.copy()
+                main_stream_channel_names = MultiHeadLateFusion_initial_channels.copy()
+                side_channel_names = MultiHeadLateFusion_LateFusion_channels.copy()
+            else:
+                total_channel_names = channel_names.copy()
+                main_stream_channel_names = MultiHeadLateFusion_initial_channels.copy()
+                side_channel_names = MultiHeadLateFusion_LateFusion_channels.copy()
+                for ichannel in range(len(channels_to_exclude)):
+                    if channels_to_exclude[ichannel] in total_channel_names:
+                        total_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
+                    if channels_to_exclude[ichannel] in main_stream_channel_names:
+                        main_stream_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
+                    if channels_to_exclude[ichannel] in side_channel_names:
+                        side_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the side channel list.'.format(channels_to_exclude[ichannel]))
+    elif Apply_3D_CNN_architecture or Apply_Transformer_architecture:
+        if len(channels_to_exclude) == 0:
+            total_channel_names = channel_names.copy()
+            main_stream_channel_names = channel_names.copy()
+            side_channel_names = []
+        else:
+            total_channel_names = channel_names.copy()
+            main_stream_channel_names = channel_names.copy()
+            side_channel_names = []
+            for ichannel in range(len(channels_to_exclude)):
+                if channels_to_exclude[ichannel] in total_channel_names:
+                    total_channel_names.remove(channels_to_exclude[ichannel])
+                else:
+                    print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
+                if channels_to_exclude[ichannel] in main_stream_channel_names:
+                    main_stream_channel_names.remove(channels_to_exclude[ichannel])
+                else:
+                    print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
+    elif Apply_CNN_Transformer_architecture:
+        if len(channels_to_exclude) == 0:
+            total_channel_names = init_channels.copy()
+            main_stream_channel_names = init_channels.copy()
+            side_channel_names = []
+        else:
+            total_channel_names = init_channels.copy()
+            main_stream_channel_names = init_channels.copy()
+            side_channel_names = []
+            for ichannel in range(len(channels_to_exclude)):
+                if channels_to_exclude[ichannel] in total_channel_names:
+                    total_channel_names.remove(channels_to_exclude[ichannel])
+                else:
+                    print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
+                if channels_to_exclude[ichannel] in main_stream_channel_names:
+                    main_stream_channel_names.remove(channels_to_exclude[ichannel])
+                else:
+                    print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
     return total_channel_names, main_stream_channel_names, side_channel_names
 
 def activation_function_table():

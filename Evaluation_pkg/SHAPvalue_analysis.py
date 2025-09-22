@@ -49,6 +49,8 @@ def Spatial_CV_SHAP_Analysis(total_channel_names, main_stream_channel_names,
         TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
         width, height = Init_CNN_Datasets.width, Init_CNN_Datasets.height
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
+        shap_values_values, shap_values_base,shap_values_data = np.zeros([0,nchannel,width,height],dtype=np.float32),np.array([],dtype=np.float32),np.zeros([0,nchannel,width,height],dtype=np.float32) #initialize_AVD_SHAPValues_DataRecording(beginyear=test_beginyear,endyear=test_endyear)
+        
     elif Apply_3D_CNN_architecture:
         Model_structure_type = '3DCNNModel'
         print('Init_CNN_Datasets starting...')
@@ -61,13 +63,14 @@ def Spatial_CV_SHAP_Analysis(total_channel_names, main_stream_channel_names,
         TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
         depth, width, height = Init_CNN_Datasets.depth,Init_CNN_Datasets.width, Init_CNN_Datasets.height
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
+        shap_values_values, shap_values_base,shap_values_data = np.zeros([0,nchannel,depth,width,height],dtype=np.float32),np.array([],dtype=np.float32),np.zeros([0,nchannel,depth,width,height],dtype=np.float32) #initialize_AVD_SHAPValues_DataRecording(beginyear=test_beginyear,endyear=test_endyear)
+
 
     if Spatial_CV_SHAP_Analysis_Calculation_Switch:
         print('Spatial CV SHAP Analysis Calculation Switch is ON')
         print('Calculating SHAP values for each fold...')
          ### Load the datasets
         
-        shap_values_values, shap_values_base,shap_values_data = np.zeros([0,nchannel,width,height],dtype=np.float32),np.array([],dtype=np.float32),np.zeros([0,nchannel,width,height],dtype=np.float32) #initialize_AVD_SHAPValues_DataRecording(beginyear=test_beginyear,endyear=test_endyear)
         
         for imodel in range(len(Spatial_CV_training_begindates)):
             if Apply_CNN_architecture or Apply_3D_CNN_architecture:

@@ -1,6 +1,6 @@
 import wandb
 import os
-from Training_pkg.utils import description,Apply_CNN_architecture,Apply_3D_CNN_architecture, version, learning_rate0, epoch, batchsize,ResCNN3D_blocks_num,ResCNN3D_output_channels,ResNet_blocks_num
+from Training_pkg.utils import description,Apply_Transformer_architecture,Apply_CNN_Transformer_architecture,Apply_CNN_architecture,Apply_3D_CNN_architecture, version, learning_rate0, epoch, batchsize,ResCNN3D_blocks_num,ResCNN3D_output_channels,ResNet_blocks_num
 from Model_Structure_pkg.utils import *
 def wandb_run_config():
     if Apply_CNN_architecture:
@@ -34,6 +34,23 @@ def wandb_run_config():
             'spin_up_len': Transformer_spin_up_len,
             'drop_prob': Transformer_drop_prob
             
+        }
+
+    if Apply_CNN_Transformer_architecture:
+        run_config = {
+            "learning_rate0": learning_rate0,
+            "architecture": "CNN_Transformer",
+            "epoch": epoch,
+            "batch_size": batchsize,
+            "CNN_blocks_num": CNN_Transformer_ResNet_blocks_num,
+            "CNN_output_channels": CNN_Transformer_ResNet_output_channels,
+            'd_model': CNN_Transformer_d_model,
+            'n_head': CNN_Transformer_n_head,
+            'ffn_hidden': CNN_Transformer_ffn_hidden,
+            'num_layers': CNN_Transformer_num_layers,
+            'max_len': CNN_Transformer_max_len,
+            'spin_up_len': CNN_Transformer_spin_up_len,
+            'drop_prob': CNN_Transformer_drop_prob
         }
     return run_config
 
@@ -186,6 +203,62 @@ def wandb_sweep_config():
 
             }
         }
+    
+    if Apply_CNN_Transformer_architecture:
+        sweep_configuration = {
+            'name': 'HSV_CNN_Transformer_Sweep_Normalized_Speices',
+            'entity': 'ACAG-NorthAmericaDailyPM25',
+            'project': version,
+            'method': "random",
+            'metric': {
+                'name': 'test_R2',
+                'goal': 'maximize'
+            },
+            'parameters': {
+                'learning_rate0': {
+                    'values': [0.0001, 0.001]
+                },
+                'batch_size': {
+                    'values': [32,64,128,256]
+                },
+                'epoch': {
+                    'values': [111,131,151]
+                },
+                'CNN_blocks_num': {
+                    'values': [[2,2,2,2],[1,1,1,1],[3,3,3,3],[4,4,4,4]]
+                },
+                "CNN_output_channels": {
+                    'values': [[64,128,256,512],[128,256,512,512],[128,256,512,1024]]  # Example values for output channels
+                },
+                'd_model': {
+                    'values': [256, 512]  # Example values for model dimension
+                },
+                'n_head': {
+                    'values': [4,  8]  # Example values for number of attention heads
+                },
+                'ffn_hidden': {
+                    'values': [64, 128]  # Example values for feed-forward network hidden layer dimension
+                },
+                'num_layers': {
+                    'values': [3, 4, 6]  # Example values for number of encoder/decoder layers
+                },
+                'max_len': {
+                    'values': [30, 60]  # Example values for maximum length of the input sequence
+                },
+                'spin_up_len': {
+                    'values': [1, 3]  # Example values for spin-up length
+                },
+                'drop_prob': {
+                    'values': [0.01,  0.001]  # Example values for dropout probability
+                },
+                'CNN_channel_to_exclude': {
+                    'values': [[]] 
+                },
+                'Transformer_channel_to_exclude': {
+                    'values': [[]] 
+                }
+            }
+        }
     return sweep_configuration
 
 def wandb_parameters_return(wandb_config):
@@ -214,3 +287,18 @@ def wandb_parameters_return(wandb_config):
         spin_up_len_value = wandb_config['spin_up_len']
         drop_prob_value = wandb_config['drop_prob']
         return batchsize_value, learning_rate0_value, epoch_value, d_model_value, n_head_value, ffn_hidden_value, num_layers_value, max_len_value, spin_up_len_value, drop_prob_value
+    if Apply_CNN_Transformer_architecture:
+        print('wandb_parameters_return: ', wandb_config)
+        batchsize_value = wandb_config['batch_size']
+        learning_rate0_value = wandb_config['learning_rate0']
+        epoch_value = wandb_config['epoch']
+        CNN_blocks_num_value = wandb_config['CNN_blocks_num']
+        CNN_output_channels_value = wandb_config['CNN_output_channels']
+        d_model_value = wandb_config['d_model']
+        n_head_value = wandb_config['n_head']
+        ffn_hidden_value = wandb_config['ffn_hidden']
+        num_layers_value = wandb_config['num_layers']
+        max_len_value = wandb_config['max_len']
+        spin_up_len_value = wandb_config['spin_up_len']
+        drop_prob_value = wandb_config['drop_prob']
+        return batchsize_value, learning_rate0_value, epoch_value, CNN_blocks_num_value, CNN_output_channels_value, d_model_value, n_head_value, ffn_hidden_value, num_layers_value, max_len_value, spin_up_len_value, drop_prob_value

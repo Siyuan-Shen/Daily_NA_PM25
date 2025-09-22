@@ -18,6 +18,9 @@ def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,endd
     ffn_hidden = args.get('ffn_hidden', 256)
     num_layers = args.get('num_layers', 6)
     max_len = args.get('max_len', 1000)
+    CNN_nchannel = args.get('CNN_nchannel', 4)
+    Transformer_nchannel = args.get('Transformer_nchannel', 3)
+
     
     outdir = model_outdir + '{}/{}/Results/results-Trained_Models/{}/'.format(species, version,evaluation_type)
     if not os.path.isdir(outdir):
@@ -35,6 +38,10 @@ def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,endd
         Model_structure_type = 'TransformerModel'
         model_outfile = outdir +  '{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindates,enddates,nchannel,special_name, ifold)
         torch.save(model, model_outfile)
+    elif Apply_CNN_Transformer_architecture:
+        Model_structure_type = 'CNNTransformerModel'
+        model_outfile = outdir + f'{Model_structure_type}_{evaluation_type}_{typeName}_{species}_{width}x{height}_{d_model}dmodel_{n_head}heads_{ffn_hidden}ffnHidden_{num_layers}numlayers_{max_len}lens_{begindates}-{enddates}_{CNN_nchannel}CNNChannels_{Transformer_nchannel}TransformerChannels_No{ifold}.pt'
+        torch.save(model, model_outfile)
     return
 
 def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, version, species, nchannel, special_name, ifold,**args):
@@ -46,6 +53,8 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
     ffn_hidden = args.get('ffn_hidden', 256)
     num_layers = args.get('num_layers', 6)
     max_len = args.get('max_len', 1000)
+    CNN_nchannel = args.get('CNN_nchannel', 4)
+    Transformer_nchannel = args.get('Transformer_nchannel', 3)
 
     indir = model_outdir + '{}/{}/Results/results-Trained_Models/{}/'.format(species, version,evaluation_type)
     if Apply_CNN_architecture:
@@ -73,6 +82,16 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
             raise ValueError('The {} file does not exist!'.format(model_infile))
         
         model = torch.load(model_infile)
+    
+    elif Apply_CNN_Transformer_architecture:
+        Model_structure_type = 'CNNTransformerModel'
+        model_infile = indir + f'{Model_structure_type}_{evaluation_type}_{typeName}_{species}_{width}x{height}_{d_model}dmodel_{n_head}heads_{ffn_hidden}ffnHidden_{num_layers}numlayers_{max_len}lens_{begindates}-{enddates}_{CNN_nchannel}CNNChannels_{Transformer_nchannel}TransformerChannels_No{ifold}.pt'
+
+        if not os.path.isfile(model_infile):
+            raise ValueError('The {} file does not exist!'.format(model_infile))
+        
+        model = torch.load(model_infile)
+
     return model
 
 

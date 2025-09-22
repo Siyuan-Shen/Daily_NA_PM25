@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="Daily 3DCNN 19-23 Estimation Training 4GPU"
+#SBATCH --job-name="Daily CNN_T AVD_d20250804 True True Sweep 4GPU"
 #SBATCH --partition=general-gpu
 #SBATCH --mem=800G
 #SBATCH --nodes=1
@@ -9,6 +9,7 @@
 #SBATCH --output=job_output/job-%j-output.txt
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=s.siyuan@wustl.edu
+#SBATCH --time=14-00:00:00
 #SBATCH -vvv
 
 
@@ -18,7 +19,7 @@
 #SBATCH --container-mounts=/storage1/fs1/rvmartin/Active/s.siyuan:/my-projects,/storage1/fs1/rvmartin2/Active/s.siyuan:/my-projects2
 #SBATCH --container-workdir=/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25
 
-VERSION=v0.2.1
+VERSION=v0.3.0
 
 # Redirect W&B and tmp paths inside the container
 export WANDB_DIR=/my-projects2/tmp/wandb_dir

@@ -176,9 +176,8 @@ class ResNet(nn.Module):
 
         if self.include_top: 
             self.avgpool = nn.AdaptiveAvgPool2d((1, 1))  
-            
             self.fc = nn.Linear(self.in_channel * block.expansion, num_classes)
-
+            
         for m in self.modules(): 
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity=activation_func_name)
@@ -211,6 +210,7 @@ class ResNet(nn.Module):
                                     activation=activation,
                                     width_per_group=self.width_per_group))
         return nn.Sequential(*layers)
+    
     def forward(self, x):
         #x = self.conv1(x)
         #x = self.bn1(x)
