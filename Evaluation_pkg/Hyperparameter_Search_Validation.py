@@ -23,8 +23,8 @@ from Model_Structure_pkg.utils import *
 from Training_pkg.utils import *
 from Training_pkg.utils import epoch as config_epoch, batchsize as config_batchsize, learning_rate0 as config_learning_rate0
 from Training_pkg.TensorData_func import Dataset_Val, Dataset
-from Training_pkg.TrainingModule import CNN_train, cnn_predict, CNN3D_train, cnn_predict_3D,Transformer_train,transformer_predict
-from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets,TransformerInputDatasets
+from Training_pkg.TrainingModule import CNN_train, cnn_predict, CNN3D_train, cnn_predict_3D,Transformer_train,transformer_predict, CNN_Transformer_train, cnn_transformer_predict
+from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets,TransformerInputDatasets, CNN_Transformer_InputDatasets
 from Training_pkg.iostream import load_daily_datesbased_model
 from wandb_config import init_get_sweep_config
 from multiprocessing import Manager
@@ -60,8 +60,9 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         entity = temp_sweep_config.get("entity", "ACAG-NorthAmericaDailyPM25")
         project = temp_sweep_config.get("project", version)
         name = temp_sweep_config.get("name", None)
-        if Apply_Transformer_architecture:
+        if Apply_Transformer_architecture or Apply_CNN_Transformer_architecture:
             d_model, n_head, ffn_hidden, num_layers, max_len,spin_up_len = temp_sweep_config.get("d_model", 64), temp_sweep_config.get("n_head", 8), temp_sweep_config.get("ffn_hidden", 256), temp_sweep_config.get("num_layers", 6), temp_sweep_config.get("max_len", 1000), temp_sweep_config.get("spin_up_len", 100)
+        
     else:
         sweep_mode = False
         temp_sweep_config = None
@@ -70,7 +71,8 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         name = None
         if Apply_Transformer_architecture:
             d_model, n_head, ffn_hidden, num_layers, max_len,spin_up_len = Transformer_d_model, Transformer_n_head, Transformer_ffn_hidden, Transformer_num_layers, Transformer_max_len, Transformer_spin_up_len
-
+        if Apply_CNN_Transformer_architecture:
+            d_model, n_head, ffn_hidden, num_layers, max_len,spin_up_len = CNN_Transformer_d_model, CNN_Transformer_n_head, CNN_Transformer_ffn_hidden, CNN_Transformer_num_layers, CNN_Transformer_max_len, CNN_Transformer_spin_up_len
     #####################################################################
     if Apply_CNN_architecture:
         
@@ -112,8 +114,19 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         TrainingDatasets_mean, TrainingDatasets_std = Init_Transformer_Datasets.TrainingDatasets_mean, Init_Transformer_Datasets.TrainingDatasets_std
         sites_lat, sites_lon = Init_Transformer_Datasets.sites_lat, Init_Transformer_Datasets.sites_lon
 
-        
-    #####################################################################
+    elif Apply_CNN_Transformer_architecture:
+        Model_structure_type = 'CNNTransformerModel'
+        print('Init_CNN_Transformer_Datasets starting...')
+        start_time = time.time()
+        Init_CNN_Datasets = CNN_Transformer_InputDatasets(species=species, cnn_channel_names=CNN_Embedding_channel_names, transformer_channel_names=Transformer_Embedding_channel_names, bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species, datapoints_threshold=observation_datapoints_threshold)
+        print('Init_CNN_Datasets finished, time elapsed: ', time.time() - start_time)
+        total_sites_number = Init_CNN_Datasets.total_sites_number
+        true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
+        CNN_trainingdatasets_mean, CNN_trainingdatasets_std = Init_CNN_Datasets.CNN_trainingdatasets_mean, Init_CNN_Datasets.CNN_trainingdatasets_std
+        Transformer_trainingdatasets_mean, Transformer_trainingdatasets_std = Init_CNN_Datasets.Transformer_trainingdatasets_mean, Init_CNN_Datasets.Transformer_trainingdatasets_std
+        width, height = Init_CNN_Datasets.width, Init_CNN_Datasets.height
+        sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
+
 
     # Start the hyperparameters search validation
     Statistics_list = ['test_R2','train_R2','geo_R2','RMSE','NRMSE','slope','PWA']
@@ -168,25 +181,63 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                                                                                                                                                 desired_normalized_trainingdatasets=normalized_TrainingDatasets,
                                                                                                                                                 desired_ground_observation_data=desired_ground_observation_data,
                                                                                                                                                 desired_geophysical_species_data=desired_geophysical_species_data)
-                        
+                    elif Apply_CNN_Transformer_architecture:
+                        # Get the initial true_input and training datasets for the current model (within the desired time range)
+                        print('1...')
+                        desired_CNN_trainingdatasets, desired_Transformer_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data = Init_CNN_Datasets.get_desired_range_inputdatasets(start_date=HSV_Spatial_splitting_begindates[imodel],
+                                                                                                        end_date=HSV_Spatial_splitting_enddates[imodel],max_len=max_len,spinup_len=spin_up_len)
+                        # Normalize the training datasets
+                        print('2...')
+                        normalized_CNN_TrainingDatasets,normalized_Transformer_TrainingDatasets  = Init_CNN_Datasets.normalize_trainingdatasets(desired_CNN_trainingdatasets=desired_CNN_trainingdatasets, desired_Transformer_trainingdatasets=desired_Transformer_trainingdatasets)
+                        del desired_CNN_trainingdatasets, desired_Transformer_trainingdatasets
+                        gc.collect()
+                        # Concatenate the training datasets and true input for the current model for training and tetsing purposes
+                        print('3...')
+                        cctnd_CNN_trainingdatasets, cctnd_Transformer_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                                                                                                                                                desired_normalized_CNN_trainingdatasets=normalized_CNN_TrainingDatasets,
+                                                                                                                                                desired_normalized_Transformer_trainingdatasets=normalized_Transformer_TrainingDatasets,
+                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
+                                                                                                                                                desired_geophysical_species_data=desired_geophysical_species_data)
                     print('4...')
                     training_selected_sites, testing_selected_sites = randomly_select_training_testing_indices(sites_index=np.arange(total_sites_number), training_portion=HSV_Spatial_splitting_training_portion)
                     print('training_selected_sites: ',training_selected_sites.shape)
                     print('testing_selected_sites: ',testing_selected_sites.shape) 
 
-                    print('cctnd_trainingdatasets[0]: ', cctnd_trainingdatasets[0])
-                    X_train, y_train, X_test, y_test, dates_train, dates_test, sites_train, sites_test, train_datasets_index, test_datasets_index = Split_Datasets_based_site_index(train_site_index=training_selected_sites,
+                    if Apply_CNN_Transformer_architecture:
+                        print('cctnd_CNN_trainingdatasets[0]: ', cctnd_CNN_trainingdatasets[0])
+                        print('cctnd_Transformer_trainingdatasets[0]: ', cctnd_Transformer_trainingdatasets[0])
+                        X_train_CNN, y_train, X_test_CNN, y_test, dates_train, dates_test, sites_train, sites_test, train_datasets_index, test_datasets_index = Split_Datasets_based_site_index(train_site_index=training_selected_sites,
                                                                                                                                         test_site_index=testing_selected_sites,
-                                                                                                                                        total_trainingdatasets=cctnd_trainingdatasets,
+                                                                                                                                        total_trainingdatasets=cctnd_CNN_trainingdatasets,
                                                                                                                                         total_true_input=cctnd_true_input,
                                                                                                                                         total_sites_index=cctnd_sites_index,
                                                                                                                                         total_dates=cctnd_dates)
-                    print('cctnd_ground_observation_data[test_datasets_index]: ', cctnd_ground_observation_data[test_datasets_index])
-                    print('cctnd_geophysical_species_data[test_datasets_index]: ', cctnd_geophysical_species_data[test_datasets_index])
-                    print('test_datasets_index: ', test_datasets_index)
-                    
-                    del cctnd_trainingdatasets, cctnd_true_input
-                    gc.collect()
+                        X_train_Transformer, y_train, X_test_Transformer, y_test, dates_train, dates_test, sites_train, sites_test, train_datasets_index, test_datasets_index = Split_Datasets_based_site_index(train_site_index=training_selected_sites,
+                                                                                                                                        test_site_index=testing_selected_sites,
+                                                                                                                                        total_trainingdatasets=cctnd_Transformer_trainingdatasets,
+                                                                                                                                        total_true_input=cctnd_true_input,
+                                                                                                                                        total_sites_index=cctnd_sites_index,
+                                                                                                                                        total_dates=cctnd_dates)
+                        print('cctnd_ground_observation_data[test_datasets_index]: ', cctnd_ground_observation_data[test_datasets_index])
+                        print('cctnd_geophysical_species_data[test_datasets_index]: ', cctnd_geophysical_species_data[test_datasets_index])
+                        print('test_datasets_index: ', test_datasets_index)
+                        
+                        del cctnd_CNN_trainingdatasets, cctnd_Transformer_trainingdatasets, cctnd_true_input
+                        gc.collect()
+                    else:
+                        print('cctnd_trainingdatasets[0]: ', cctnd_trainingdatasets[0])
+                        X_train, y_train, X_test, y_test, dates_train, dates_test, sites_train, sites_test, train_datasets_index, test_datasets_index = Split_Datasets_based_site_index(train_site_index=training_selected_sites,
+                                                                                                                                            test_site_index=testing_selected_sites,
+                                                                                                                                            total_trainingdatasets=cctnd_trainingdatasets,
+                                                                                                                                            total_true_input=cctnd_true_input,
+                                                                                                                                            total_sites_index=cctnd_sites_index,
+                                                                                                                                            total_dates=cctnd_dates)
+                        print('cctnd_ground_observation_data[test_datasets_index]: ', cctnd_ground_observation_data[test_datasets_index])
+                        print('cctnd_geophysical_species_data[test_datasets_index]: ', cctnd_geophysical_species_data[test_datasets_index])
+                        print('test_datasets_index: ', test_datasets_index)
+                        
+                        del cctnd_trainingdatasets, cctnd_true_input
+                        gc.collect()
                     
                     if Apply_CNN_architecture:
                            
@@ -288,6 +339,47 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                         
                         validation_output = np.squeeze(validation_output)
                         training_output = np.squeeze(training_output)
+                    
+                    if Apply_CNN_Transformer_architecture:
+                        if world_size > 1:
+                            mp.spawn(CNN_Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,CNN_Embedding_channel_names,Transformer_Embedding_channel_names,
+                                                  X_train_CNN, X_test_CNN,X_train_Transformer, X_test_Transformer,
+                                                  y_train, y_test,Transformer_trainingdatasets_mean, Transformer_trainingdatasets_std, width,height,
+                                                  Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],HSV_Spatial_splitting_enddates[imodel],0),nprocs=world_size)
+                        else:
+                            CNN_Transformer_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,CNN_Embedding_channel_names,Transformer_Embedding_channel_names,
+                                                  X_train_CNN, X_test_CNN,X_train_Transformer, X_test_Transformer,
+                                                  y_train, y_test,Transformer_trainingdatasets_mean, Transformer_trainingdatasets_std, width,height,
+                                                  Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],HSV_Spatial_splitting_enddates[imodel],0)
+                        
+                        try:
+                            CNN_channels_to_exclude = temp_sweep_config.get("CNN_channel_to_exclude", [])
+                            Transformer_channel_to_exclude = temp_sweep_config.get("Transformer_channel_to_exclude", [])
+                        except AttributeError:
+                            CNN_channels_to_exclude = []
+                            Transformer_channel_to_exclude = []
+                        excluded_CNN_channel_names, main_stream_CNN_channel_names, side_stream_CNN_channel_names = Get_channel_names(channels_to_exclude=CNN_channels_to_exclude, initial_channel_names=CNN_Embedding_channel_names)
+                        excluded_Transformer_channel_names, main_stream_Transformer_channel_names, side_stream_Transformer_channel_names = Get_channel_names(channels_to_exclude=Transformer_channel_to_exclude, initial_channel_names
+                                                                                                                                        =Transformer_Embedding_channel_names)
+                        index_of_main_stream_CNN_channels_of_initial = [CNN_Embedding_channel_names.index(channel) for channel in main_stream_CNN_channel_names]
+                        index_of_main_stream_Transformer_channels_of_initial = [Transformer_Embedding_channel_names.index(channel) for channel in main_stream_Transformer_channel_names]
+                        X_train_CNN = X_train_CNN[:,:,index_of_main_stream_CNN_channels_of_initial,:,:]
+                        X_test_CNN  = X_test_CNN[:,:,index_of_main_stream_CNN_channels_of_initial,:,:]
+                        X_train_Transformer = X_train_Transformer[:,:,index_of_main_stream_Transformer_channels_of_initial]
+                        X_test_Transformer  = X_test_Transformer[:,:,index_of_main_stream_Transformer_channels_of_initial]
+
+                        # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in
+                        # different time ranges.
+                        Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=HSV_Spatial_splitting_begindates[imodel],
+                                                                    enddates=HSV_Spatial_splitting_enddates[imodel], version=version,species=species,
+                                                                    nchannel=len(main_stream_CNN_channel_names)+len(main_stream_Transformer_channel_names),
+                                                                    special_name=description,ifold=0,d_model=d_model,n_head=n_head,ffn_hidden=ffn_hidden,
+                                                                    num_layers=num_layers,max_len=max_len+spin_up_len,width=width,height=height,CNN_nchannel=len(main_stream_CNN_channel_names),
+                                                                    Transformer_nchannel=len(main_stream_Transformer_channel_names))
+                        validation_output = cnn_transformer_predict(CNN_inputarray=X_test_CNN, Transformer_inputarray=X_test_Transformer, model=Daily_Model, batchsize=3000)
+                        training_output = cnn_transformer_predict(CNN_inputarray=X_train_CNN, Transformer_inputarray=X_train_Transformer, model=Daily_Model, batchsize=3000)
+                        validation_output = np.squeeze(validation_output)
+                        training_output = np.squeeze(training_output)                                                        
 
                     del Daily_Model
                     gc.collect()
@@ -308,7 +400,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     print('sites_test.shape: ', sites_test.shape)
                     print('dates_test.shape: ', dates_test.shape)
                     
-                    if Apply_Transformer_architecture:
+                    if Apply_Transformer_architecture or Apply_CNN_Transformer_architecture:
                         sites_test = np.tile(sites_test[:,np.newaxis], (1, max_len+spin_up_len)).flatten()
                         sites_train = np.tile(sites_train[:,np.newaxis], (1, max_len+spin_up_len)).flatten()
                     final_data_recording = np.concatenate((final_data_recording, final_output), axis=0)
@@ -354,6 +446,14 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                                             test_enddate=HSV_Spatial_splitting_enddates[-1],
                                           d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden, num_layers=num_layers, max_len=max_len+spin_up_len, entity=entity,project=project,sweep_id=sweep_id,name=name)
     
+    elif Apply_CNN_Transformer_architecture:
+        csvfile_outfile = get_csvfile_outfile(Evaluation_type=Evaluation_type,typeName=typeName,Model_structure_type=Model_structure_type,
+                                          main_stream_CNN_channel_names=main_stream_CNN_channel_names,
+                                          main_stream_Transformer_channel_names=main_stream_Transformer_channel_names,
+                                          test_begindate=HSV_Spatial_splitting_begindates[0],
+                                            test_enddate=HSV_Spatial_splitting_enddates[-1],
+                                          d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden, num_layers=num_layers, max_len=max_len+spin_up_len,
+                                          width=width,height=height, entity=entity,project=project,sweep_id=sweep_id,name=name,CNN_nchannel=len(main_stream_CNN_channel_names),Transformer_nchannel=len(main_stream_Transformer_channel_names))
     print('csvfile_outfile: ', csvfile_outfile)
     output_csv(outfile=csvfile_outfile,status='w',Area='North America',
                 test_begindate=HSV_Spatial_splitting_begindates[0],test_enddate=HSV_Spatial_splitting_enddates[-1],

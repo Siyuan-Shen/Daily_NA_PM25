@@ -16,13 +16,13 @@ def get_Estimation_recording_filename(outdir, file_target,typeName,Area,YYYY,MM,
 
     if Apply_CNN_architecture:
         Model_structure_type = 'CNNModel'
-        outdir = outdir + f'{file_target}/{YYYY}/{MM}/'
+        outdir = outdir + f'{species}/{version}/{file_target}/{YYYY}/{MM}/'
         if not os.path.isdir(outdir):
             os.makedirs(outdir)
         recording_filename = outdir + f'{file_target}_{Model_structure_type}_{typeName}_{Area}_{YYYY}{MM}{DD}_{width}x{height}_{nchannel}Channel{description}.npy'
     elif Apply_3D_CNN_architecture:
         Model_structure_type = '3DCNNModel'
-        outdir = outdir + f'{file_target}/{YYYY}/{MM}/'
+        outdir = outdir + f'{species}/{version}/{file_target}/{YYYY}/{MM}/'
         if not os.path.isdir(outdir):
             os.makedirs(outdir)
         recording_filename = outdir + f'{file_target}_{Model_structure_type}_{typeName}_{Area}_{YYYY}{MM}{DD}_{depth}x{width}x{height}_{nchannel}Channel{description}.npy'

@@ -7,6 +7,69 @@ transform = transforms.Compose([
     transforms.ToTensor(), 
 ])
 
+class CNN_Transformer_Dataset(torch.utils.data.Dataset):  # 'Characterizes a dataset for PyTorch'
+    '''
+    This class is for training datasets. It is used for the global datasets, which is continuous data.
+    '''
+    def __init__(self, CNN_traindata, Transformer_traindata, truedata):  # 'Initialization' Data Loading
+        '''
+
+        :param traindata:
+            Training data.
+        :param truedata:
+            Ture data to learn.
+        :param beginyear:
+            The begin year.
+        :param endyear:
+            The end year.
+        :param nsite:
+            The number of sites. For example, for overall observation it is 10870.
+        '''
+        super(CNN_Transformer_Dataset, self).__init__()
+
+
+        self.CNN_traindatasets = torch.Tensor(CNN_traindata) #torch.squeeze(torch.Tensor(traindata))
+        self.Transformer_traindatasets = torch.Tensor(Transformer_traindata) #torch.squeeze(torch.Tensor(traindata))
+        self.truedatasets = torch.Tensor(truedata) #torch.squeeze(torch.Tensor(trued
+        print(self.truedatasets.shape)
+        print(self.Transformer_traindatasets.shape)
+        print(self.CNN_traindatasets.shape)
+        self.transforms = transform  # 转为tensor形式
+        self.CNN_shape = self.CNN_traindatasets.shape
+        self.Transformer_shape = self.Transformer_traindatasets.shape
+    def __getitem__(self, index):  # 'Generates one sample of data'
+        # Select sample
+        CNN_traindata = self.CNN_traindatasets[index, :, :]
+        Transformer_traindata = self.Transformer_traindatasets[index, :, :]
+        truedata = self.truedatasets[index]
+        return CNN_traindata, Transformer_traindata, truedata
+        # Load data and get label
+    def __len__(self):  # 'Denotes the total number of samples'
+        return self.CNN_traindatasets.shape[0]  # Return the total number of dataset
+
+class CNN_Transformer_Dataset_Val(torch.utils.data.Dataset):  # 'Characterizes a dataset for PyTorch'
+    '''
+    This class is for validation datasets/ estimation datasets
+    '''
+    def __init__(self, CNN_traindata, Transformer_traindata):  # 'Initialization' Data Loading
+            super(CNN_Transformer_Dataset_Val, self).__init__()
+            self.CNN_traindatasets = torch.Tensor(CNN_traindata) #torch.squeeze(torch.Tensor(traindata))
+            self.Transformer_traindatasets = torch.Tensor(Transformer_traindata) #torch.squeeze(torch.Tensor(traindata))
+            print(self.Transformer_traindatasets.shape)
+            print(self.CNN_traindatasets.shape)
+            self.transforms = transform  # 转为tensor形式
+            self.CNN_shape = self.CNN_traindatasets.shape
+            self.Transformer_shape = self.Transformer_traindatasets.shape
+    def __getitem__(self, index):  # 'Generates one sample of data'
+            # Select sample
+            CNN_traindata = self.CNN_traindatasets[index, :, :]
+            Transformer_traindata = self.Transformer_traindatasets[index, :, :]
+            return CNN_traindata, Transformer_traindata
+            # Load data 
+    def __len__(self):  # 'Denotes the total number of samples'
+            return self.CNN_traindatasets.shape[0]  # Return the total number of datasets
+    
+
 class Dataset(torch.utils.data.Dataset):  # 'Characterizes a dataset for PyTorch'
     '''
     This class is for training datasets. It is used for the global datasets, which is continuous data.

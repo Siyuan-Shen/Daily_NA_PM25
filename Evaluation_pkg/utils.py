@@ -116,7 +116,7 @@ def initialize_statistics_recordings(test_start_date,test_end_date,Statistics_li
         Monthly_statistics_recording['All_points'][imonth] = {}
         Annual_statistics_recording['Purely_Spatial'][imonth] = {}
         Annual_statistics_recording['All_points'][imonth] = {}
-
+      
     Monthly_statistics_recording['Purely_Spatial']['AllMonths'] = {}
     Monthly_statistics_recording['All_points']['AllMonths'] = {}
 
@@ -147,6 +147,8 @@ def get_csvfile_outfile(Evaluation_type, typeName,Model_structure_type,main_stre
     ffn_hidden = args.get('ffn_hidden', 256)
     num_layers = args.get('num_layers', 6)
     max_len = args.get('max_len', 1000)
+    CNN_nchannel = args.get('CNN_nchannel', 4)
+    Transformer_nchannel = args.get('Transformer_nchannel', 3)
 
     if Apply_CNN_architecture:
         
@@ -212,6 +214,23 @@ def get_csvfile_outfile(Evaluation_type, typeName,Model_structure_type,main_stre
                                                                                                                 Evaluation_type,Model_structure_type,typeName,
                                                                                                                 len(main_stream_channel_names),test_begindate,
                                                                                                                 test_enddate,d_model,n_head,ffn_hidden,num_layers,max_len,description)
+    elif Apply_CNN_Transformer_architecture:
+        csvfile_outdir = csv_outdir + '{}/{}/Results/results-{}/statistical_indicators/{}_{}_{}_{}_{}_{}CNNChannel_{}TransformerChannel_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens{}/'.format(species,version,Evaluation_type,
+                                                                                      Evaluation_type,Model_structure_type,typeName, species,version,CNN_nchannel,Transformer_nchannel,d_model,n_head,ffn_hidden,num_layers,max_len,description)
+        if not os.path.isdir(csvfile_outdir):
+            os.makedirs(csvfile_outdir)
+        if (Spatial_CrossValidation_Switch and Spatial_CV_Apply_wandb_sweep_Switch) or (Hyperparameters_Search_Validation_Switch and HSV_Apply_wandb_sweep_Switch):
+
+            csvfile_outdir = csvfile_outdir + 'sweep-{}/'.format(name)
+            if not os.path.isdir(csvfile_outdir):
+                os.makedirs(csvfile_outdir)
+            csvfile_outfile = csvfile_outdir + '{}_{}_{}_{}_{}_{}CNNChannel_{}TransformerChannel_{}-{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_sweep-{}.csv'.format(species,version,
+                                                                                                                Evaluation_type,Model_structure_type,typeName,test_begindate,
+                                                                                                                test_enddate,CNN_nchannel,Transformer_nchannel,d_model,n_head,ffn_hidden,num_layers,max_len,sweep_id)
+        else:
+            csvfile_outfile = csvfile_outdir + '{}_{}_{}_{}_{}_{}CNNChannel_{}TransformerChannel_{}-{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens{}.csv'.format(species,version,
+                                                                                                                Evaluation_type,Model_structure_type,typeName,test_begindate,
+                                                                                                                test_enddate,CNN_nchannel,Transformer_nchannel,d_model,n_head,ffn_hidden,num_layers,max_len,description)
     return csvfile_outfile
 
     
