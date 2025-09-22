@@ -374,6 +374,7 @@ class CNN_Transformer_InputDatasets():
                     for ichannel in range(self.CNN_trainingdatasets[site]['data'].shape[1]):
                         temp_desired_CNN_trainingdatasets_nan_value_indices = np.where(np.isnan(temp_desired_CNN_trainingdatasets[i,training_batch_indices,ichannel,:]))
                         temp_desired_CNN_trainingdatasets[i,training_batch_indices,ichannel,:][temp_desired_CNN_trainingdatasets_nan_value_indices] = np.nanmean(temp_desired_CNN_trainingdatasets[i,training_batch_indices,ichannel,:])
+                    for ichannel in range(self.Transformer_trainingdatasets[site]['data'].shape[1]):
                         temp_desired_Transformer_trainingdatasets_nan_value_indices = np.where(np.isnan(temp_desired_Transformer_trainingdatasets[i,training_batch_indices,ichannel]))
                         temp_desired_Transformer_trainingdatasets[i,training_batch_indices,ichannel][temp_desired_Transformer_trainingdatasets_nan_value_indices] = np.nanmean(temp_desired_Transformer_trainingdatasets[i,training_batch_indices,ichannel])
             ## Assign the desired range of input datasets to the desired dictionaries
