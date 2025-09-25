@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import wandb
+import os 
 import numpy as np
 from torch.utils.data import DataLoader,TensorDataset
 from Training_pkg.utils import *
@@ -95,18 +96,22 @@ def CNN_Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep
         Daily_Model.to(device)
         torch.manual_seed(21)
         train_loader = DataLoader(CNN_Transformer_Dataset(X_train_CNN,X_train_Transformer, y_train), BATCH_SIZE, shuffle=True)
-        validation_loader = DataLoader(CNN_Transformer_Dataset_Val(X_test_CNN,X_test_Transformer), 100, shuffle=False)
+        validation_loader = DataLoader(CNN_Transformer_Dataset(X_test_CNN,X_test_Transformer,y_test), 100, shuffle=False)
     elif world_size > 1:
         ddp_setup(rank, world_size)
         device = rank
         Daily_Model = CNN_Transformer(CNN_input_dim=X_train_CNN.shape[2], transformer_input_dim=X_train_Transformer.shape[2], trg_dim=CNN_Transformer_trg_dim, d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden, num_layers=num_layers, max_len=max_len+spin_up_len, drop_prob=drop_prob,device=device)
         Daily_Model.to(device)
         torch.manual_seed(21)
-        Daily_Model = DDP(Daily_Model, device_ids=[device])
+        Daily_Model = DDP(Daily_Model, device_ids=[device],output_device=rank,find_unused_parameters=True)
         train_dataset = CNN_Transformer_Dataset(X_train_CNN,X_train_Transformer, y_train)
-        validation_dataset = CNN_Transformer_Dataset_Val(X_test_CNN,X_test_Transformer)
+        validation_dataset = CNN_Transformer_Dataset(X_test_CNN,X_test_Transformer,y_test)
         train_loader = DataLoader(train_dataset, BATCH_SIZE, shuffle=False,sampler=DistributedSampler(train_dataset))
         validation_loader = DataLoader(validation_dataset, 100, shuffle=False,sampler=DistributedSampler(validation_dataset))
+        os.environ["TORCH_DISTRIBUTED_DEBUG"] = "DETAIL"  # INFO also works
+        for i, (n, p) in enumerate(Daily_Model.module.named_parameters()):
+            if p.requires_grad:
+                print(i, n)
 
     print('*' * 25, type(train_loader), '*' * 25)
     losses = []
@@ -147,7 +152,7 @@ def CNN_Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep
             filled_labels = torch.nan_to_num(labels, nan=0.0)  # Fill NaN values in target data with 0.0
             filled_labels = filled_labels.to(device)  # Ensure filled_labels has the correct shape
             optimizer.zero_grad()
-            outputs = Daily_Model(CNN_images,Transformer_images,filled_labels)
+            outputs = Daily_Model(CNN_images,Transformer_images,filled_labels, teacher_forcing=True)
             loss = criterion(outputs, filled_labels, Transformer_images[:,:,GeoSpecies_index],input_mean_Transformer[GeoSpecies_index],input_std_Transformer[GeoSpecies_index],mask=mask)
             loss.backward()
             optimizer.step()
@@ -187,7 +192,7 @@ def CNN_Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep
                 valid_mask = ~torch.isnan(valid_labels)
                 valid_filled_labels = torch.nan_to_num(valid_labels, nan=0.0)
                 valid_filled_labels = valid_filled_labels.to(device)
-                valid_output = Daily_Model(CNN_valid_images, Transformer_valid_images)
+                valid_output = Daily_Model(CNN_valid_images, Transformer_valid_images, valid_filled_labels, teacher_forcing=False)
                 valid_loss = criterion(valid_output, valid_filled_labels, Transformer_valid_images[:,:,GeoSpecies_index],input_mean_Transformer[GeoSpecies_index],input_std_Transformer[GeoSpecies_index],mask=valid_mask)
                 temp_losses.append(valid_loss.item())
                 test_y_hat = valid_output.cpu().detach().numpy()
@@ -197,11 +202,11 @@ def CNN_Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep
 
                 valid_R2 = linear_regression(test_y_hat, test_y_true)
                 valid_R2 = np.round(valid_R2, 4)
-                print('test_y_hat:', test_y_hat[0:200])
-                print('test_y_true:', test_y_true[0:200])
+                #print('test_y_hat:', test_y_hat[0:200])
+                #print('test_y_true:', test_y_true[0:200])
                 valid_correct += valid_R2
                 valid_counts += 1
-                print('valid_R2:', valid_R2)
+                #print('valid_R2:', valid_R2)
                 total_valid_y_hat.append(test_y_hat)
                 total_valid_y_true.append(test_y_true)
                 if rank == 0:  # Only print from the main process
@@ -347,6 +352,7 @@ def Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id,
             filled_labels = filled_labels.to(device)  # Ensure filled_labels has the correct shape
             optimizer.zero_grad()
             outputs = Daily_Model(images,filled_labels)
+            outputs = torch.squeeze(outputs)
             loss = criterion(outputs, filled_labels, images[:,:,GeoSpecies_index],input_mean[GeoSpecies_index],input_std[GeoSpecies_index],mask=mask)
             loss.backward()
             optimizer.step()
@@ -889,15 +895,14 @@ def cnn_transformer_predict(CNN_inputarray, Transformer_inputarray, model, batch
     model.eval()
     final_output = []
     final_output = np.array(final_output)
-    predictinput = DataLoader(TensorDataset(CNN_inputarray, Transformer_inputarray), batch_size= batchsize)
+    predictinput = DataLoader(Dataset(CNN_inputarray, Transformer_inputarray), batch_size= batchsize)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-    
     with torch.no_grad():
         for i, (cnn_image, transformer_image) in enumerate(predictinput):
             cnn_image = cnn_image.to(device)
             transformer_image = transformer_image.to(device)
-            output = model(cnn_image, transformer_image).cpu().detach().numpy()
+            output = model(cnn_image, transformer_image, teacher_forcing=False).cpu().detach().numpy()
             final_output = np.append(final_output,output)
     
     return final_output

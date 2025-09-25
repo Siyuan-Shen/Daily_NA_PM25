@@ -35,6 +35,37 @@ HSV_Temporal_splitting_validation_enddates               = Hyperparameters_Searc
 
 ####################################################################################
 
+# Random Cross-Validation Settings
+
+Random_CV_Settings_cfg = cfg['Random-CrossValidation']
+Random_CV_Switch = Random_CV_Settings_cfg['Random_CrossValidation_Switch']
+Random_CV_Apply_wandb_sweep_Switch = Random_CV_Settings_cfg['Random_CV_Apply_wandb_sweep_Switch']
+wandb_sweep_count_Random_CV = Random_CV_Settings_cfg['wandb_sweep_count_Random_CV']
+Use_recorded_data_to_show_validation_results_Random_CV = Random_CV_Settings_cfg['Use_recorded_data_to_show_validation_results']
+
+Random_CV_Training_Settings_cfg = Random_CV_Settings_cfg['Training-Settings']
+Random_CV_folds = Random_CV_Training_Settings_cfg['Random_CV_folds']
+Random_CV_training_begindates = Random_CV_Training_Settings_cfg['Random_CV_training_begindates']
+Random_CV_training_enddates = Random_CV_Training_Settings_cfg['Random_CV_training_enddates']
+Random_CV_validation_begindates = Random_CV_Training_Settings_cfg['Random_CV_validation_begindates']
+Random_CV_validation_enddates = Random_CV_Training_Settings_cfg['Random_CV_validation_enddates']
+Random_CV_validation_addtional_regions = Random_CV_Training_Settings_cfg['additional_validation_regions']
+
+Random_CV_Visualization_Settings_cfg = Random_CV_Settings_cfg['Visualization_Settings']
+Random_CV_regression_plot_switch = Random_CV_Visualization_Settings_cfg['regression_plot_switch']
+Random_CV_plot_begindates = Random_CV_Visualization_Settings_cfg['plot_begindates']
+Random_CV_plot_enddates = Random_CV_Visualization_Settings_cfg['plot_enddates']
+
+Random_CV_SHAP_Analysis_Settings_cfg = Random_CV_Settings_cfg['SHAP_Analysis_Settings']
+Random_CV_SHAP_Analysis_Switch = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_switch']
+Random_CV_SHAP_Analysis_Calculation_Switch = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_Calculation_Switch']
+Random_CV_SHAP_Analysis_visualization_Switch = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_visualization_Switch']
+Random_CV_SHAP_Analysis_background_number = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_background_number']
+Random_CV_SHAP_Analysis_test_number = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_test_number']
+Random_CV_SHAP_Analysis_plot_type = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_plot_type']
+
+####################################################################################
+
 # Spatial Cross-Validation Settings
 
 Spatial_CV_Settings_cfg = cfg['Spatial-CrossValidation']

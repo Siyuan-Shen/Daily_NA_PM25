@@ -358,9 +358,8 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                         except AttributeError:
                             CNN_channels_to_exclude = []
                             Transformer_channel_to_exclude = []
-                        excluded_CNN_channel_names, main_stream_CNN_channel_names, side_stream_CNN_channel_names = Get_channel_names(channels_to_exclude=CNN_channels_to_exclude, initial_channel_names=CNN_Embedding_channel_names)
-                        excluded_Transformer_channel_names, main_stream_Transformer_channel_names, side_stream_Transformer_channel_names = Get_channel_names(channels_to_exclude=Transformer_channel_to_exclude, initial_channel_names
-                                                                                                                                        =Transformer_Embedding_channel_names)
+                        excluded_CNN_channel_names, main_stream_CNN_channel_names, side_stream_CNN_channel_names = Get_channel_names(channels_to_exclude=CNN_channels_to_exclude, init_channels=CNN_Embedding_channel_names)
+                        excluded_Transformer_channel_names, main_stream_Transformer_channel_names, side_stream_Transformer_channel_names = Get_channel_names(channels_to_exclude=Transformer_channel_to_exclude, init_channels=Transformer_Embedding_channel_names)
                         index_of_main_stream_CNN_channels_of_initial = [CNN_Embedding_channel_names.index(channel) for channel in main_stream_CNN_channel_names]
                         index_of_main_stream_Transformer_channels_of_initial = [Transformer_Embedding_channel_names.index(channel) for channel in main_stream_Transformer_channel_names]
                         X_train_CNN = X_train_CNN[:,:,index_of_main_stream_CNN_channels_of_initial,:,:]
@@ -380,7 +379,6 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                         training_output = cnn_transformer_predict(CNN_inputarray=X_train_CNN, Transformer_inputarray=X_train_Transformer, model=Daily_Model, batchsize=3000)
                         validation_output = np.squeeze(validation_output)
                         training_output = np.squeeze(training_output)                                                        
-
                     del Daily_Model
                     gc.collect()
                     
