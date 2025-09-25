@@ -38,6 +38,25 @@ def Get_final_output(Validation_Prediction, validation_geophysical_species,bias,
     return final_data
 
 
+def Split_Datasets_randomly(train_index,test_index, total_trainingdatasets, total_true_input, total_sites_index, total_dates):
+    print('total_sites_index: ',total_sites_index)
+    print('train_index: ',train_index)
+    print('test_index: ',test_index)
+    print('total_sites_index.shape: ',total_sites_index.shape)
+    print('train_index.shape: ',train_index.shape)
+    print('test_index.shape: ',test_index.shape)
+
+    X_train = total_trainingdatasets[train_index, :]
+    y_train = total_true_input[train_index]
+    X_test = total_trainingdatasets[test_index, :]
+    y_test = total_true_input[test_index]
+
+    dates_train = total_dates[train_index]
+    dates_test = total_dates[test_index]
+    sites_train = total_sites_index[train_index]
+    sites_test = total_sites_index[test_index]
+    return X_train, y_train, X_test, y_test, dates_train, dates_test, sites_train, sites_test
+
 def Split_Datasets_based_site_index(train_site_index,test_site_index,total_trainingdatasets, total_true_input, total_sites_index, total_dates):
     print('total_sites_index: ',total_sites_index)
     

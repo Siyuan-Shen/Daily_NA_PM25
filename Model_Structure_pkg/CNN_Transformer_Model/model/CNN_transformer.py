@@ -34,19 +34,18 @@ class CNN_Transformer(nn.Module):
         self.cnn_embedding = resnet_block_embedding(CNN_input_dim, self.block, CNN_Transformer_ResNet_blocks_num, CNN_Transformer_ResNet_output_channels)
         self.encoder = Encoder(self.Encoder_input_dim, d_model, n_head, ffn_hidden, num_layers, max_len=max_len, drop_prob=drop_prob, device=device)
         self.decoder = Decoder(trg_dim, d_model, n_head, ffn_hidden, num_layers, max_len=max_len, drop_prob=drop_prob, device=device)
-        self.device = device
         print("Transformer initialized with parameters:")
         print(f"CNN Input Dimension: {CNN_input_dim}, Transformer Input Dimension: {self.Encoder_input_dim}, Target Dimension: {trg_dim}, d_model: {d_model}, n_head: {n_head}, ffn_hidden: {ffn_hidden}, num_layers: {num_layers}, max_len: {max_len}, drop_prob: {drop_prob}")
-        
-    
-    def forward(self, cnn_init_input, transformer_src_input, target_input=None):
-        
+
+
+    def forward(self, cnn_init_input, transformer_src_input, target_input=None, teacher_forcing: bool = True):
+
         cnn_src_input = self.cnn_embedding(cnn_init_input)  # (B, S, D)
         src_input = torch.cat([cnn_src_input, transformer_src_input], dim=-1)
         filled_target_input = torch.nan_to_num(target_input, nan=0.0) if target_input is not None else None
         src_mask = self.make_src_mask(src_input) if src_input is not None else None
         enc_output = self.encoder(src_input, src_mask)
-        if target_input is not None:
+        if teacher_forcing:
             # --- SHIFT RIGHT ---
             # dec_in: [B, T, D], first step is BOS (zeros), rest are previous ground truth
             dec_in = torch.zeros_like(filled_target_input)

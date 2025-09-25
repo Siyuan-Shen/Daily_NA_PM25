@@ -94,6 +94,48 @@ cfg = {
 
     #########################################################################################################################################################
 
+    'Random-CrossValidation' : {
+
+        "Random_CrossValidation_Switch": False,
+        "Random_CV_Apply_wandb_sweep_Switch": False,
+        "wandb_sweep_count_Random_CV": 100,
+        "Use_recorded_data_to_show_validation_results": False,
+
+        ##### Random Cross Validation Settings #####
+        "Training-Settings": {
+            "Random_CV_folds": 10,
+            "Random_CV_training_begindates": [20220101],
+            "Random_CV_training_enddates": [20231231],
+            "Random_CV_validation_begindates": [20220101],
+            "Random_CV_validation_enddates": [20231231],
+            "additional_validation_regions": [
+                "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
+                "Northern North America", "Northwestern United States", "Southern United States", "Southwestern United States"
+            ],
+        },
+
+        ##### Random Cross Visualization Settings ####
+        "Visualization_Settings": {
+            "regression_plot_switch": True,
+            "plot_begindates": [20220101],
+            "plot_enddates": [20231231]
+        },
+        "Forced_Slope_Unity": {
+            "ForcedSlopeUnity": True
+        },
+
+        ##### SHAP Analysis Settings ####
+        "SHAP_Analysis_Settings": {
+            "SHAP_Analysis_switch": False, ### Not controlled by Random_CrossValidation_Switch
+            "SHAP_Analysis_Calculation_Switch": True,
+            "SHAP_Analysis_visualization_Switch": True,
+            "SHAP_Analysis_background_number": 2000,
+            "SHAP_Analysis_test_number": 400,
+            "SHAP_Analysis_plot_type": "beeswarm"
+        }
+    },
+    #########################################################################################################################################################
+
     'Spatial-CrossValidation' : {
 
         "Spatial_CrossValidation_Switch": False,
