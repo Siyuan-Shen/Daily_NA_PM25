@@ -50,17 +50,25 @@ cfg = {
 
         #### Validation Datasets outdirs
         "Results": {
-            "csv_outdir"               : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
-            "model_outdir"             : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
-            "data_recording_outdir"    : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
-            "figure_outdir"            : "/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
+            "csv_outdir"               : "/s.siyuan/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
+            "model_outdir"             : "/s.siyuan/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
+            "data_recording_outdir"    : "/s.siyuan/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
+            "figure_outdir"            : "/s.siyuan/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
         },
-
+        
+        #### Map Data indir
+        "MapData_indir" : {
+            "MapData_Indir" : '/my-projects2/Projects/Daily_PM25_DL_2024/data/Input_Variables_MapData/',
+            "MapData_fromRegionalComponentProject_Indir" : '/my-projects/Projects/PM25_Speices_DL_2023/data/input_variables_map/'
+        },
         #### Other Data indir
         "Data_indir" : {
-            "mask_indir"               : "/my-projects/mask/Land_Ocean_Mask/", ## Use in Estimation_pkg/data_func.py
+            "NA_Mask_indir"            : '/my-projects/mask/NA_Masks/Cropped_NA_Masks/', ## Use in Evaluation/iostream.py, North America region masks
+            "mask_indir"               : "/my-projects/mask/Land_Ocean_Mask/", ## Use in Estimation_pkg/data_func.py, land ocean mask
             "LATLON_indir"             : "/my-projects2/Projects/Daily_PM25_DL_2024/data/",
         },
+
+        ####
     },
 
 
@@ -229,7 +237,7 @@ cfg = {
 
     'Training-Settings' : {
         "identity": {
-            "version": "v0.3.0",
+            "version": "v0.3.1",
             "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",

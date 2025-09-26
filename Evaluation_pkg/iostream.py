@@ -563,7 +563,7 @@ def load_data_recording(species, version, begindates,enddates, evaluation_type, 
     return final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording, sites_lat_array, sites_lon_array
 
 def load_NA_Mask_data(region_name):
-    NA_Mask_indir = '/my-projects/mask/NA_Masks/Cropped_NA_Masks/'
+    NA_Mask_indir = NA_Mask_indir
     try:
         dataset = nc.Dataset(NA_Mask_indir+'Cropped_PROVMASK-{}.nc'.format(region_name))
         mask_map = dataset.variables['provmask'][:]
@@ -586,4 +586,8 @@ def load_NA_Mask_data(region_name):
     except:
         print('Not in STATE')
     return mask_map, lat, lon
+
+
+
+
 

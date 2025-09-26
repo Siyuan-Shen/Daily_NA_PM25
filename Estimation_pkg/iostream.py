@@ -62,9 +62,8 @@ def load_Estimation_Map(outdir, file_target,typeName,Area,YYYY,MM,DD,nchannel, *
 
 def load_map_data(channel_names, YYYY, MM,DD):
     inputfiles = inputfiles_table(YYYY=YYYY,MM=MM,DD=DD)
-    indir = '/my-projects/Projects/PM25_Speices_DL_2023/data/input_variables_map/'
-    lat_infile = indir + 'tSATLAT_NA.npy'
-    lon_infile = indir + 'tSATLON_NA.npy'
+    lat_infile = LATLON_indir + 'NA_SATLAT_0p01.npy'
+    lon_infile = LATLON_indir + 'NA_SATLON_0p01.npy'
     SATLAT = np.load(lat_infile)
     SATLON = np.load(lon_infile)
     output = np.zeros((len(channel_names), len(SATLAT), len(SATLON)))
