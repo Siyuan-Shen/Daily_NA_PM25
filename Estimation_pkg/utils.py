@@ -1,7 +1,7 @@
 from config import cfg
 import datetime
 import numpy as np
-
+from config import AVD_OBS_version,MapData_fromRegionalComponentProject_Indir,AVD_GEO_version
 
 Estimation_Settings = cfg['Estimation-Settings']
 
@@ -44,12 +44,10 @@ Annual_Plot_Switch = Visualization_Settings['Annual_Plot_Switch']
 Annual_Plot_beginyears = Visualization_Settings['Annual_Plot_beginyears']
 Annual_Plot_endyears = Visualization_Settings['Annual_Plot_endyears']
 
-GeoPM25_AOD_ETA_version = 'vAOD20240322vGEO20241212'
-
-MapData_Indir = '/my-projects2/Projects/Daily_PM25_DL_2024/data/Input_Variables_MapData/'
-MapData_fromRegionalComponentProject_Indir = '/my-projects/Projects/PM25_Speices_DL_2023/data/input_variables_map/'
-AVD_version = 'AVD_d20240814'
-Geophysical_version = 'vAOD20240322vGEO20241212'
+MapData_Indir = MapData_Indir
+MapData_fromRegionalComponentProject_Indir = MapData_fromRegionalComponentProject_Indir
+AVD_version = AVD_OBS_version
+Geophysical_version = AVD_GEO_version
 
 ############################################################################################
 # The indir of input mapdata.

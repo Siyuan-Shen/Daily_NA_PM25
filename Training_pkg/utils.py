@@ -36,12 +36,20 @@ model_outdir = results_dir_cfg['model_outdir']
 data_recording_outdir = results_dir_cfg['data_recording_outdir']
 figure_outdir = results_dir_cfg['figure_outdir']
 
+
+####################################################################################
+# Map Data Path
+Mapdata_indir_cfg = cfg['Pathway']['MapData_indir']
+MapData_Indir = cfg['Pathway']['MapData_indir']
+MapData_fromRegionalComponentProject_Indir = MapData_Indir['MapData_fromRegionalComponentProject_Indir']
+
 ####################################################################################
 # Other Data Path
 
 Data_indir = cfg['Pathway']['Data_indir']
 mask_indir = Data_indir['mask_indir']
 LATLON_indir = Data_indir['LATLON_indir']
+NA_Mask_indir = Data_indir['NA_Mask_indir']
 ####################################################################################
 ###                                Training Settings                             ###
 ####################################################################################

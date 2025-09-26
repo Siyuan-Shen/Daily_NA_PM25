@@ -65,9 +65,8 @@ def cnn_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_en
     AllDates, int_AllDates = create_date_range(predict_begindate, predict_endate)
     lat_index, lon_index = get_extent_index(extent)
     landtype = get_landtype('2020',extent)
-    indir = '/my-projects/Projects/PM25_Speices_DL_2023/data/input_variables_map/'
-    lat_infile = indir + 'tSATLAT_NA.npy'
-    lon_infile = indir + 'tSATLON_NA.npy'
+    lat_infile = LATLON_indir + 'NA_SATLAT_0p01.npy'
+    lon_infile = LATLON_indir + 'NA_SATLON_0p01.npy'
     SATLAT = np.load(lat_infile)
     SATLON = np.load(lon_infile)
 
@@ -159,9 +158,8 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
     AllDates, int_AllDates = create_date_range(predict_begindate, predict_endate)
     lat_index, lon_index = get_extent_index(extent)
     landtype = get_landtype('2020',extent)
-    indir = '/my-projects/Projects/PM25_Speices_DL_2023/data/input_variables_map/'
-    lat_infile = indir + 'tSATLAT_NA.npy'
-    lon_infile = indir + 'tSATLON_NA.npy'
+    lat_infile = LATLON_indir + 'NA_SATLAT_0p01.npy'
+    lon_infile = LATLON_indir + 'NA_SATLON_0p01.npy'
     SATLAT = np.load(lat_infile)
     SATLON = np.load(lon_infile)
 
