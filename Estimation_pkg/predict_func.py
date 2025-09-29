@@ -40,7 +40,7 @@ def ddp_setup(rank, world_size):
 
 def cnn_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_endate,total_channel_names,
                                 evaluation_type, typeName,Area,extent,
-                                train_mean, train_std, width,height):
+                                train_mean, train_std, true_mean, true_std, width,height):
     nchannel = len(total_channel_names)
     print('world_size: {}'.format(world_size))
     try:
@@ -121,6 +121,9 @@ def cnn_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_en
                 output = out_t.cpu().numpy()
             ## Save the output
             if rank == 0:
+                output = map_data_final_output(output,
+                         bias,normalize_bias,normalize_species,absolute_species,log_species,
+                         true_mean, true_std, YYYY, MM, DD)
                 save_Estimation_Map(mapdata = output, outdir = data_recording_outdir, 
             file_target='Map_Estimation', typeName=typeName, Area=Area, YYYY=YYYY, MM=MM, DD=DD, nchannel=nchannel,
             width=width, height=height 
@@ -133,7 +136,7 @@ def cnn_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_en
 
 def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_endate,total_channel_names,
                                 evaluation_type, typeName,Area,extent,
-                                train_mean, train_std, width,height,depth):
+                                train_mean, train_std, true_mean, true_std, width,height,depth):
     nchannel = len(total_channel_names)
     print('world_size: {}'.format(world_size))
     try:
@@ -217,6 +220,9 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
                 output = out_t.cpu().numpy()
             ## Save the output
             if rank == 0:
+                output = map_data_final_output(output,
+                         bias,normalize_bias,normalize_species,absolute_species,log_species,
+                         true_mean, true_std, YYYY, MM, DD)
                 save_Estimation_Map(mapdata = output, outdir = data_recording_outdir, 
             file_target='Map_Estimation', typeName=typeName, Area=Area, YYYY=YYYY, MM=MM, DD=DD, nchannel=nchannel,
             width=width, height=height, depth=depth 
@@ -225,3 +231,23 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
         dist.barrier()
         destroy_process_group()
     return
+
+def map_data_final_output(Validation_Prediction,
+                         bias,normalize_bias,normalize_species,absolute_species,log_species,
+                         true_mean, true_std, YYYY, MM, DD):
+    lat_index, lon_index = get_extent_index(Extent)
+    if bias == True:
+        GeoSpecies = load_map_data('tSATPM25', YYYY, MM, DD)
+        validation_geophysical_species = GeoSpecies[lat_index[0]:lat_index[-1]+1,lon_index[0]:lon_index[-1]+1]
+        final_data = Validation_Prediction + validation_geophysical_species
+    elif normalize_bias == True:
+        GeoSpecies = load_map_data('tSATPM25', YYYY, MM, DD)
+        validation_geophysical_species = GeoSpecies[lat_index[0]:lat_index[-1]+1,lon_index[0]:lon_index[-1]+1]
+        final_data = Validation_Prediction * true_std + true_mean + validation_geophysical_species
+    elif normalize_species == True:
+        final_data = Validation_Prediction * true_std + true_mean
+    elif absolute_species == True:
+        final_data = Validation_Prediction
+    elif log_species == True:
+        final_data = np.exp(Validation_Prediction) - 1
+    return final_data
