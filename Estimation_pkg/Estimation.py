@@ -91,7 +91,7 @@ def Estimation_Func(total_channel_names, main_stream_channel_names,
                         mp.spawn(cnn_mapdata_predict_func,
                                  args=(world_size,model,predict_begindate,predict_endate,total_channel_names,
                                        Evaluation_type, typeName,Estimation_Area,Extent,
-                                       TrainingDatasets_mean, TrainingDatasets_std, width,height,),
+                                       TrainingDatasets_mean, TrainingDatasets_std, true_input_mean,true_input_std,width,height,),
                                  nprocs=world_size,
                                  join=True)
                     elif world_size <=1:
@@ -99,14 +99,14 @@ def Estimation_Func(total_channel_names, main_stream_channel_names,
                                                    predict_begindate=predict_begindate,predict_endate=predict_endate,
                                                    total_channel_names=total_channel_names,
                                                    Evaluation_type=Evaluation_type, typeName=typeName,Area=Estimation_Area,Extent=Extent,
-                                                   train_mean=TrainingDatasets_mean, train_std=TrainingDatasets_std,
+                                                   train_mean=TrainingDatasets_mean, train_std=TrainingDatasets_std,true_mean=true_input_mean,true_std=true_input_std,
                                                    width=width,height=height)
                 elif Apply_3D_CNN_architecture:
                     if world_size >1:
                         mp.spawn(cnn3D_mapdata_predict_func,
                                  args=(world_size,model,predict_begindate,predict_endate,total_channel_names,
                                        Evaluation_type, typeName,Estimation_Area,Extent,
-                                       TrainingDatasets_mean, TrainingDatasets_std, width,height,depth,),
+                                       TrainingDatasets_mean, TrainingDatasets_std,true_input_mean,true_input_std, width,height,depth,),
                                  nprocs=world_size,
                                  join=True)
                     elif world_size <=1:
@@ -114,7 +114,7 @@ def Estimation_Func(total_channel_names, main_stream_channel_names,
                                                    predict_begindate=predict_begindate,predict_endate=predict_endate,
                                                    total_channel_names=total_channel_names,
                                                    Evaluation_type=Evaluation_type, typeName=typeName,Area=Estimation_Area,Extent=Extent,
-                                                   train_mean=TrainingDatasets_mean, train_std=TrainingDatasets_std,
+                                                   train_mean=TrainingDatasets_mean, train_std=TrainingDatasets_std,true_mean=true_input_mean,true_std=true_input_std,
                                                    width=width,height=height,depth=depth,)
 
                 
