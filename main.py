@@ -5,6 +5,7 @@ import time
 from wandb_config import  wandb_initialize, wandb_sweep_config,wandb_run_config
 from Evaluation_pkg.Hyperparameter_Search_Validation import Hyperparameters_Search_Training_Testing_Validation
 from Evaluation_pkg.Spatial_CrossValidation import spatial_cross_validation
+from Evaluation_pkg.Random_CrossValidation import random_cross_validation    
 from Evaluation_pkg.SHAPvalue_analysis import Spatial_CV_SHAP_Analysis
 from Evaluation_pkg.utils import *
 
@@ -72,6 +73,16 @@ if __name__ == "__main__":
             spatial_cross_validation(total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
                                      side_stream_channel_names=side_channel_names)
     
+    if Random_CrossValidation_Switch:
+        if Random_CV_Apply_wandb_sweep_Switch:
+            sweep_config = wandb_sweep_config()
+            sweep_id = wandb.sweep(sweep=sweep_config, project=sweep_config['project'],entity=sweep_config['entity'])
+            wandb.agent(sweep_id, function=lambda: random_cross_validation(total_channel_names=total_channel_names,
+                                                                                 main_stream_channel_names=main_stream_channel_names,
+                                                                                 side_channel_names=side_channel_names,sweep_id=sweep_id), count=wandb_sweep_count)
+        else:
+            random_cross_validation(total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
+                                     side_stream_channel_names=side_channel_names)
     if Spatial_CV_SHAP_Analysis_Switch:
         Spatial_CV_SHAP_Analysis(total_channel_names=total_channel_names, main_stream_channel_names=main_stream_channel_names,
                                  side_stream_channel_names=side_channel_names)

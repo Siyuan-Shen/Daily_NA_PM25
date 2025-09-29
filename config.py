@@ -31,9 +31,9 @@ cfg = {
 
         #### Ground Observation Data, Geophysical Species Data, and Geophysical Biases Data ####
         "learning_objective": {
-            "ground_observation_data_dir"      : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/GroundBased_Observations/{AVD_OBS_version}/{observation_data_NAPS_insertion}/",
-            "geophysical_species_data_dir"     : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
-            "geophysical_biases_data_dir"      : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
+            "ground_observation_data_dir"      : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/GroundBased_Observations/{AVD_OBS_version}/{observation_data_NAPS_insertion}/",
+            "geophysical_species_data_dir"     : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
+            "geophysical_biases_data_dir"      : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/",
             "ground_observation_data_infile"   : f"daily_PM25_data{observation_data_insertion}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
             "geophysical_species_data_infile"  : "geophysical_PM25_datasets.npy",
             "geophysical_biases_data_infile"   : "geophysical_bias_datasets.npy",
@@ -42,10 +42,10 @@ cfg = {
 
         #### Training Datasets infiles
         "TrainingDataset": {
-            "CNN_Training_infiles"          : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
-            "CNN3D_Training_infiles"        : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
-            "Transformer_Training_infiles"  : f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/Transformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
-            "CNN_Transformer_Training_infiles": f"/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DTransformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN_Training_infiles"          : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN3D_Training_infiles"        : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "Transformer_Training_infiles"  : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/Transformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN_Transformer_Training_infiles": f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DTransformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
         },
 
         #### Validation Datasets outdirs
@@ -58,14 +58,14 @@ cfg = {
         
         #### Map Data indir
         "MapData_indir" : {
-            "MapData_Indir" : '/my-projects2/Projects/Daily_PM25_DL_2024/data/Input_Variables_MapData/',
-            "MapData_fromRegionalComponentProject_Indir" : '/my-projects/Projects/PM25_Speices_DL_2023/data/input_variables_map/'
+            "MapData_Indir" : '/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Input_Variables_MapData/',
+            "MapData_fromRegionalComponentProject_Indir" : '/s.siyuan/s3/my-projects/Projects/PM25_Speices_DL_2023/data/input_variables_map/'
         },
         #### Other Data indir
         "Data_indir" : {
-            "NA_Mask_indir"            : '/my-projects/mask/NA_Masks/Cropped_NA_Masks/', ## Use in Evaluation/iostream.py, North America region masks
-            "mask_indir"               : "/my-projects/mask/Land_Ocean_Mask/", ## Use in Estimation_pkg/data_func.py, land ocean mask
-            "LATLON_indir"             : "/my-projects2/Projects/Daily_PM25_DL_2024/data/",
+            "NA_Mask_indir"            : '/s.siyuan/s3/my-projects/mask/NA_Masks/Cropped_NA_Masks/', ## Use in Evaluation/iostream.py, North America region masks
+            "mask_indir"               : "/s.siyuan/s3/my-projects/mask/Land_Ocean_Mask/", ## Use in Estimation_pkg/data_func.py, land ocean mask
+            "LATLON_indir"             : "/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/",
         },
 
         ####
