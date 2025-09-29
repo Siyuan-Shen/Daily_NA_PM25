@@ -40,8 +40,8 @@ figure_outdir = results_dir_cfg['figure_outdir']
 ####################################################################################
 # Map Data Path
 Mapdata_indir_cfg = cfg['Pathway']['MapData_indir']
-MapData_Indir = cfg['Pathway']['MapData_indir']
-MapData_fromRegionalComponentProject_Indir = MapData_Indir['MapData_fromRegionalComponentProject_Indir']
+MapData_Indir = Mapdata_indir_cfg['MapData_Indir']
+MapData_fromRegionalComponentProject_Indir = Mapdata_indir_cfg['MapData_fromRegionalComponentProject_Indir']
 
 ####################################################################################
 # Other Data Path

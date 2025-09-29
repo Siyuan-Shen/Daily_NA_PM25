@@ -479,7 +479,7 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
     
 
     ### Recording the results to wandb
-    if not Use_recorded_data_to_show_validation_results:
+    if not Use_recorded_data_to_show_validation_results_Spatial_CV:
         run_id = run_id_container.get("run_id", None)
         run_name = run_id_container.get("run_name", None)
         print('run_id: ', run_id)

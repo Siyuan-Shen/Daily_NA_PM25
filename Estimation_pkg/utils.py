@@ -1,7 +1,8 @@
 from config import cfg
 import datetime
 import numpy as np
-from config import AVD_OBS_version,MapData_fromRegionalComponentProject_Indir,AVD_GEO_version
+from config import AVD_OBS_version,AVD_GEO_version
+from Training_pkg.utils import MapData_fromRegionalComponentProject_Indir, MapData_Indir
 
 Estimation_Settings = cfg['Estimation-Settings']
 

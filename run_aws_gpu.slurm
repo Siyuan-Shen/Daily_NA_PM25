@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name="Daily CNN_T AVD_d20250804 True True Sweep 4GPU"
-#SBATCH --partition=gpuqueue
+#SBATCH --partition=gpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus=8
 #SBATCH --output=job_output/job-%j-output.txt
-#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-type=ALL
 #SBATCH --mail-user=s.siyuan@wustl.edu
 #SBATCH --time=14-00:00:00
 #SBATCH -vvv
@@ -52,5 +52,13 @@ sleep $pause_time
 # Buffer_size=[80]
 # sed -i '/\[BLCO\-CrossValidation\]/,/^\[/{/Buffer_size/s/=.*/= '"$Buffer_size"'/}' config.toml
 nvidia-smi
+
+MM=/s.siyuan/shared/tools/bin/micromamba
+ENV=/s.siyuan/shared/envs/myenv
+
+# load micromamba’s shell function
+eval "$($MM shell hook -s bash)"
+
+micromamba activate "$ENV"
 python3 main.py
 
