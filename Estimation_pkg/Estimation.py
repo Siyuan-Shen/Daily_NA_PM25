@@ -34,6 +34,8 @@ def Estimation_Func(total_channel_names, main_stream_channel_names,
             print('Init_CNN_Datasets finished, time elapsed: ', time.time() - start_time)
             total_sites_number = Init_CNN_Datasets.total_sites_number
             true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
+            print('true_input_mean:', true_input_mean)
+            print('true_input_std:', true_input_std)
             TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
             width, height = Init_CNN_Datasets.width, Init_CNN_Datasets.height
             sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
@@ -48,6 +50,8 @@ def Estimation_Func(total_channel_names, main_stream_channel_names,
             total_sites_number = Init_CNN_Datasets.total_sites_number
 
             true_input_mean, true_input_std = Init_CNN_Datasets.true_input_mean, Init_CNN_Datasets.true_input_std
+            print('true_input_mean:', true_input_mean)
+            print('true_input_std:', true_input_std)
             TrainingDatasets_mean, TrainingDatasets_std = Init_CNN_Datasets.TrainingDatasets_mean, Init_CNN_Datasets.TrainingDatasets_std
             depth, width, height = Init_CNN_Datasets.depth,Init_CNN_Datasets.width, Init_CNN_Datasets.height
             sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
@@ -64,6 +68,8 @@ def Estimation_Func(total_channel_names, main_stream_channel_names,
             total_sites_number = Init_Transformer_Datasets.total_sites_number
 
             true_input_mean, true_input_std = Init_Transformer_Datasets.true_input_mean, Init_Transformer_Datasets.true_input_std
+            print('true_input_mean:', true_input_mean)
+            print('true_input_std:', true_input_std)
             TrainingDatasets_mean, TrainingDatasets_std = Init_Transformer_Datasets.TrainingDatasets_mean, Init_Transformer_Datasets.TrainingDatasets_std
             sites_lat, sites_lon = Init_Transformer_Datasets.sites_lat, Init_Transformer_Datasets.sites_lon
 

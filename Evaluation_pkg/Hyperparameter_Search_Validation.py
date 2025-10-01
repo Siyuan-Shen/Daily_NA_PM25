@@ -446,8 +446,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
     
     elif Apply_CNN_Transformer_architecture:
         csvfile_outfile = get_csvfile_outfile(Evaluation_type=Evaluation_type,typeName=typeName,Model_structure_type=Model_structure_type,
-                                          main_stream_CNN_channel_names=main_stream_CNN_channel_names,
-                                          main_stream_Transformer_channel_names=main_stream_Transformer_channel_names,
+                                          main_stream_channel_names=main_stream_CNN_channel_names,
                                           test_begindate=HSV_Spatial_splitting_begindates[0],
                                             test_enddate=HSV_Spatial_splitting_enddates[-1],
                                           d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden, num_layers=num_layers, max_len=max_len+spin_up_len,
