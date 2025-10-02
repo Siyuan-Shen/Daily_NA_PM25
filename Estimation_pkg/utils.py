@@ -1,7 +1,7 @@
 from config import cfg
 import datetime
 import numpy as np
-from config import AVD_OBS_version,AVD_GEO_version
+from config import AVD_OBS_version,AVD_GEO_version,Use_AOD_nan_values_filtered_Obs
 from Training_pkg.utils import MapData_fromRegionalComponentProject_Indir, MapData_Indir
 
 Estimation_Settings = cfg['Estimation-Settings']
@@ -74,9 +74,6 @@ def inputfiles_table(YYYY, MM, DD):
         'gGCFRAC5km'            : Geophysical_indir + '{}/{}/{}/cropped_gGCFRAC5km_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
         'gSATPM25orig5km'       : Geophysical_indir + '{}/{}/{}/cropped_gSATPM25orig5km_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
         'gSATPM25orig5kmdelta'  : Geophysical_indir + '{}/{}/{}/cropped_gSATPM25orig5kmdelta_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
-        'eta'                   : Geophysical_indir + '{}/{}/{}/eta_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
-        'tSATAOD'               : Geophysical_indir + '{}/{}/{}/tSATAOD_fine0p01_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
-        'tSATPM25'              : Geophysical_indir + '{}/{}/{}/tSATPM25_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
         ############################################################################################################
         # GEOS-Chem input variables
         'GC_PM25'               : GEOS_Chem_indir + '{}/{}/PM25_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
@@ -183,6 +180,20 @@ def inputfiles_table(YYYY, MM, DD):
         inputfiles_dict.update({
             'sin_days' : Spatiotemporal_input_indir + 'Day_of_the_year/sin_days_of_the_year_{}{}.npy'.format(MM, DD),
             'cos_days' : Spatiotemporal_input_indir + 'Day_of_the_year/cos_days_of_the_year_{}{}.npy'.format(MM, DD),
+        })
+    if Use_AOD_nan_values_filtered_Obs:
+        inputfiles_dict.update({
+            'eta'                   : Geophysical_indir + '{}/{}/{}/eta_nanfill_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+            'tSATAOD'               : Geophysical_indir + '{}/{}/{}/tSATAOD_fine0p01_nanfill_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+            'tSATPM25'              : Geophysical_indir + '{}/{}/{}/tSATPM25_nanfill_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+
+        })
+    else:
+        inputfiles_dict.update({
+            'eta'                   : Geophysical_indir + '{}/{}/{}/eta_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+            'tSATAOD'               : Geophysical_indir + '{}/{}/{}/tSATAOD_fine0p01_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+            'tSATPM25'              : Geophysical_indir + '{}/{}/{}/tSATPM25_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+        
         })
     return inputfiles_dict
 
