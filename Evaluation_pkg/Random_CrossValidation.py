@@ -37,7 +37,7 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
     world_size = torch.cuda.device_count()
     print(f"Number of available GPUs: {world_size}")
     typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias,normalize_species=normalize_species, absolute_species=absolute_species, log_species=False, species=species)
-
+    Evaluation_type = 'Random_CrossValidation'
     #####################################################################
     # Start the hyperparameters search validation
     Statistics_list = ['test_R2','train_R2','geo_R2','RMSE','NRMSE','slope','PWA']
@@ -202,8 +202,9 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                 
                 total_data_points = len(cctnd_true_input)
                 print('Total data points for training and testing: ', total_data_points)
+                total_data_index = np.arange(total_data_points)
                 ### Start folds loop
-                for ifold, (training_selected_indices,testing_selected_indices) in enumerate(rkf.split(total_data_points)):
+                for ifold, (training_selected_indices,testing_selected_indices) in enumerate(rkf.split(total_data_index)):
                     print('training_selected_sites: ',training_selected_indices.shape)
                     print('testing_selected_sites: ',testing_selected_indices.shape)
 
@@ -229,7 +230,7 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                                                                                                                                     total_true_input=cctnd_true_input,
                                                                                                                                     total_sites_index=cctnd_sites_index,
                                                                                                                                     total_dates=cctnd_dates)
-                    del cctnd_trainingdatasets, cctnd_true_input
+                    
                     gc.collect()
                     if Apply_CNN_architecture:
                         if world_size > 1:
@@ -372,10 +373,10 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                     del Daily_Model, X_train, y_train, X_test, y_test
                     gc.collect()                                                                
                     # Get the final output for the validation datasets
-                    final_output = Get_final_output(Validation_Prediction=validation_output, validation_geophysical_species=cctnd_geophysical_species_data[test_datasets_index],
+                    final_output = Get_final_output(Validation_Prediction=validation_output, validation_geophysical_species=cctnd_geophysical_species_data[testing_selected_indices],
                                                     bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
                                                     log_species=False, mean=true_input_mean, std=true_input_std)
-                    training_final_output = Get_final_output(Validation_Prediction=training_output, validation_geophysical_species=cctnd_geophysical_species_data[train_datasets_index],
+                    training_final_output = Get_final_output(Validation_Prediction=training_output, validation_geophysical_species=cctnd_geophysical_species_data[training_selected_indices],
                                                     bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
                                                     log_species=False, mean=true_input_mean, std=true_input_std)
                     # Calculate the statistics for the validation datasets
@@ -383,13 +384,13 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                         sites_test = np.tile(sites_test[:,np.newaxis], (1, max_len+spin_up_len)).flatten()
                         sites_train = np.tile(sites_train[:,np.newaxis], (1, max_len+spin_up_len)).flatten()
                     final_data_recording = np.concatenate((final_data_recording, final_output), axis=0)
-                    obs_data_recording = np.concatenate((obs_data_recording, cctnd_ground_observation_data[test_datasets_index].flatten()), axis=0)
-                    geo_data_recording = np.concatenate((geo_data_recording, cctnd_geophysical_species_data[test_datasets_index].flatten()), axis=0)
+                    obs_data_recording = np.concatenate((obs_data_recording, cctnd_ground_observation_data[testing_selected_indices].flatten()), axis=0)
+                    geo_data_recording = np.concatenate((geo_data_recording, cctnd_geophysical_species_data[testing_selected_indices].flatten()), axis=0)
                     sites_recording = np.concatenate((sites_recording, sites_test), axis=0)
                     dates_recording = np.concatenate((dates_recording, dates_test.flatten()), axis=0)
 
                     training_final_data_recording = np.concatenate((training_final_data_recording, training_final_output), axis=0)
-                    training_obs_data_recording = np.concatenate((training_obs_data_recording, cctnd_ground_observation_data[train_datasets_index].flatten()), axis=0)
+                    training_obs_data_recording = np.concatenate((training_obs_data_recording, cctnd_ground_observation_data[training_selected_indices].flatten()), axis=0)
                     training_sites_recording = np.concatenate((training_sites_recording, sites_train), axis=0)
                     training_dates_recording = np.concatenate((training_dates_recording, dates_train.flatten()), axis=0)
             save_data_recording(final_data_recording=final_data_recording, obs_data_recording=obs_data_recording, geo_data_recording=geo_data_recording,
@@ -397,11 +398,11 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                                 training_final_data_recording=training_final_data_recording, training_obs_data_recording=training_obs_data_recording,
                                 training_sites_recording=training_sites_recording, training_dates_recording=training_dates_recording,
                                 sites_lat_array=sites_lat, sites_lon_array=sites_lon,
-                                species=species,version=version,begindates=Normal_CV_training_begindates[0],
-                                enddates=Normal_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
+                                species=species,version=version,begindates=Random_CV_training_begindates[0],
+                                enddates=Random_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
                                 evaluation_type=Evaluation_type,project=project,entity=entity,sweep_id=sweep_id,name=name,**args)
-    final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording, sites_lat_array, sites_lon_array = load_data_recording(species=species,version=version,begindates=Normal_CV_training_begindates[0],
-                                                                                                                                                                                                                                         enddates=Normal_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
+    final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording, sites_lat_array, sites_lon_array = load_data_recording(species=species,version=version,begindates=Random_CV_training_begindates[0],
+                                                                                                                                                                                                                                         enddates=Random_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
                                                                                                                                                                                                                                          evaluation_type=Evaluation_type,special_name=description,project=project,entity=entity,sweep_id=sweep_id,**args)
     
     ### Calculate statistics and record them to the whole time range
@@ -415,11 +416,11 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                                                                                                                 training_dates_recording=training_dates_recording,
                                                                                                                 Statistics_list=Statistics_list)
     csvfile_outfile = get_csvfile_outfile(Evaluation_type=Evaluation_type,typeName=typeName,Model_structure_type=Model_structure_type,
-                                          main_stream_channel_names=main_stream_channel_names,test_begindate=Normal_CV_validation_begindates[0],
-                                          test_enddate=Normal_CV_validation_enddates[-1],project=project,entity=entity,sweep_id=sweep_id,
+                                          main_stream_channel_names=main_stream_channel_names,test_begindate=Random_CV_validation_begindates[0],
+                                          test_enddate=Random_CV_validation_enddates[-1],project=project,entity=entity,sweep_id=sweep_id,
                                           **args,)
     output_csv(outfile=csvfile_outfile,status='w',Area='North America',
-                test_begindate=Normal_CV_validation_begindates[0],test_enddate=Normal_CV_validation_enddates[-1],
+                test_begindate=Random_CV_validation_begindates[0],test_enddate=Random_CV_validation_enddates[-1],
                 Daily_statistics_recording=Daily_statistics_recording,
                 Monthly_statistics_recording=Monthly_statistics_recording,
                 Annual_statistics_recording=Annual_statistics_recording,)
@@ -524,8 +525,6 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
     correlation_coefficient = np.corrcoef(obs_data_recording, geo_data_recording)[0, 1]
     print(f'Correlation Coefficient between Ground-based PM2.5 and Geophysical PM2.5: {correlation_coefficient:.4f}')
 
-
-
     
     if Apply_3D_CNN_architecture or Apply_CNN_architecture:
         del Init_CNN_Datasets
@@ -534,4 +533,4 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
     del final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
     del training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording
     gc.collect()
-    return validation_output, training_output
+    return 
