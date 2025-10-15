@@ -28,15 +28,19 @@ from Training_pkg.iostream import load_daily_datesbased_model
 
 from Visualization_pkg.Evaluation_plots import shap_value_plot
 from Visualization_pkg.iostream import get_figure_outfile_path
+
 def Spatial_CV_SHAP_Analysis(total_channel_names, main_stream_channel_names,
                              side_stream_channel_names,):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias,normalize_species=normalize_species, absolute_species=absolute_species, log_species=False, species=species)
     Evaluation_type = 'SHAPAnalysis_SpatialCV'
+    Training_Model_Evaluation_type = 'Spatial_CrossValidation'
     Statistics_list = ['test_R2','train_R2','geo_R2','RMSE','NRMSE','slope','PWA']
     seed       = 19980130
     rkf = RepeatedKFold(n_splits=Spatial_CV_folds, n_repeats=1, random_state=seed)
     nchannel = len(total_channel_names)
+
+
     if Apply_CNN_architecture:
         ### Initialize the CNN datasets
         Model_structure_type = 'CNNModel'
@@ -65,6 +69,10 @@ def Spatial_CV_SHAP_Analysis(total_channel_names, main_stream_channel_names,
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
         shap_values_values, shap_values_base,shap_values_data = np.zeros([0,nchannel,depth,width,height],dtype=np.float32),np.array([],dtype=np.float32),np.zeros([0,nchannel,depth,width,height],dtype=np.float32) #initialize_AVD_SHAPValues_DataRecording(beginyear=test_beginyear,endyear=test_endyear)
 
+    if Apply_CNN_architecture:
+        args = {'width': width, 'height': height}
+    elif Apply_3D_CNN_architecture:
+        args = {'width': width, 'height': height, 'depth': depth}
 
     if Spatial_CV_SHAP_Analysis_Calculation_Switch:
         print('Spatial CV SHAP Analysis Calculation Switch is ON')
@@ -102,11 +110,11 @@ def Spatial_CV_SHAP_Analysis(total_channel_names, main_stream_channel_names,
                                                                                                                                             total_dates=cctnd_dates)
                         
                     if Apply_CNN_architecture:
-                        Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=Spatial_CV_training_begindates[imodel],
+                        Daily_Model = load_daily_datesbased_model(evaluation_type=Training_Model_Evaluation_type, typeName=typeName, begindates=Spatial_CV_training_begindates[imodel],
                                                                         enddates=Spatial_CV_training_enddates[imodel], version=version,species=species,
                                                                         nchannel=len(main_stream_channel_names),special_name=description,ifold=ifold,width=width,height=height)
                     elif Apply_3D_CNN_architecture:
-                        Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=Spatial_CV_training_begindates[imodel],
+                        Daily_Model = load_daily_datesbased_model(evaluation_type=Training_Model_Evaluation_type, typeName=typeName, begindates=Spatial_CV_training_begindates[imodel],
                                                                         enddates=Spatial_CV_training_enddates[imodel], version=version,species=species,
                                                                         nchannel=len(main_stream_channel_names),special_name=description,ifold=ifold,width=width,height=height,depth=depth)
                     background_data_number = min(len(y_train),Spatial_CV_SHAP_Analysis_background_number)
@@ -124,25 +132,16 @@ def Spatial_CV_SHAP_Analysis(total_channel_names, main_stream_channel_names,
                     Data_to_Explain = Data_to_Explain.cpu().detach().numpy()
                     shap_values_values = np.append(shap_values_values, shap_values, axis=0)
                     shap_values_data   = np.append(shap_values_data, Data_to_Explain, axis=0)
-            if Apply_CNN_architecture:
-                save_SHAPValues_data_recording(shap_values_values=shap_values_values,shap_values_data=shap_values_data,
+            
+            save_SHAPValues_data_recording(shap_values_values=shap_values_values,shap_values_data=shap_values_data,
                                            species=species,version=version,begindates=Spatial_CV_training_begindates[imodel],
                                            enddates=Spatial_CV_training_enddates[imodel],typeName=typeName,evaluation_type=Evaluation_type,
-                                           nchannel=nchannel,width=width,height=height,)
-            elif Apply_3D_CNN_architecture:
-                save_SHAPValues_data_recording(shap_values_values=shap_values_values,shap_values_data=shap_values_data,
-                                           species=species,version=version,begindates=Spatial_CV_training_begindates[imodel],
-                                           enddates=Spatial_CV_training_enddates[imodel],typeName=typeName,evaluation_type=Evaluation_type,
-                                           nchannel=nchannel,width=width,height=height,depth=depth)
+                                           nchannel=nchannel,args=args)
+            
     if Spatial_CV_SHAP_Analysis_visualization_Switch:
-        if Apply_CNN_architecture:
-            shap_values_values,shap_values_data = load_SHAPValues_data_recording(species=species,version=version,evaluation_type=Evaluation_type,
+        shap_values_values,shap_values_data = load_SHAPValues_data_recording(species=species,version=version,evaluation_type=Evaluation_type,
                                                                                   typeName=typeName,begindates=Spatial_CV_training_begindates[0],
-                                                                                    enddates=Spatial_CV_training_enddates[0],nchannel=nchannel,width=width,height=height)
-        elif Apply_3D_CNN_architecture:
-            shap_values_values,shap_values_data = load_SHAPValues_data_recording(species=species,version=version,evaluation_type=Evaluation_type,
-                                                                                  typeName=typeName,begindates=Spatial_CV_training_begindates[0],
-                                                                                    enddates=Spatial_CV_training_enddates[0],nchannel=nchannel,width=width,height=height,depth=depth)
+                                                                                    enddates=Spatial_CV_training_enddates[0],nchannel=nchannel,args=args)
         print('shap_values_values.shape: ', shap_values_values.shape)
         print('shap_values_data.shape: ', shap_values_data.shape)
         if Spatial_CV_SHAP_Analysis_plot_type == 'beeswarm':
@@ -151,17 +150,18 @@ def Spatial_CV_SHAP_Analysis(total_channel_names, main_stream_channel_names,
                 shap_values_data   = np.sum(shap_values_data, axis=(2,3))
                 shap_values_data_min = np.min(shap_values_data,axis=0)
                 shap_values_data_max = np.max(shap_values_data,axis=0)
-                shap_value_plot_outfile = get_figure_outfile_path(outdir=figure_outdir,evaluation_type=Evaluation_type, figure_type='Spatial_CV_SHAPValues',typeName=typeName,
-                                                          begindate=Spatial_CV_training_begindates[0],enddate=Spatial_CV_training_enddates[0],
-                                                          nchannel=nchannel,width=width,height=height)
+               
             elif Apply_3D_CNN_architecture:
                 shap_values_values = np.sum(shap_values_values, axis=(2,3,4))
                 shap_values_data   = np.sum(shap_values_data, axis=(2,3,4))
                 shap_values_data_min = np.min(shap_values_data,axis=0)
                 shap_values_data_max = np.max(shap_values_data,axis=0)
-                shap_value_plot_outfile = get_figure_outfile_path(outdir=figure_outdir,evaluation_type=Evaluation_type, figure_type='Spatial_CV_SHAPValues',typeName=typeName,
+            figure_outdir = figure_outdir + '{}/{}/Figures/{}/'.format(species,version,Evaluation_type)
+            if not os.path.exists(figure_outdir):
+                os.makedirs(figure_outdir)
+            shap_value_plot_outfile = get_figure_outfile_path(outdir=figure_outdir,evaluation_type=Evaluation_type, figure_type='Spatial_CV_SHAPValues',typeName=typeName,
                                                           begindate=Spatial_CV_training_begindates[0],enddate=Spatial_CV_training_enddates[0],
-                                                          nchannel=nchannel,width=width,height=height,depth=depth)
+                                                          nchannel=nchannel,args=args)
             print('shap_values_data.shape: ', shap_values_data.shape)
             shap_values_data = (shap_values_data - shap_values_data_min) / (shap_values_data_max-shap_values_data_min)
             print(np.min(shap_values_data,axis=0),np.max(shap_values_data,axis=0))

@@ -59,7 +59,7 @@ class BasicBlock(nn.Module):
         out = self.actfunc(out)
         out = self.conv2(out)
         out = self.bn2(out)
-        out += residual
+        out = out + residual
         out = self.actfunc(out)
         return out
     
@@ -90,7 +90,7 @@ class Bottleneck(nn.Module):
         out = self.actfunc(out)
         out = self.conv3(out)
         out = self.bn3(out)
-        out += residual
+        out = out + residual
         out = self.actfunc(out)
         return out
     

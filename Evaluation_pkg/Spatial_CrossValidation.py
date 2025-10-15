@@ -204,7 +204,7 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                                                                                                                 desired_normalized_trainingdatasets=normalized_TrainingDatasets,
                                                                                                                                                 desired_ground_observation_data=desired_ground_observation_data,
                                                                                                                                              desired_geophysical_species_data=desired_geophysical_species_data)
-                        if Apply_CNN_Transformer_architecture:
+                        elif Apply_CNN_Transformer_architecture:
                             print('3...')
                             cctnd_CNN_trainingdatasets, cctnd_Transformer_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
                                                                                                                                                 desired_normalized_CNN_trainingdatasets=normalized_CNN_TrainingDatasets,

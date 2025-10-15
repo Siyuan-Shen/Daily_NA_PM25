@@ -95,7 +95,28 @@ Spatial_CV_SHAP_Analysis_background_number = Spatial_CV_SHAP_Analysis_Settings_c
 Spatial_CV_SHAP_Analysis_test_number = Spatial_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_test_number']
 Spatial_CV_SHAP_Analysis_plot_type = Spatial_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_plot_type']
 
+####################################################################################
 
+# BLISCO Cross-Validation Settings
+
+BLISCO_CV_Settings_cfg = cfg['BLISCO-CrossValidation']
+BLISCO_CrossValidation_Switch = BLISCO_CV_Settings_cfg['BLISCO_CV_Switch']
+Use_recorded_data_to_show_validation_results_BLISCO_CV = BLISCO_CV_Settings_cfg['Use_recorded_data_to_show_validation_results']
+
+BLISCO_CV_Training_Settings_cfg = BLISCO_CV_Settings_cfg['Training-Settings']
+BLISCO_CV_folds = BLISCO_CV_Training_Settings_cfg['BLISCO_CV_folds']
+BLISCO_CV_buffer_radius_km = BLISCO_CV_Training_Settings_cfg['BLISCO_CV_buffer_radius_km']
+BLISCO_CV_seeds_number = BLISCO_CV_Training_Settings_cfg['BLISCO_CV_seeds_number']
+BLISCO_CV_training_begindates = BLISCO_CV_Training_Settings_cfg['BLISCO_CV_training_begindates']
+BLISCO_CV_training_enddates = BLISCO_CV_Training_Settings_cfg['BLISCO_CV_training_enddates']
+BLISCO_CV_validation_begindates = BLISCO_CV_Training_Settings_cfg['BLISCO_CV_validation_begindates']
+BLISCO_CV_validation_enddates = BLISCO_CV_Training_Settings_cfg['BLISCO_CV_validation_enddates']
+BLISCO_CV_validation_addtional_regions = BLISCO_CV_Training_Settings_cfg['additional_validation_regions']
+
+BLISCO_CV_Visualization_Settings_cfg = BLISCO_CV_Settings_cfg['Visualization_Settings']
+Test_Train_Buffers_Distributions_plot_switch = BLISCO_CV_Visualization_Settings_cfg['Test_Train_Buffers_Distributions_plot_switch']
+
+####################################################################################
 def Get_typeName(bias, normalize_bias, normalize_species, absolute_species, log_species, species):
     if bias == True:
         typeName = '{}-bias'.format(species)
@@ -363,4 +384,115 @@ def get_YYYY_MM(start_date, end_date):
                 MM_series_dict[MM]['start_day'][iyear] = np.min(temp_DD_series)
                 MM_series_dict[MM]['end_day'][iyear] = np.max(temp_DD_series)
     return YYYY_series_dict,MM_series_dict, total_unique_YYYY
+
+
+
+################################################################
+## Calculate teh distances between stations
+################################################################
+import math
+import time 
+
+
+def GetBufferTrainingIndex(test_index:np.array,train_index:np.array,buffer:float,sitelat:np.array, sitelon:np.array):
+    """_summary_
+
+    Args:
+        test_index (np.array): _description_
+        train_index (np.array): _description_
+        buffer (float): _description_
+    """
+    time_start = time.time()
+    for isite in range(len(test_index)):
+        train_index = find_sites_nearby(test_lat=sitelat[test_index[isite]],test_lon=sitelon[test_index[isite]],train_index=train_index,
+                                        train_lat=sitelat,train_lon=sitelon,buffer_radius=buffer)
+    time_end = time.time()
+    #print('Number of train index: ',len(train_index),'\nNumber of test index: ', len(test_index),'\nTime consume: ',str(np.round(time_end-time_start,4)),'s')
+    return train_index
+
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    # Convert latitude and longitude from degrees to radians
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+
+    # Haversine formula
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
+    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+    
+    # Radius of the Earth in kilometers (use 3956 for miles)
+    r = 6371
+    
+    # Calculate the distance
+    distance = r * c
+    
+    return distance
+
+
+def calculate_distance_forArray(site_lat:np.float32,site_lon:np.float32,
+                                SATLAT_MAP:np.array,SATLON_MAP:np.array,r=6371.01):
+    if np.ndim(SATLAT_MAP) == 0:
+        dist_map = calculate_distance(site_lat,site_lon,SATLAT_MAP,SATLON_MAP)
+    elif np.ndim(SATLAT_MAP) == 1:
+        dist_map = np.zeros(SATLAT_MAP.shape,dtype = np.float64)
+        for ix in range(SATLAT_MAP.shape[0]):
+            dist_map[ix] = calculate_distance(site_lat,site_lon,SATLAT_MAP[ix],SATLON_MAP[ix])
+    elif np.ndim(SATLAT_MAP) == 2:
+        dist_map = np.zeros(SATLAT_MAP.shape,dtype = np.float64)
+        for ix in range(SATLAT_MAP.shape[0]):
+            for iy in range(SATLAT_MAP.shape[1]):
+                dist_map[ix,iy] = calculate_distance(site_lat,site_lon,SATLAT_MAP[ix,iy],SATLON_MAP[ix,iy])
+   
+   #other_sites_pos1_array = np.zeros(len(SATLAT_MAP),dtype=np.float64)
+    #other_sites_pos2_array = np.zeros(len(SATLAT_MAP),dtype=np.float64)
+    #for i in range(len(SATLAT_MAP)):
+       # other_sites_pos1_array[i] = math.radians(SATLAT_MAP[i])
+       # other_sites_pos2_array[i] = math.radians(SATLON_MAP[i])
+    
+    #site_pos1 = site_lat * np.pi / 180.0
+    #site_pos2 = site_lon * np.pi / 180.0
+    #other_sites_pos1_array = SATLAT_MAP * np.pi / 180.0
+    #other_sites_pos2_array = SATLON_MAP * np.pi / 180.0
+    #dist_map = r * np.arccos(np.sin(site_pos1)*np.sin(other_sites_pos1_array)+np.cos(site_pos1)*np.cos(other_sites_pos1_array)*np.cos(site_pos2-other_sites_pos2_array))
+    
+    return dist_map
+
+def find_sites_nearby(test_lat: np.float32, test_lon: np.float32,train_index:np.array,
+                      train_lat: np.array, train_lon: np.array, buffer_radius: np.float32):
+    """This function is used to get the sites index within the buffe area and exclue them from the training index. 
+
+    Args:
+        test_lat (np.float32): Test site latitude.
+        test_lon (np.float32): Test site longitude.
+        train_index (np.array): Training index(remain). This function should be in a loop,
+        and all input training index already exclude other sites within the buffer zone near other testing site.
+        train_lat (np.array): The initial sites lat array.
+        train_lon (np.array): The initial sites lon array.
+        buffer_radius (np.float32): The buffer radius.
+
+    Returns:
+        np.array : The train index exclude the sites within the input test sites surronding buffer zone.
+    """
+    lat_min = max(-69.95, (test_lat - 0.1 * buffer_radius))
+    lat_max = min(69.95, (test_lat + 0.1 * buffer_radius))
+    lon_min = max(-179.95, (test_lon - 0.1 * buffer_radius))
+    lon_max = min(179.95, (test_lon + 0.1 * buffer_radius))
+    # Find the sites within the square first
+    lat_index = np.intersect1d(np.where(train_lat>lat_min),np.where(train_lat<lat_max))
+    lon_index = np.intersect1d(np.where(train_lon>lon_min),np.where(train_lon<lon_max))
+    sites_nearby_index = np.intersect1d(lat_index,lon_index)
+           
+    sites_lat_nearby = train_lat[sites_nearby_index]
+    sites_lon_nearby = train_lon[sites_nearby_index]
+
+    # Find the sites within the buffer zones
+    sites_within_radius_index = np.array([],dtype=int)
+    for isite in range(len(sites_nearby_index)):
+        distance = calculate_distance(test_lat,test_lon,train_lat[sites_nearby_index[isite]],train_lon[sites_nearby_index[isite]])
+        if distance < buffer_radius:
+            sites_within_radius_index = np.append(sites_within_radius_index,sites_nearby_index[isite])
+    sites_within_index,X_index,Y_index = np.intersect1d(train_index,sites_within_radius_index,return_indices=True)
+    train_index = np.delete(train_index,X_index)
+    return train_index
 
