@@ -78,7 +78,7 @@ cfg = {
     'Hyperparameters_Search_Validation-Settings' : {
 
         ### Hyperparameters Search and Validation Settings
-        "Hyperparameters_Search_Validation_Switch": True,
+        "Hyperparameters_Search_Validation_Switch": False,
         "HSV_Apply_wandb_sweep_Switch"            : True,
         "wandb_sweep_count"                       : 100,
         "Use_recorded_data_to_show_validation_results": False, # Default: False. Not applicable.
@@ -112,10 +112,10 @@ cfg = {
         ##### Random Cross Validation Settings #####
         "Training-Settings": {
             "Random_CV_folds": 10,
-            "Random_CV_training_begindates": [20220101],
-            "Random_CV_training_enddates": [20231231],
-            "Random_CV_validation_begindates": [20220101],
-            "Random_CV_validation_enddates": [20231231],
+            "Random_CV_training_begindates": [20190101], #[20190101,20200101,20210101,20220101,20230101],
+            "Random_CV_training_enddates": [20231231], #[20191231,20201231,20211231,20221231,20231231],
+            "Random_CV_validation_begindates": [20190101,20220101],
+            "Random_CV_validation_enddates": [20231231,20231231],
             "additional_validation_regions": [
                 "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
                 "Northern North America", "Northwestern United States", "Southern United States", "Southwestern United States"
@@ -125,7 +125,7 @@ cfg = {
         ##### Random Cross Visualization Settings ####
         "Visualization_Settings": {
             "regression_plot_switch": True,
-            "plot_begindates": [20220101],
+            "plot_begindates": [20190101],
             "plot_enddates": [20231231]
         },
         "Forced_Slope_Unity": {
@@ -154,10 +154,10 @@ cfg = {
         ##### Spatial Cross Validation Settings #####
         "Training-Settings": {
             "Spatial_CV_folds": 10,
-            "Spatial_CV_training_begindates": [20220101],
-            "Spatial_CV_training_enddates": [20231231],
-            "Spatial_CV_validation_begindates": [20220101],
-            "Spatial_CV_validation_enddates": [20231231],
+            "Spatial_CV_training_begindates": [20190101], #[20190101,20200101,20210101,20220101,20230101],
+            "Spatial_CV_training_enddates": [20231231], #[20191231,20201231,20211231,20221231,20231231],
+            "Spatial_CV_validation_begindates": [20190101,20220101],
+            "Spatial_CV_validation_enddates": [20231231,20231231],
             "additional_validation_regions": [
                 "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
                 "Northern North America", "Northwestern United States", "Southern United States", "Southwestern United States"
@@ -167,7 +167,7 @@ cfg = {
         ##### Spatial Cross Visualization Settings ####
         "Visualization_Settings": {
             "regression_plot_switch": True,
-            "plot_begindates": [20220101],
+            "plot_begindates": [20190101],
             "plot_enddates": [20231231]
         },
         "Forced_Slope_Unity": {
@@ -176,7 +176,7 @@ cfg = {
 
         ##### SHAP Analysis Settings ####
         "SHAP_Analysis_Settings": {
-            "SHAP_Analysis_switch": False, ### Not controlled by Spatial_CrossValidation_Switch
+            "SHAP_Analysis_switch": True, ### Not controlled by Spatial_CrossValidation_Switch
             "SHAP_Analysis_Calculation_Switch": True,
             "SHAP_Analysis_visualization_Switch": True,
             "SHAP_Analysis_background_number": 2000,
@@ -184,7 +184,31 @@ cfg = {
             "SHAP_Analysis_plot_type": "beeswarm"
         }
     },
-
+    #########################################################################################################################################################
+    'BLISCO-CrossValidation' : {
+        'BLISCO_CV_Switch': False,
+        'Use_recorded_data_to_show_validation_results': False,
+        
+        ##### BLISCO Cross Validation Settings #####
+        'Training-Settings': {
+            'BLISCO_CV_folds': 10, # larger or at least equal to seeds number
+            'BLISCO_CV_buffer_radius_km': [100],
+            'BLISCO_CV_seeds_number': 10,
+            'BLISCO_CV_training_begindates': [20220101],
+            'BLISCO_CV_training_enddates': [20231231],
+            'BLISCO_CV_validation_begindates': [20220101],
+            'BLISCO_CV_validation_enddates': [20231231],
+            'additional_validation_regions': [
+                "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
+                "Northern North America", "Northwestern United States", "Southern United States", "Southwestern United States"
+            ],
+        },
+        
+        ##### BLISCO Cross Visualization Settings ####
+        'Visualization_Settings': {
+            'Test_Train_Buffers_Distributions_plot_switch': False
+        },
+    },
     #########################################################################################################################################################
     'Estimation-Settings' : {
         'Estimation_Switch': False,
@@ -238,7 +262,7 @@ cfg = {
     'Training-Settings' : {
         "identity": {
             "version": "v0.3.1",
-            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023_OneModelAllYear_Epoch71_bs256",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "2025-08-31"
@@ -253,8 +277,8 @@ cfg = {
             "log_species": False,
         },
         "hyper-parameters": {
-            "epoch": 131, # 2DCNN: 131; 3DCNN:131; Transformer:111
-            "batchsize": 128,# 2DCNN: 256; 3DCNN:128; Transformer:32
+            "epoch": 71, # 2DCNN: 131; 3DCNN:131; Transformer:111
+            "batchsize": 256,# 2DCNN: 256; 3DCNN:128; Transformer:32
 
             ##################################################################################################################
             "channel_names": [
@@ -268,6 +292,7 @@ cfg = {
             ##################################################################################################################
             "CNN_Embedding_channel_names": [
                     "tSATAOD", "tSATPM25", #"eta",
+
                      "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
                      "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                      "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",

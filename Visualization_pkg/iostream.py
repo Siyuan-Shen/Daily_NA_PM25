@@ -2,7 +2,7 @@ import os
 from Training_pkg.utils import *
 
 
-def get_figure_outfile_path(outdir,evaluation_type, figure_type,typeName,begindate,enddate, nchannel, **args):
+def get_figure_outfile_path(outdir, evaluation_type, figure_type,typeName,begindate,enddate, nchannel, **args):
     width = args.get('width', 11)
     height = args.get('height', 11)
     depth = args.get('depth', 3)
@@ -11,7 +11,7 @@ def get_figure_outfile_path(outdir,evaluation_type, figure_type,typeName,beginda
     ffn_hidden = args.get('ffn_hidden', 256)
     num_layers = args.get('num_layers', 6)
     max_len = args.get('max_len', 1000)
-
+    
     if Apply_CNN_architecture:
         Model_structure_type = 'CNNModel'    
         outfile = outdir + '{}_{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}.png'.format(Model_structure_type, evaluation_type,figure_type,typeName, species, width, height, begindate,enddate,nchannel,description)
