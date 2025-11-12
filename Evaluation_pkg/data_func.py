@@ -38,6 +38,26 @@ def Get_final_output(Validation_Prediction, validation_geophysical_species,bias,
     return final_data
 
 
+def Split_Datesets_based_on_dates(train_dates,test_dates, total_trainingdatasets, total_true_input, total_sites_index, total_dates):
+    print('total_dates: ',total_dates)
+    print('train_dates: ',train_dates)
+    print('test_dates: ',test_dates)
+    print('total_dates.shape: ',total_dates.shape)
+    print('train_dates.shape: ',train_dates.shape)
+    print('test_dates.shape: ',test_dates.shape)
+    train_datasets_index = np.where(np.isin(total_dates, train_dates))[0]
+    test_datasets_index = np.where(np.isin(total_dates, test_dates))[0]
+    X_train = total_trainingdatasets[train_datasets_index, :]
+    y_train = total_true_input[train_datasets_index]
+    X_test = total_trainingdatasets[test_datasets_index, :]
+    y_test = total_true_input[test_datasets_index]
+    dates_train = total_dates[train_datasets_index]
+    dates_test = total_dates[test_datasets_index]
+    sites_train = total_sites_index[train_datasets_index]
+    sites_test = total_sites_index[test_datasets_index]
+    return X_train, y_train, X_test, y_test, dates_train, dates_test, sites_train, sites_test,train_datasets_index, test_datasets_index
+
+
 def Split_Datasets_randomly(train_index,test_index, total_trainingdatasets, total_true_input, total_sites_index, total_dates):
     print('total_sites_index: ',total_sites_index)
     print('train_index: ',train_index)

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="Daily CNN_T AVD_d20250804 True True Sweep 4GPU"
+#SBATCH --job-name="Daily CNN_T AVD_d20250804 True True TBO CV test 8GPU"
 #SBATCH --partition=gpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -14,7 +14,7 @@
 # If you're using containers with Slurm
 # Uncomment this line if needed:
 
-VERSION=v0.3.1
+VERSION=v0.4.0
 
 # Redirect W&B and tmp paths inside the container
 export WANDB_DIR=/s.siyuan/my-projects2/tmp/wandb_dir

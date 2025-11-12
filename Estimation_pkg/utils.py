@@ -55,6 +55,7 @@ Geophysical_version = AVD_GEO_version
 Geophysical_indir        = f'{MapData_Indir}Geophysical_Variables/'
 GEOS_Chem_indir          = f'{MapData_Indir}GEOS-Chem_input/'
 Meteorology_indir        = f'{MapData_Indir}Meteorology_input/'
+GFAS_indir               = f'{MapData_Indir}GFAS_input/'
 Anthropogenic_Emissions_input_indir = f'{MapData_fromRegionalComponentProject_Indir}Anthropogenic_Emissions_input/'
 Offline_Emissions_input_indir       = f'{MapData_fromRegionalComponentProject_Indir}Offline_Emissions_input/'
 
@@ -119,6 +120,13 @@ def inputfiles_table(YYYY, MM, DD):
         'Croplands'          : LandCover_input_indir + 'Croplands/Croplands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         'Urban_Builtup_Lands': LandCover_input_indir + 'Urban-Builtup-Lands/Urban-Builtup-Lands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         
+        ##################### [GFAS Fire Emission] ###################
+
+        'mami'                 : GFAS_indir + '{}/{}/mami_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM, YYYY, MM,DD),
+        'pm2p5fire'            : GFAS_indir + '{}/{}/pm2p5fire_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM, YYYY, MM,DD),
+        'ocfire'               : GFAS_indir + '{}/{}/ocfire_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM, YYYY, MM,DD),
+        'tcfire'               : GFAS_indir + '{}/{}/tcfire_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM, YYYY, MM,DD),
+       
         ##################### [Open Street Map log data] ###################
         'log_major_roads'      : OpenStreetMap_log_road_indir + 'OpenStreetMap-major_roads-LogRoadMap_001x001.npy',
         'log_major_roads_dist' : OpenStreetMap_log_road_indir + 'OpenStreetMap-major_roads_NearestDistances-LogRoadMap_001x001.npy',

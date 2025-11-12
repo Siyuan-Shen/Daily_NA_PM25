@@ -56,13 +56,6 @@ Random_CV_regression_plot_switch = Random_CV_Visualization_Settings_cfg['regress
 Random_CV_plot_begindates = Random_CV_Visualization_Settings_cfg['plot_begindates']
 Random_CV_plot_enddates = Random_CV_Visualization_Settings_cfg['plot_enddates']
 
-Random_CV_SHAP_Analysis_Settings_cfg = Random_CV_Settings_cfg['SHAP_Analysis_Settings']
-Random_CV_SHAP_Analysis_Switch = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_switch']
-Random_CV_SHAP_Analysis_Calculation_Switch = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_Calculation_Switch']
-Random_CV_SHAP_Analysis_visualization_Switch = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_visualization_Switch']
-Random_CV_SHAP_Analysis_background_number = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_background_number']
-Random_CV_SHAP_Analysis_test_number = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_test_number']
-Random_CV_SHAP_Analysis_plot_type = Random_CV_SHAP_Analysis_Settings_cfg['SHAP_Analysis_plot_type']
 
 ####################################################################################
 
@@ -116,7 +109,50 @@ BLISCO_CV_validation_addtional_regions = BLISCO_CV_Training_Settings_cfg['additi
 BLISCO_CV_Visualization_Settings_cfg = BLISCO_CV_Settings_cfg['Visualization_Settings']
 Test_Train_Buffers_Distributions_plot_switch = BLISCO_CV_Visualization_Settings_cfg['Test_Train_Buffers_Distributions_plot_switch']
 
+
 ####################################################################################
+
+# Temporal Cross-Validation Settings
+Temporal_CV_Settings_cfg = cfg['Temporal-CrossValidation']
+Temporal_CrossValidation_Switch = Temporal_CV_Settings_cfg['Temporal_CrossValidation_Switch']
+Use_recorded_data_to_show_validation_results_Temporal_CV = Temporal_CV_Settings_cfg['Use_recorded_data_to_show_validation_results']
+
+Temporal_CV_Training_Settings_cfg = Temporal_CV_Settings_cfg['Training-Settings']
+Temporal_CV_folds = Temporal_CV_Training_Settings_cfg['Temporal_CV_folds']
+Temporal_CV_training_begindates = Temporal_CV_Training_Settings_cfg['Temporal_CV_training_begindates']
+Temporal_CV_training_enddates = Temporal_CV_Training_Settings_cfg['Temporal_CV_training_enddates']
+Temporal_CV_validation_begindates = Temporal_CV_Training_Settings_cfg['Temporal_CV_validation_begindates']
+Temporal_CV_validation_enddates = Temporal_CV_Training_Settings_cfg['Temporal_CV_validation_enddates']
+Temporal_CV_additional_validation_regions = Temporal_CV_Training_Settings_cfg['additional_validation_regions']
+
+Temporal_CV_Visualization_Settings_cfg = Temporal_CV_Settings_cfg['Visualization_Settings']
+Temporal_CV_regression_plot_switch = Temporal_CV_Visualization_Settings_cfg['regression_plot_switch']
+Temporal_CV_plot_begindates = Temporal_CV_Visualization_Settings_cfg['plot_begindates']
+Temporal_CV_plot_enddates = Temporal_CV_Visualization_Settings_cfg['plot_enddates']
+
+####################################################################################
+
+# Temporal Buffer-Out Cross-Validation Settings
+TBO_CV_Settings_cfg = cfg['Temporal-Buffer-Out-CrossValidation']
+TBO_CrossValidation_Switch = TBO_CV_Settings_cfg['Temporal_Buffer_Out_CrossValidation_Switch']
+Use_recorded_data_to_show_validation_results_TBO_CV = TBO_CV_Settings_cfg['Use_recorded_data_to_show_validation_results']
+
+TBO_CV_Training_Settings_cfg = TBO_CV_Settings_cfg['Training-Settings']
+TBO_CV_folds = TBO_CV_Training_Settings_cfg['Temporal_Buffer_Out_CV_folds']
+TBO_CV_buffer_radius_days = TBO_CV_Training_Settings_cfg['Temporal_Buffer_days']
+Temporal_Buffer_Out_CV_max_test_days = TBO_CV_Training_Settings_cfg['Temporal_Buffer_Out_CV_max_test_days']
+TBO_CV_training_begindates = TBO_CV_Training_Settings_cfg['Temporal_Buffer_Out_CV_training_begindates']
+TBO_CV_training_enddates = TBO_CV_Training_Settings_cfg['Temporal_Buffer_Out_CV_training_enddates']
+TBO_CV_validation_begindates = TBO_CV_Training_Settings_cfg['Temporal_Buffer_Out_CV_validation_begindates']
+TBO_CV_validation_enddates = TBO_CV_Training_Settings_cfg['Temporal_Buffer_Out_CV_validation_enddates']
+TBO_CV_additional_validation_regions = TBO_CV_Training_Settings_cfg['additional_validation_regions']
+
+TBO_CV_Visualization_Settings_cfg = TBO_CV_Settings_cfg['Visualization_Settings']
+TBO_CV_regression_plot_switch = TBO_CV_Visualization_Settings_cfg['regression_plot_switch']
+TBO_CV_plot_begindates = TBO_CV_Visualization_Settings_cfg['plot_begindates']
+TBO_CV_plot_enddates = TBO_CV_Visualization_Settings_cfg['plot_enddates']
+####################################################################################
+
 def Get_typeName(bias, normalize_bias, normalize_species, absolute_species, log_species, species):
     if bias == True:
         typeName = '{}-bias'.format(species)

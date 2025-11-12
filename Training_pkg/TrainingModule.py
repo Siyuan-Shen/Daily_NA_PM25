@@ -21,6 +21,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 import torch.distributed as dist
 from wandb_config import *
+from datetime import timedelta
 
 
 def ddp_setup(rank, world_size):
@@ -28,7 +29,7 @@ def ddp_setup(rank, world_size):
     Initialize the distributed environment.
     """
     torch.cuda.set_device(rank)
-    init_process_group(backend='nccl', rank=rank, world_size=world_size)
+    init_process_group(backend='nccl', rank=rank, world_size=world_size,timeout=timedelta(hours=2))
 
 def CNN_Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id, run_id_container,CNN_total_channel_names, Transformer_total_channel_names,
                            X_train_CNN, X_test_CNN,X_train_Transformer, X_test_Transformer,

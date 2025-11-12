@@ -280,9 +280,9 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
                 #### The test and training indices for this fold should be derived based on the initial sites index rather than the valid sites index.
                 #### This is because concataned datasets are based on the initial sites index.
                 
-                test_index = valid_sites_index[np.where(index_for_BLISCO[ifold,:,imodel] == 1.0)[0]]
-                train_index = valid_sites_index[np.where(index_for_BLISCO[ifold,:,imodel] == -1.0)[0]]
-                excluded_index = valid_sites_index[np.where(index_for_BLISCO[ifold,:,imodel] == 0.0)[0]]
+                test_index = valid_sites_index[np.where(index_for_BLISCO[ifold,imodel] == 1.0)[0]]
+                train_index = valid_sites_index[np.where(index_for_BLISCO[ifold,imodel] == -1.0)[0]]
+                excluded_index = valid_sites_index[np.where(index_for_BLISCO[ifold,imodel] == 0.0)[0]]
                 print('Buffer Size: {} km,No.{}-fold, test_index #: {}, train_index #: {}, total # of sites: {}'.format(buffer_radius,ifold+1,len(test_index),len(train_index),len(valid_site_lat)))
                 print('4...')
                 ### Split the datesets based on the indices of training and testing indices

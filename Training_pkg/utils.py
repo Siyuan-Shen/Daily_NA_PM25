@@ -70,7 +70,7 @@ bias = learning_objective_cfg['bias']
 normalize_bias = learning_objective_cfg['normalize_bias']
 normalize_species = learning_objective_cfg['normalize_species']
 absolute_species = learning_objective_cfg['absolute_species']
-
+log_species = learning_objective_cfg['log_species']
 
 # hyperparameters
 hyperparameters_cfg = Training_Settings['hyper-parameters']
