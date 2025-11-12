@@ -136,24 +136,36 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [0.01,0.001,0.0001]
+                    'values': [0.0001]
                 },
                 'batch_size': {
-                    'values': [32,64,128,256,512,1024]
+                    'values': [256]
                 },
                 'epoch':{
-                    'values': [31,51,71,91,131,151]
+                    'values': [71]
                 },
                'channel_to_exclude': {
                     'values': [[]] 
                 },
                 'ResCNN3D_blocks_num': {
-                    'values': [[1,0,0,1],[1,1,1,1]]
+                    'values': [[1,1,1,1]]
                 },
 
                 'ResCNN3D_output_channels': {
-                    'values': [[128,256,512,512],[128,256,512,1024],[64,128,256,512]]  # Example values for output channels
-                }
+                    'values': [[128,256,512,1024],]  # Example values for output channels
+                },
+                
+                'channel_to_exclude': {
+                    'values': [['GC_PM25'],['GC_SO4'],['GC_NH4'],['GC_NIT'],['GC_BC'],['GC_OM'],['GC_SOA'],['GC_DST'],['GC_SSLT'],
+                                                     ['PBLH'],['RH'],['PRECTOT'],['T2M'],['V10M'],['U10M'],['PS'],['USTAR'],
+                                                     ['NH3_anthro_emi'],['SO2_anthro_emi'],['NO_anthro_emi'],['OC_anthro_emi'],['BC_anthro_emi'],['NMVOC_anthro_emi'],
+                                                      ['DST_offline_emi'],['SSLT_offline_emi'],
+                                                        ['Urban_Builtup_Lands'],  ['Crop_Nat_Vege_Mos'],['Permanent_Wetlands'],['Croplands'],
+                                                        ["ocfire"], ["pm2p5fire"], ["mami"], ["tcfire"],
+                                                        ["primary"], ["residential"],['secondary'],["trunk"],["unclassified"],
+                                                      ['elevation'],['Population'],
+                                                      ['lat'],['lon'],['sin_days'],['cos_days']]                
+                },
             }
         }
     if Apply_Transformer_architecture:

@@ -39,7 +39,8 @@ cfg = {
             "geophysical_biases_data_infile"   : "geophysical_bias_datasets.npy",
             "observation_datapoints_threshold" : 0 # Minimum number of observation data points for each site, typically 100 * number of years
         },
-
+        
+        
         #### Training Datasets infiles
         "TrainingDataset": {
             "CNN_Training_infiles"          : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
@@ -112,8 +113,8 @@ cfg = {
         ##### Random Cross Validation Settings #####
         "Training-Settings": {
             "Random_CV_folds": 10,
-            "Random_CV_training_begindates": [20190101], #[20190101,20200101,20210101,20220101,20230101],
-            "Random_CV_training_enddates": [20231231], #[20191231,20201231,20211231,20221231,20231231],
+            "Random_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
+            "Random_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
             "Random_CV_validation_begindates": [20190101,20220101],
             "Random_CV_validation_enddates": [20231231,20231231],
             "additional_validation_regions": [
@@ -131,16 +132,6 @@ cfg = {
         "Forced_Slope_Unity": {
             "ForcedSlopeUnity": True
         },
-
-        ##### SHAP Analysis Settings ####
-        "SHAP_Analysis_Settings": {
-            "SHAP_Analysis_switch": False, ### Not controlled by Random_CrossValidation_Switch
-            "SHAP_Analysis_Calculation_Switch": True,
-            "SHAP_Analysis_visualization_Switch": True,
-            "SHAP_Analysis_background_number": 2000,
-            "SHAP_Analysis_test_number": 400,
-            "SHAP_Analysis_plot_type": "beeswarm"
-        }
     },
     #########################################################################################################################################################
 
@@ -154,8 +145,8 @@ cfg = {
         ##### Spatial Cross Validation Settings #####
         "Training-Settings": {
             "Spatial_CV_folds": 10,
-            "Spatial_CV_training_begindates": [20190101], #[20190101,20200101,20210101,20220101,20230101],
-            "Spatial_CV_training_enddates": [20231231], #[20191231,20201231,20211231,20221231,20231231],
+            "Spatial_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
+            "Spatial_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
             "Spatial_CV_validation_begindates": [20190101,20220101],
             "Spatial_CV_validation_enddates": [20231231,20231231],
             "additional_validation_regions": [
@@ -176,7 +167,7 @@ cfg = {
 
         ##### SHAP Analysis Settings ####
         "SHAP_Analysis_Settings": {
-            "SHAP_Analysis_switch": True, ### Not controlled by Spatial_CrossValidation_Switch
+            "SHAP_Analysis_switch": False, ### Not controlled by Spatial_CrossValidation_Switch
             "SHAP_Analysis_Calculation_Switch": True,
             "SHAP_Analysis_visualization_Switch": True,
             "SHAP_Analysis_background_number": 2000,
@@ -192,12 +183,12 @@ cfg = {
         ##### BLISCO Cross Validation Settings #####
         'Training-Settings': {
             'BLISCO_CV_folds': 10, # larger or at least equal to seeds number
-            'BLISCO_CV_buffer_radius_km': [100],
+            'BLISCO_CV_buffer_radius_km': [50],
             'BLISCO_CV_seeds_number': 10,
-            'BLISCO_CV_training_begindates': [20220101],
-            'BLISCO_CV_training_enddates': [20231231],
-            'BLISCO_CV_validation_begindates': [20220101],
-            'BLISCO_CV_validation_enddates': [20231231],
+            'BLISCO_CV_training_begindates': [20190101,20200101,20210101,20220101,20230101],
+            'BLISCO_CV_training_enddates': [20191231,20201231,20211231,20221231,20231231],
+            'BLISCO_CV_validation_begindates': [20190101,20220101],
+            'BLISCO_CV_validation_enddates': [20231231,20231231],
             'additional_validation_regions': [
                 "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
                 "Northern North America", "Northwestern United States", "Southern United States", "Southwestern United States"
@@ -209,25 +200,84 @@ cfg = {
             'Test_Train_Buffers_Distributions_plot_switch': False
         },
     },
+    
+    #########################################################################################################################################################
+    'Temporal-CrossValidation' : {
+
+        "Temporal_CrossValidation_Switch": False,
+        "Use_recorded_data_to_show_validation_results": False,
+
+        ##### Temporal Cross Validation Settings #####
+        "Training-Settings": {
+            "Temporal_CV_folds": 10,
+            "Temporal_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
+            "Temporal_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
+            "Temporal_CV_validation_begindates": [20190101,20220101],
+            "Temporal_CV_validation_enddates": [20231231,20231231],
+            "additional_validation_regions": [
+                "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
+                "Northern North America", "Northwestern United States", "Southern United States", "Southwestern United States"
+            ],
+        },
+        ##### Temporal Cross Visualization Settings ####
+        "Visualization_Settings": {
+            "regression_plot_switch": True,
+            "plot_begindates": [20190101],
+            "plot_enddates": [20231231]
+        },
+        "Forced_Slope_Unity": {
+            "ForcedSlopeUnity": True
+        },
+    },
+    #########################################################################################################################################################
+    'Temporal-Buffer-Out-CrossValidation' : {
+
+        "Temporal_Buffer_Out_CrossValidation_Switch": True,
+        "Use_recorded_data_to_show_validation_results": False,
+
+        ##### Temporal Cross Validation Settings #####
+        "Training-Settings": {
+            "Temporal_Buffer_Out_CV_folds": 10,
+            "Temporal_Buffer_Out_CV_max_test_days": 1,
+            "Temporal_Buffer_days": [0,1,3,5,7,15],
+            "Temporal_Buffer_Out_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
+            "Temporal_Buffer_Out_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
+            "Temporal_Buffer_Out_CV_validation_begindates": [20190101,20220101],
+            "Temporal_Buffer_Out_CV_validation_enddates": [20231231,20231231],
+            "additional_validation_regions": [
+                "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
+                "Northern North America", "Northwestern United States", "Southern United States", "Southwestern United States"
+            ],
+        },
+        ##### Temporal Cross Visualization Settings ####
+        "Visualization_Settings": {
+            "regression_plot_switch": True,
+            "plot_begindates": [20190101],
+            "plot_enddates": [20231231]
+        },
+        "Forced_Slope_Unity": {
+            "ForcedSlopeUnity": True
+        },
+    },
     #########################################################################################################################################################
     'Estimation-Settings' : {
         'Estimation_Switch': False,
-        'Train_model_Switch': False,
+        'Train_model_Switch': True,
         'Map_estimation_Switch': True,
         'Estimation_visualization_Switch': True,
 
         ###### Training Settings ######
         'Training_Settings': {
-            'Training_begin_dates': [20220101],
-            'Training_end_dates': [20231231],
+            'Training_begin_dates': [20190101,20200101,20210101,20220101,20230101],
+            'Training_end_dates': [20191231,20201231,20211231,20221231,20231231],
         },
         ###### Estimation Settings ######
         'Map_Estimation_Settings': {
             'Eatimation_Daily_Switch': True,
-            'Estimation_trained_begin_dates': [20220101],
-            'Estimation_trained_end_dates': [20231231],
-            'Estimation_begindates': [[20220101]],
-            'Estimation_enddates': [[20231231]],
+            'Estimation_trained_begin_dates':[20190101,20200101,20210101,20220101,20230101],
+            'Estimation_trained_end_dates':[20191231,20201231,20211231,20221231,20231231],
+            'Estimation_begindates': [[20190101],[20200101],[20210101],[20220101],[20230101]],
+            'Estimation_enddates': [[20191231],[20201231],[20211231],[20221231],[20231231]],
             'Extent': [10.055,69.945,-169.945,-40.055],
             'Estimation_Area': 'NorthAmerica',
 
@@ -244,8 +294,8 @@ cfg = {
         'Visualization_Settings': {
             'Map_Plot_Switch':True,
             'Daily_Plot_Switch': True,
-            'Daily_Plot_begindates': [20220101],
-            'Daily_Plot_enddates': [20231231],
+            'Daily_Plot_begindates': [20190101,20200101,20210101,20220101,20230101],
+            'Daily_Plot_enddates': [20191231,20201231,20211231,20221231,20231231],
             'Monthly_Plot_Switch': True,
             'Monthly_Plot_begindates': [20220101],
             'Monthly_Plot_enddates': [20231231],
@@ -261,8 +311,8 @@ cfg = {
 
     'Training-Settings' : {
         "identity": {
-            "version": "v0.3.1",
-            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023_OneModelAllYear_Epoch71_bs256",
+            "version": "v0.4.0",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023_OneModelEachYear_Epoch71_bs256",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "2025-08-31"
@@ -286,7 +336,11 @@ cfg = {
                 "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
                 "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
-                "Urban_Builtup_Lands", "elevation", "Population", "lat", "lon", "sin_days", "cos_days"
+                "Urban_Builtup_Lands", "Crop_Nat_Vege_Mos", "Permanent_Wetlands", "Croplands",
+                "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
+                "ocfire", "pm2p5fire", "mami", "tcfire",
+                "primary", "residential",'secondary',"trunk","unclassified",
+                
             ], ## This is for 2DCNN, 3DCNN, and transformer architectures. tSATPM25 must be included.
 
             ##################################################################################################################

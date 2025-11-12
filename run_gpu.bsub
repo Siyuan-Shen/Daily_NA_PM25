@@ -12,7 +12,7 @@
 
 /bin/true
 pause_time=$((RANDOM % 5 ))
-echo "Pausing for $pause_time seconds..."
+echo "Pausing for $pause_time seconds..."  
 sleep $pause_time
 
 cd /my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25/v0.3.0

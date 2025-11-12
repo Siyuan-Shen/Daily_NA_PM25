@@ -4,9 +4,9 @@
 cfg  = {
     'network-architecture':{
         "Apply_CNN_architecture": False,
-        "Apply_3D_CNN_architecture": False,
+        "Apply_3D_CNN_architecture": True,
         "Apply_Transformer_architecture": False,
-        "Apply_CNN_Transformer_architecture": True,
+        "Apply_CNN_Transformer_architecture": False,
 
         "CNN-architecture": {
             "CovLayer_padding_mode": "reflect",

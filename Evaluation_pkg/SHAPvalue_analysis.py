@@ -156,10 +156,10 @@ def Spatial_CV_SHAP_Analysis(total_channel_names, main_stream_channel_names,
                 shap_values_data   = np.sum(shap_values_data, axis=(2,3,4))
                 shap_values_data_min = np.min(shap_values_data,axis=0)
                 shap_values_data_max = np.max(shap_values_data,axis=0)
-            figure_outdir = figure_outdir + '{}/{}/Figures/{}/'.format(species,version,Evaluation_type)
-            if not os.path.exists(figure_outdir):
-                os.makedirs(figure_outdir)
-            shap_value_plot_outfile = get_figure_outfile_path(outdir=figure_outdir,evaluation_type=Evaluation_type, figure_type='Spatial_CV_SHAPValues',typeName=typeName,
+            shap_figure_outdir = figure_outdir + '{}/{}/Figures/{}/'.format(species,version,Evaluation_type)
+            if not os.path.exists(shap_figure_outdir):
+                os.makedirs(shap_figure_outdir)
+            shap_value_plot_outfile = get_figure_outfile_path(outdir=shap_figure_outdir,evaluation_type=Evaluation_type, figure_type='Spatial_CV_SHAPValues',typeName=typeName,
                                                           begindate=Spatial_CV_training_begindates[0],enddate=Spatial_CV_training_enddates[0],
                                                           nchannel=nchannel,args=args)
             print('shap_values_data.shape: ', shap_values_data.shape)
