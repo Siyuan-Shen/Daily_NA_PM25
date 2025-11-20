@@ -17,7 +17,7 @@ from Estimation_pkg.utils import *
 from Training_pkg.utils import *
 from Model_Structure_pkg.utils import *
 from config import cfg
-
+from Net_Architecture_config import cfg as net_architecture_cfg
 
     
 
@@ -66,6 +66,9 @@ if __name__ == "__main__":
                                                         )
             
     if Random_CV_Switch:
+        cfg_outdir = Config_outdir + '{}/{}/Results/results-Random_CrossValidation/configuration-files/'.format(species, version)
+        
+        
         if Random_CV_Apply_wandb_sweep_Switch:
             sweep_config = wandb_sweep_config()
             sweep_id = wandb.sweep(sweep=sweep_config, project=sweep_config['project'],entity=sweep_config['entity'])

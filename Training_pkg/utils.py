@@ -50,6 +50,10 @@ Data_indir = cfg['Pathway']['Data_indir']
 mask_indir = Data_indir['mask_indir']
 LATLON_indir = Data_indir['LATLON_indir']
 NA_Mask_indir = Data_indir['NA_Mask_indir']
+
+####################################################################################
+# Config Output Path
+Config_outdir = cfg['Pathway']['Config_outdir']
 ####################################################################################
 ###                                Training Settings                             ###
 ####################################################################################

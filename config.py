@@ -43,8 +43,8 @@ cfg = {
         
         #### Training Datasets infiles
         "TrainingDataset": {
-            "CNN_Training_infiles"          : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
-            "CNN3D_Training_infiles"        : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN_Training_infiles"          : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_5x5_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN3D_Training_infiles"        : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x5x5_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
             "Transformer_Training_infiles"  : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/Transformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
             "CNN_Transformer_Training_infiles": f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DTransformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
         },
@@ -68,7 +68,7 @@ cfg = {
             "mask_indir"               : "/s.siyuan/s3/my-projects/mask/Land_Ocean_Mask/", ## Use in Estimation_pkg/data_func.py, land ocean mask
             "LATLON_indir"             : "/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/",
         },
-
+        'Config_outdir'   : "/s.siyuan/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/",
         ####
     },
 
@@ -105,7 +105,7 @@ cfg = {
 
     'Random-CrossValidation' : {
 
-        "Random_CrossValidation_Switch": False,
+        "Random_CrossValidation_Switch": True,
         "Random_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Random_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -137,7 +137,7 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        "Spatial_CrossValidation_Switch": False,
+        "Spatial_CrossValidation_Switch": True,
         "Spatial_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Spatial_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -262,8 +262,8 @@ cfg = {
     #########################################################################################################################################################
     'Estimation-Settings' : {
         'Estimation_Switch': False,
-        'Train_model_Switch': True,
-        'Map_estimation_Switch': True,
+        'Train_model_Switch': False,
+        'Map_estimation_Switch': False,
         'Estimation_visualization_Switch': True,
 
         ###### Training Settings ######
@@ -312,7 +312,7 @@ cfg = {
     'Training-Settings' : {
         "identity": {
             "version": "v0.4.0",
-            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023_OneModelEachYear_Epoch71_bs256",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023_OneModelEachYear_Epoch71_bs256_3DCNN_5x5",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "2025-08-31"
@@ -331,6 +331,7 @@ cfg = {
             "batchsize": 256,# 2DCNN: 256; 3DCNN:128; Transformer:32
 
             ##################################################################################################################
+            ## This is for 2DCNN, 3DCNN, and transformer architectures. tSATPM25 must be included.
             "channel_names": [
                  "tSATAOD", "tSATPM25", #"eta",
                 "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
@@ -341,9 +342,10 @@ cfg = {
                 "ocfire", "pm2p5fire", "mami", "tcfire",
                 "primary", "residential",'secondary',"trunk","unclassified",
                 
-            ], ## This is for 2DCNN, 3DCNN, and transformer architectures. tSATPM25 must be included.
+            ], 
 
             ##################################################################################################################
+            ## This is for the CNN part of the CNN-Transformer architecture. tSATPM25 must be included.
             "CNN_Embedding_channel_names": [
                     "tSATAOD", "tSATPM25", #"eta",
 
@@ -352,13 +354,14 @@ cfg = {
                      "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
                      "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",
                      "Urban_Builtup_Lands", "elevation", "Population", "lat", "lon",
-            ], ## This is for the CNN part of the CNN-Transformer architecture. tSATPM25 must be included.
+            ], 
+            ## This is for the transformer part of the CNN-Transformer architecture. tSATPM25 must be included.
             "Transformer_Embedding_channel_names": [
                     "tSATAOD", "tSATPM25", #"eta",
                     "GC_PM25",  "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
                     "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                     "sin_days", "cos_days"
-            ], ## This is for the transformer part of the CNN-Transformer architecture. tSATPM25 must be included.
+            ], 
 
             ##################################################################################################################
             "training_data_normalization_type": "Gaussian", # Options: "Gaussian", "MinMax","Robust", applicable to training datasets
