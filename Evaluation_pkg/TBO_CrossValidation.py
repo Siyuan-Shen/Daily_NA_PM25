@@ -30,7 +30,8 @@ from Training_pkg.iostream import load_daily_datesbased_model
 from Visualization_pkg.Assemble_Func import plot_longterm_Annual_Monthly_Daily_Scatter_plots,plot_timeseries_statistics_plots
 from wandb_config import wandb_run_config, wandb_initialize, init_get_sweep_config
 from multiprocessing import Manager
-
+from config import cfg
+from Net_Architecture_config import cfg as net_architecture_cfg
 
 def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_channel_names, main_stream_channel_names,
                             side_stream_channel_names, sweep_id=None):
@@ -123,6 +124,12 @@ def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_c
                 'width': width, 'height': height, 'CNN_nchannel': len(CNN_Embedding_channel_names), 'Transformer_nchannel': len(Transformer_Embedding_channel_names)}
 
     if not Use_recorded_data_to_show_validation_results_TBO_CV:
+        if not sweep_mode:
+                cfg_outdir = Config_outdir + '{}/{}/Results/results-{}/configuration-files/'.format(species, version, Evaluation_type)
+                os.makedirs(cfg_outdir, exist_ok=True)
+                save_configuration_output(cfg_outdir=cfg_outdir, cfg=cfg, outdir=cfg_outdir, net_architecture_cfg=net_architecture_cfg, evaluation_type=Evaluation_type, typeName=typeName,
+                                  nchannel=len(main_stream_channel_names), **args)
+                
          ### Initialize the arrays for recording
         final_data_recording = np.array([],dtype=float)
         obs_data_recording = np.array([],dtype=float)
@@ -438,7 +445,7 @@ def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_c
                 Annual_statistics_recording=Annual_statistics_recording,)    
        
     ####   Calculate the statistics and recording to each time period that is interested
-    for idate in range(len(TBO_CV_additional_validation_regions)):
+    for idate in range(len(TBO_CV_validation_begindates)):
         test_begindate =  TBO_CV_validation_begindates[idate]
         test_enddate = TBO_CV_validation_enddates[idate]          
         Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording = calculate_statistics(test_begindates=test_begindate,

@@ -30,6 +30,8 @@ from Training_pkg.iostream import load_daily_datesbased_model
 from Visualization_pkg.Assemble_Func import plot_longterm_Annual_Monthly_Daily_Scatter_plots,plot_timeseries_statistics_plots
 from wandb_config import wandb_run_config, wandb_initialize, init_get_sweep_config
 from multiprocessing import Manager
+from config import cfg
+from Net_Architecture_config import cfg as net_architecture_cfg
 
 def temporal_cross_validation(total_channel_names, main_stream_channel_names,
                              side_stream_channel_names,sweep_id=None,):
@@ -123,7 +125,12 @@ def temporal_cross_validation(total_channel_names, main_stream_channel_names,
 
     ### Start Training, Validation, and Recording
     if not Use_recorded_data_to_show_validation_results_Temporal_CV:
-
+            if not sweep_mode:
+                cfg_outdir = Config_outdir + '{}/{}/Results/results-{}/configuration-files/'.format(species, version, Evaluation_type)
+                os.makedirs(cfg_outdir, exist_ok=True)
+                save_configuration_output(cfg_outdir=cfg_outdir, cfg=cfg, outdir=cfg_outdir, net_architecture_cfg=net_architecture_cfg, evaluation_type=Evaluation_type, typeName=typeName,
+                                  nchannel=len(main_stream_channel_names), **args)
+                
             ### Initialize the arrays for recording
             final_data_recording = np.array([],dtype=float)
             obs_data_recording = np.array([],dtype=float)

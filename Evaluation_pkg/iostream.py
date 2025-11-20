@@ -4,10 +4,87 @@ import torch
 import numpy as np
 import netCDF4 as nc
 import wandb
+import pprint
 
 from Model_Structure_pkg.utils import *
 from Training_pkg.utils import *
 from Evaluation_pkg.utils import csv_outdir,model_outdir,data_recording_outdir, HSV_Apply_wandb_sweep_Switch,Hyperparameters_Search_Validation_Switch,Spatial_CrossValidation_Switch,Spatial_CV_Apply_wandb_sweep_Switch
+
+def save_configuration_output(cfg,net_architecture_cfg,outdir,evaluation_type,typeName, nchannel, **args):
+    width = args.get('width', 11)
+    height = args.get('height', 11)
+    depth = args.get('depth', 3)
+    entity = args.get('entity', 'ACAG-NorthAmericaDailyPM25')
+    project = args.get('project', 'Daily_PM25_DL_2024')
+    sweep_id = args.get('sweep_id', None)
+    d_model = args.get('d_model', 64)
+    n_head = args.get('n_head', 8)
+    ffn_hidden = args.get('ffn_hidden', 256)
+    num_layers = args.get('num_layers', 6)
+    max_len = args.get('max_len', 1000)
+    CNN_nchannel = args.get('CNN_nchannel', 4)
+    Transformer_nchannel = args.get('Transformer_nchannel', 3)
+
+    if Apply_CNN_architecture:
+        Model_structure_type = 'CNNModel'
+        cfg_outfile = outdir + 'cfg_{}_{}_{}_{}_{}x{}_{}Channel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, width, height,nchannel,description)
+        net_architecture_cfg_outfile = outdir + 'net_architecture_cfg_{}_{}_{}_{}_{}x{}_{}Channel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, width, height,nchannel,description)
+        with open("config_saved.py", "w") as f:
+            f.write("config = ")
+            f.write(pprint.pformat(cfg))
+            f.write("\n")
+        os.rename("config_saved.py", cfg_outfile)
+        with open("net_architecture_config_saved.py", "w") as f:
+            f.write("net_architecture_config = ")
+            f.write(pprint.pformat(net_architecture_cfg))
+            f.write("\n")
+        os.rename("net_architecture_config_saved.py", net_architecture_cfg_outfile)
+        
+    elif Apply_3D_CNN_architecture:
+        Model_structure_type = 'CNN3DModel'
+        cfg_outfile = outdir + 'cfg_{}_{}_{}_{}_{}x{}x{}Channel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, depth,width, height,nchannel,description)
+        net_architecture_cfg_outfile = outdir + 'net_architecture_cfg_{}_{}_{}_{}_{}_{}x{}x{}Channel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, depth,width, height,nchannel,description)
+        with open("config_saved.py", "w") as f:
+            f.write("config = ")
+            f.write(pprint.pformat(cfg))
+            f.write("\n")
+        os.rename("config_saved.py", cfg_outfile)
+        with open("net_architecture_config_saved.py", "w") as f:
+            f.write("net_architecture_config = ")
+            f.write(pprint.pformat(net_architecture_cfg))
+            f.write("\n")
+        os.rename("net_architecture_config_saved.py", net_architecture_cfg_outfile)
+        
+    elif Apply_Transformer_architecture:
+        Model_structure_type = 'TransformerModel'
+        cfg_outfile = outdir + 'cfg_{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}Channel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, nchannel, description)
+        net_architecture_cfg_outfile = outdir + 'net_architecture_cfg_{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}Channel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len,nchannel, description)
+        with open("config_saved.py", "w") as f:
+            f.write("config = ")
+            f.write(pprint.pformat(cfg))
+            f.write("\n")
+        os.rename("config_saved.py", cfg_outfile)
+        with open("net_architecture_config_saved.py", "w") as f:
+            f.write("net_architecture_config = ")
+            f.write(pprint.pformat(net_architecture_cfg))
+            f.write("\n")
+        os.rename("net_architecture_config_saved.py", net_architecture_cfg_outfile)
+        
+    elif Apply_CNN_Transformer_architecture:
+        Model_structure_type = 'CNNTransformerModel'
+        cfg_outfile = outdir + 'cfg_{}_{}_{}_{}_{}x{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}CNNChannel_{}TransformerChannel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, width,height, d_model, n_head, ffn_hidden, num_layers, max_len, CNN_nchannel,Transformer_nchannel,description)
+        net_architecture_cfg_outfile = outdir + 'net_architecture_cfg_{}_{}_{}_{}_{}x{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}CNNChannel_{}TransformerChannel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, width,height, d_model, n_head, ffn_hidden, num_layers, max_len, CNN_nchannel,Transformer_nchannel,description)
+        with open("config_saved.py", "w") as f:
+            f.write("config = ")
+            f.write(pprint.pformat(cfg))
+            f.write("\n")
+        os.rename("config_saved.py", cfg_outfile)
+        with open("net_architecture_config_saved.py", "w") as f:
+            f.write("net_architecture_config = ")
+            f.write(pprint.pformat(net_architecture_cfg))
+            f.write("\n")
+        os.rename("net_architecture_config_saved.py", net_architecture_cfg_outfile)
+    return 
 
 def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,begindate,enddate, nchannel, **args):
     width = args.get('width', 11)

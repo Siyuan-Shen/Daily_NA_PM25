@@ -30,13 +30,14 @@ from Training_pkg.iostream import load_daily_datesbased_model
 from Visualization_pkg.Assemble_Func import plot_longterm_Annual_Monthly_Daily_Scatter_plots,plot_timeseries_statistics_plots
 from wandb_config import wandb_run_config, wandb_initialize, init_get_sweep_config
 from multiprocessing import Manager
+from config import cfg
+from Net_Architecture_config import cfg as net_architecture_cfg
 
 def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                              side_stream_channel_names,sweep_id=None,):
     world_size = torch.cuda.device_count()
     print(f"Number of available GPUs: {world_size}")
     typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias,normalize_species=normalize_species, absolute_species=absolute_species, log_species=False, species=species)
-
     Evaluation_type = 'Spatial_CrossValidation'
     
     #####################################################################
@@ -66,7 +67,8 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
         name = None
         if Apply_Transformer_architecture:
             d_model, n_head, ffn_hidden, num_layers, max_len,spin_up_len = Transformer_d_model, Transformer_n_head, Transformer_ffn_hidden, Transformer_num_layers, Transformer_max_len, Transformer_spin_up_len
-
+        
+        
     ### Load the datasets
     if Apply_CNN_architecture:
         ### Initialize the CNN datasets
@@ -127,10 +129,15 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
     elif Apply_CNN_Transformer_architecture:
         args = {'d_model': d_model, 'n_head': n_head, 'ffn_hidden': ffn_hidden, 'num_layers': num_layers, 'max_len': max_len+spin_up_len,
                 'width': width, 'height': height, 'CNN_nchannel': len(CNN_Embedding_channel_names), 'Transformer_nchannel': len(Transformer_Embedding_channel_names)}
-
+    
     ### Start Training, Validation, and Recording
     if not Use_recorded_data_to_show_validation_results_Spatial_CV:
-
+            if not sweep_mode:
+                cfg_outdir = Config_outdir + '{}/{}/Results/results-{}/configuration-files/'.format(species, version, Evaluation_type)
+                os.makedirs(cfg_outdir, exist_ok=True)
+                save_configuration_output(cfg_outdir=cfg_outdir, cfg=cfg, outdir=cfg_outdir, net_architecture_cfg=net_architecture_cfg, evaluation_type=Evaluation_type, typeName=typeName,
+                                  nchannel=len(main_stream_channel_names), **args)
+                
             ### Initialize the arrays for recording
             final_data_recording = np.array([],dtype=float)
             obs_data_recording = np.array([],dtype=float)
