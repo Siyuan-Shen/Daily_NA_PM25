@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name="Daily HalfYearModel Test AVD_d20250804 True True 5x5 sweep test 8GPU"
-#SBATCH --partition=gpuqueue 
+#SBATCH --partition=cpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gpus=8
+#SBATCH --gpus=0
 #SBATCH --output=job_output/job-%j-output.txt
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=s.siyuan@wustl.edu

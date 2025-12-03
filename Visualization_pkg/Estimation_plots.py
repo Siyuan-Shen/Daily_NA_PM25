@@ -19,8 +19,8 @@ import matplotlib.ticker as tick
 import matplotlib.colors as colors
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-from Training_pkg.Statistic_Func import Calculate_PWA_PM25
-from visualization_pkg.utils import crop_map_data
+from Training_pkg.Statistic_func import Calculate_PWA_PM25
+from Visualization_pkg.utils import crop_map_data
 
 
 

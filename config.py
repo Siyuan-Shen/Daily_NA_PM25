@@ -105,7 +105,7 @@ cfg = {
 
     'Random-CrossValidation' : {
 
-        "Random_CrossValidation_Switch": True,
+        "Random_CrossValidation_Switch": False,
         "Random_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Random_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -113,8 +113,8 @@ cfg = {
         ##### Random Cross Validation Settings #####
         "Training-Settings": {
             "Random_CV_folds": 10,
-            "Random_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
-            "Random_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
+            "Random_CV_training_begindates": [20190101,20190501,20191101,20200501,20201101,20210501,20211101,20220501,20221101,20230501,20231101],
+            "Random_CV_training_enddates": [20190430,20191031,20200430,20201031,20210430,20211031,20220430,20221031,20230430,20231031,20231231],
             "Random_CV_validation_begindates": [20190101,20220101],
             "Random_CV_validation_enddates": [20231231,20231231],
             "additional_validation_regions": [
@@ -137,7 +137,7 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        "Spatial_CrossValidation_Switch": True,
+        "Spatial_CrossValidation_Switch": False,
         "Spatial_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Spatial_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -145,8 +145,8 @@ cfg = {
         ##### Spatial Cross Validation Settings #####
         "Training-Settings": {
             "Spatial_CV_folds": 10,
-            "Spatial_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
-            "Spatial_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
+            "Spatial_CV_training_begindates": [20190101,20190501,20191101,20200501,20201101,20210501,20211101,20220501,20221101,20230501,20231101],
+            "Spatial_CV_training_enddates": [20190430,20191031,20200430,20201031,20210430,20211031,20220430,20221031,20230430,20231031,20231231],
             "Spatial_CV_validation_begindates": [20190101,20220101],
             "Spatial_CV_validation_enddates": [20231231,20231231],
             "additional_validation_regions": [
@@ -177,13 +177,13 @@ cfg = {
     },
     #########################################################################################################################################################
     'BLISCO-CrossValidation' : {
-        'BLISCO_CV_Switch': False,
+        'BLISCO_CV_Switch': True,
         'Use_recorded_data_to_show_validation_results': False,
         
         ##### BLISCO Cross Validation Settings #####
         'Training-Settings': {
             'BLISCO_CV_folds': 10, # larger or at least equal to seeds number
-            'BLISCO_CV_buffer_radius_km': [50],
+            'BLISCO_CV_buffer_radius_km': [80],
             'BLISCO_CV_seeds_number': 10,
             'BLISCO_CV_training_begindates': [20190101,20200101,20210101,20220101,20230101],
             'BLISCO_CV_training_enddates': [20191231,20201231,20211231,20221231,20231231],
@@ -197,7 +197,7 @@ cfg = {
         
         ##### BLISCO Cross Visualization Settings ####
         'Visualization_Settings': {
-            'Test_Train_Buffers_Distributions_plot_switch': False
+            'Test_Train_Buffers_Distributions_plot_switch': True
         },
     },
     
@@ -210,8 +210,8 @@ cfg = {
         ##### Temporal Cross Validation Settings #####
         "Training-Settings": {
             "Temporal_CV_folds": 10,
-            "Temporal_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
-            "Temporal_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
+            "Temporal_CV_training_begindates": [20190101,20190501,20191101,20200501,20201101,20210501,20211101,20220501,20221101,20230501,20231101],
+            "Temporal_CV_training_enddates": [20190430,20191031,20200430,20201031,20210430,20211031,20220430,20221031,20230430,20231031,20231231],
             "Temporal_CV_validation_begindates": [20190101,20220101],
             "Temporal_CV_validation_enddates": [20231231,20231231],
             "additional_validation_regions": [
@@ -232,7 +232,7 @@ cfg = {
     #########################################################################################################################################################
     'Temporal-Buffer-Out-CrossValidation' : {
 
-        "Temporal_Buffer_Out_CrossValidation_Switch": True,
+        "Temporal_Buffer_Out_CrossValidation_Switch": False,
         "Use_recorded_data_to_show_validation_results": False,
 
         ##### Temporal Cross Validation Settings #####
@@ -312,7 +312,7 @@ cfg = {
     'Training-Settings' : {
         "identity": {
             "version": "v0.4.0",
-            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023_OneModelEachYear_Epoch71_bs256_3DCNN_5x5",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023_OneYearModel_Epoch71_bs256_3DCNN_5x5",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "2025-08-31"
@@ -327,7 +327,7 @@ cfg = {
             "log_species": False,
         },
         "hyper-parameters": {
-            "epoch": 71, # 2DCNN: 131; 3DCNN:131; Transformer:111
+            "epoch": 71, # 2DCNN: 131; 3DCNN:71; Transformer:111
             "batchsize": 256,# 2DCNN: 256; 3DCNN:128; Transformer:32
 
             ##################################################################################################################
@@ -391,7 +391,7 @@ cfg = {
         },
 
         "learning_rate": {
-            "learning_rate0": 0.0001, # 2D CNN: 0.001; 3DCNN:0.0001, transformer: 0.001
+            "learning_rate0": 0.0003, # 2D CNN: 0.001; 3DCNN:0.0001, transformer: 0.001
             "ExponentialLR": {
                 "Settings": False,
                 "gamma": 0.9

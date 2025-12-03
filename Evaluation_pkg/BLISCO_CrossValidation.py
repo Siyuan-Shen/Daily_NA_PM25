@@ -28,6 +28,8 @@ from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets,Transfor
 from Training_pkg.iostream import load_daily_datesbased_model
 
 from Visualization_pkg.Assemble_Func import plot_longterm_Annual_Monthly_Daily_Scatter_plots,plot_timeseries_statistics_plots
+from Visualization_pkg.Evaluation_plots import plot_BLCO_test_train_buffers
+from Visualization_pkg.iostream import get_figure_outfile_path
 from wandb_config import wandb_run_config, wandb_initialize, init_get_sweep_config
 from multiprocessing import Manager
 from config import cfg
@@ -222,7 +224,7 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
                 raise ValueError('The number of valid sites is smaller than the number of folds, please decrease the number of folds or the observation_datapoints_threshold!')
             valid_site_lat = sites_lat[valid_sites_index]
             valid_site_lon = sites_lon[valid_sites_index]
-            index_for_BLISCO = np.zeros((BLISCO_CV_folds,len(valid_site_lat),len(BLISCO_CV_training_begindates)),dtype=np.int32)
+            index_for_BLISCO = np.zeros((BLISCO_CV_folds,len(valid_site_lat)),dtype=np.int32)
             
             nearest_distances = np.array([],dtype=np.float32)
             for isite in range(len(valid_site_lat)):
@@ -250,7 +252,7 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
                         if Self_Isolated_sites_index[test_index] == -999:
                             temp_train_index = np.where(Self_Isolated_sites_index!=-999)
                             print(test_index,temp_train_index,Self_Isolated_sites_index[temp_train_index])
-                            index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[temp_train_index]],imodel] = -1.0
+                            index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[temp_train_index]]] = -1.0
                             self_isolated_fold_count += 1
                         
                         ## If this site is selected as the test site, then we set the index to 1.0. And we set the
@@ -259,17 +261,17 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
                             temp_train_index = np.where(Self_Isolated_sites_index[train_index]!=-999)
                             print(test_index,train_index[temp_train_index],Self_Isolated_sites_index[train_index[temp_train_index]])
                             Self_Isolated_sites_index = Self_Isolated_sites_index.astype(int)
-                            index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[test_index]],imodel]  = 1.0
-                            index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[train_index[temp_train_index]]],imodel] = -1.0
+                            index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[test_index]]]  = 1.0
+                            index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[train_index[temp_train_index]]]] = -1.0
                             self_isolated_fold_count += 1
                 ## If the number of Self-Isolated sites is larger than the number of BLCO_kfold, then we can split the
-                    ## Self-Isolated sites into different folds directly, just like normal sppatial cross-validation.
+                ## Self-Isolated sites into different folds directly, just like normal spatial cross-validation.
                 else:
                      
                     for train_index, test_index in rkf.split(Self_Isolated_sites_index):
                         Self_Isolated_sites_index = Self_Isolated_sites_index.astype(int)
-                        index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[test_index]],imodel]  = 1.0
-                        index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[train_index]],imodel] = -1.0
+                        index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[test_index]]]  = 1.0
+                        index_for_BLISCO[self_isolated_fold_count,indices_of_valid_index[Self_Isolated_sites_index[train_index]]] = -1.0
                         self_isolated_fold_count += 1
                 
             if len(Sites_forBLeCO_index) > 0:
@@ -279,18 +281,21 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
                                                                         BLISCO_Buffer_Size=buffer_radius)
                     for ifold in range(BLISCO_CV_folds):
                         
-                        index_for_BLISCO[ifold,indices_of_valid_index[Sites_forBLeCO_index[np.where(Only_BLeCO_index[ifold,:]==1.0)]],imodel] = 1.0
-                        index_for_BLISCO[ifold,indices_of_valid_index[Sites_forBLeCO_index[np.where(Only_BLeCO_index[ifold,:]==-1.0)]],imodel] = -1.0
+                        index_for_BLISCO[ifold,indices_of_valid_index[Sites_forBLeCO_index[np.where(Only_BLeCO_index[ifold,:]==1.0)]]] = 1.0
+                        index_for_BLISCO[ifold,indices_of_valid_index[Sites_forBLeCO_index[np.where(Only_BLeCO_index[ifold,:]==-1.0)]]] = -1.0
             ###########################################################################################################################
-            
+            save_BLISCO_sites_indices(valid_site_lat=valid_site_lat, valid_site_lon=valid_site_lon,BLISCO_index=index_for_BLISCO,
+                                      type_Name=typeName,evaluation_type=Evaluation_type,BLISCO_training_begin_date=BLISCO_CV_training_begindates[imodel],
+                                      BLISCO_training_end_date=BLISCO_CV_training_enddates[imodel], nchannel=len(main_stream_channel_names),
+                                      **args)
             for ifold in range(BLISCO_CV_folds):
                 
                 #### The test and training indices for this fold should be derived based on the initial sites index rather than the valid sites index.
                 #### This is because concataned datasets are based on the initial sites index.
                 
-                test_index = valid_sites_index[np.where(index_for_BLISCO[ifold,imodel] == 1.0)[0]]
-                train_index = valid_sites_index[np.where(index_for_BLISCO[ifold,imodel] == -1.0)[0]]
-                excluded_index = valid_sites_index[np.where(index_for_BLISCO[ifold,imodel] == 0.0)[0]]
+                test_index = valid_sites_index[np.where(index_for_BLISCO[ifold,:] == 1.0)[0]]
+                train_index = valid_sites_index[np.where(index_for_BLISCO[ifold,:] == -1.0)[0]]
+                excluded_index = valid_sites_index[np.where(index_for_BLISCO[ifold,:] == 0.0)[0]]
                 print('Buffer Size: {} km,No.{}-fold, test_index #: {}, train_index #: {}, total # of sites: {}'.format(buffer_radius,ifold+1,len(test_index),len(train_index),len(valid_site_lat)))
                 print('4...')
                 ### Split the datesets based on the indices of training and testing indices
@@ -482,6 +487,7 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
                 training_sites_recording = np.concatenate((training_sites_recording, sites_train), axis=0)
                 training_dates_recording = np.concatenate((training_dates_recording, dates_train.flatten()), axis=0)
         
+        
         save_data_recording(final_data_recording=final_data_recording, obs_data_recording=obs_data_recording, geo_data_recording=geo_data_recording,
                                 sites_recording=sites_recording, dates_recording=dates_recording,
                                 training_final_data_recording=training_final_data_recording, training_obs_data_recording=training_obs_data_recording,
@@ -492,6 +498,29 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
                                 evaluation_type=Evaluation_type,project=project,entity=entity,sweep_id=sweep_id,name=name,**args)
     
     
+    
+    if Test_Train_Buffers_Distributions_plot_switch:
+        for imodel in range(len(BLISCO_CV_training_begindates)):
+            for ifold in range(BLISCO_CV_folds):
+                valid_site_lat, valid_site_lat, index_for_BLISCO = load_BLISCO_sites_indices(type_Name=typeName,evaluation_type=Evaluation_type,
+                                                                                            BLISCO_training_begin_date=BLISCO_CV_training_begindates[imodel],
+                                                                                            BLISCO_training_end_date=BLISCO_CV_training_enddates[imodel], nchannel=len(main_stream_channel_names),
+                                                                                            **args)
+                train_index = np.where(index_for_BLISCO[ifold,:] == -1.0)[0]
+                test_index  = np.where(index_for_BLISCO[ifold,:] == 1.0)[0]
+                excluded_index = np.where(index_for_BLISCO[ifold,:] == 0.0)[0]
+                BLISCO_figure_outdir = figure_outdir + '{}/{}/Figures/BLISCO_sites_distribution/{}/'.format(species, version,Evaluation_type)
+                if not os.path.exists(BLISCO_figure_outdir):
+                    os.makedirs(BLISCO_figure_outdir)
+                BLISCO_buffer_plot_outfile = get_figure_outfile_path(outdir=BLISCO_figure_outdir,evaluation_type=Evaluation_type,figure_type='BLISCO_buffer_plot_{}fold'.format(ifold),typeName=typeName,
+                                                                     begindate=BLISCO_CV_training_begindates[imodel],enddate=BLISCO_CV_training_enddates[imodel],nchannel=len(main_stream_channel_names),
+                                                                     **args)
+                                                                     
+                plot_BLCO_test_train_buffers(train_index=train_index,test_index=test_index,excluded_index=excluded_index,
+                                             sitelat=valid_site_lat,sitelon=valid_site_lon,
+                                             buffer_radius=buffer_radius,extent=[10.055,69.945,-169.945,-40.055],
+                                             fig_outfile=BLISCO_buffer_plot_outfile)
+        
     final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording, sites_lat_array, sites_lon_array = load_data_recording(species=species,version=version,begindates=BLISCO_CV_training_begindates[0],
                                                                                                                                                                                                                                          enddates=BLISCO_CV_training_enddates[-1],typeName=typeName,nchannel=len(main_stream_channel_names),
                                                                                                                                                                                                                                          evaluation_type=Evaluation_type,special_name=description,project=project,entity=entity,sweep_id=sweep_id,**args)
