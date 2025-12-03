@@ -665,6 +665,36 @@ def load_NA_Mask_data(region_name):
     return mask_map, lat, lon
 
 
+def save_BLISCO_sites_indices(valid_site_lat,valid_site_lon,BLISCO_index,
+                              type_Name,evaluation_type,BLISCO_training_begin_date,BLISCO_training_end_date,
+                              nchannel,**args):
+    ## This function is going to save the BLISCO sites indices for each model and each fold
+    ## And the recorded indices will be used to plot the distribution of the BLISCO sites
+    outdir = data_recording_outdir + '{}/{}/Results/results-DataRecording/{}/'.format(species, version,evaluation_type)
+    if not os.path.isdir(outdir):
+        os.makedirs(outdir)
+    BLISCO_sites_location_dic = {
+        'valid_site_lat': valid_site_lat,
+        'valid_site_lon': valid_site_lon,
+        'BLISCO_index': BLISCO_index
+    }
+    outfile = get_data_recording_filenname(outdir=outdir,evaluation_type=evaluation_type,file_target='BLISCO_Sites_Indices',typeName=type_Name,
+                                           begindate=BLISCO_training_begin_date,enddate=BLISCO_training_end_date,nchannel=nchannel,**args)
+    np.save(outfile, BLISCO_sites_location_dic)
+    return
 
-
-
+def load_BLISCO_sites_indices(type_Name,evaluation_type,BLISCO_training_begin_date,BLISCO_training_end_date,
+                              nchannel,**args):
+    ## This function is going to load the BLISCO sites indices for each model and each fold
+    indir = data_recording_outdir + '{}/{}/Results/results-DataRecording/{}/'.format(species, version,evaluation_type)
+    if not os.path.isdir(indir):
+        raise ValueError('The {} directory does not exist!'.format(indir))
+    infile = get_data_recording_filenname(outdir=indir,evaluation_type=evaluation_type,file_target='BLISCO_Sites_Indices',typeName=type_Name,
+                                           begindate=BLISCO_training_begin_date,enddate=BLISCO_training_end_date,nchannel=nchannel,**args)
+    if not os.path.isfile(infile):
+        raise ValueError('The {} file does not exist!'.format(infile))
+    BLISCO_sites_location_dic = np.load(infile,allow_pickle=True).item()
+    valid_site_lat = BLISCO_sites_location_dic['valid_site_lat']
+    valid_site_lon = BLISCO_sites_location_dic['valid_site_lon']
+    BLISCO_index = BLISCO_sites_location_dic['BLISCO_index']
+    return valid_site_lat, valid_site_lon, BLISCO_index

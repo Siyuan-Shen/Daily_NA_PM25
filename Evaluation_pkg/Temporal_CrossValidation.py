@@ -35,6 +35,7 @@ from Net_Architecture_config import cfg as net_architecture_cfg
 
 def temporal_cross_validation(total_channel_names, main_stream_channel_names,
                              side_stream_channel_names,sweep_id=None,):
+    start_time_overall = time.time()
     world_size = torch.cuda.device_count()
     print(f"Number of available GPUs: {world_size}")
     typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias,normalize_species=normalize_species, absolute_species=absolute_species, log_species=False, species=species)
@@ -533,5 +534,6 @@ def temporal_cross_validation(total_channel_names, main_stream_channel_names,
     del final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
     del training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording
     gc.collect()
-                
+    end_time_overall = time.time()
+    print(f"Temporal Cross-Validation Overall Time taken: {end_time_overall - start_time_overall} seconds")
     return
