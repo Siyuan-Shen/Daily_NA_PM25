@@ -89,12 +89,20 @@ cfg  = {
             "CovLayer_padding_mode_3D": "replicate",
             "Pooling_padding_mode_3D": "replicate",
             "ResNet3D": {
-                "Settings": True,
+                "Settings": True, ## Default is True, do not turn it off even if you use MoE
                 "Blocks": "BasicBlock",
                 "blocks_num": [1, 1, 1, 1],
                 "output_channels": [128, 256, 512, 1024],
+                "pooling_kernel_size": (1,3,3),
                 "Pooling_layer_type_3D": "MaxPooling3d",
                 "Depth": 3
+            },
+            
+        "MoE-architecture": {
+            "Settings": True, ## Turn on MoE architecture, and also turn on ResNet3D Settings
+            "num_experts": 4,
+            "gating_hidden_size": 32,
+            "selected_channels": [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",],
             }
         },
 

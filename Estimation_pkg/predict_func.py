@@ -99,8 +99,8 @@ def cnn_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_en
                     temp_input -= train_mean
                     temp_input /= train_std
                 
-                final_output = []
-                final_output = np.array(final_output)
+                
+                final_output = np.array([])
                 if world_size <= 1:
                     predict_loader = DataLoader(Dataset_Val(temp_input), 2000, shuffle=False)
                 elif world_size > 1:
@@ -138,6 +138,7 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
                                 evaluation_type, typeName,Area,extent,
                                 train_mean, train_std, true_mean, true_std, width,height,depth):
     nchannel = len(total_channel_names)
+    AOD_index = total_channel_names.index('tSATAOD')
     print('world_size: {}'.format(world_size))
     try:
         print(f"[Rank {rank}] Starting 3D CNN predict")
@@ -165,7 +166,8 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
     lon_infile = LATLON_indir + 'NA_SATLON_0p01.npy'
     SATLAT = np.load(lat_infile)
     SATLON = np.load(lon_infile)
-
+    half_width = int((width - 1) / 2)
+    half_height = int((height - 1) / 2)
     with torch.no_grad():
         model.eval()
 
@@ -185,7 +187,7 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
             ## Convert to 3D CNN reading and predict
             for ix in range(len(lat_index)//world_size):
                 ix = ix*world_size + rank
-                land_index = np.where(landtype[ix,:] != 0)
+                land_index = np.where((landtype[ix,:] != 0) & (~np.isnan(temp_map_data[AOD_index, -1, ix, :])))
 
                 print('It is procceding ' + str(np.round(100*(ix/len(lat_index)),2))+'%.' )
                 if len(land_index[0]) == 0:
@@ -193,13 +195,16 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
                 else:
                     temp_input = np.zeros((len(land_index[0]), nchannel, depth, width, width), dtype=np.float32)
                     for iy in range(len(land_index[0])):
-                        temp_input[iy,:,:,:,:] = temp_map_data[:,:,int(lat_index[ix] - (width - 1) / 2):int(lat_index[ix] + (width + 1) / 2), int(lon_index[land_index[0][iy]] - (width - 1) / 2):int(lon_index[land_index[0][iy]] + (width + 1) / 2)]
+                        temp_input[iy,:,:,:,:] = temp_map_data[:,:,int(lat_index[ix] - half_width):int(lat_index[ix] + half_width + 1), int(lon_index[land_index[0][iy]] - half_height):int(lon_index[land_index[0][iy]] + half_height + 1)]
                 
                     temp_input -= train_mean
                     temp_input /= train_std
-                
-                final_output = []
-                final_output = np.array(final_output)
+                    center_values = temp_input[:, :, depth-1, half_width, half_height]
+                    # 3. Broadcast center_vals to full patch shape: (N, nchannel, depth, width, width)
+                    center_full = np.broadcast_to(center_values[:, :, None, None, None],temp_input.shape)
+                    nan_index = np.where(np.isnan(temp_input))
+                    temp_input[nan_index] = center_full[nan_index]
+                final_output = np.array([])
                 if world_size <= 1:
                     predict_loader = DataLoader(Dataset_Val(temp_input), 2000, shuffle=False)
                 elif world_size > 1:
