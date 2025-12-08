@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="Daily HalfYearModel Test AVD_d20250804 True True 5x5 sweep test 8GPU"
+#SBATCH --job-name="_2019_2023_OneYearModel_Epoch71_bs256_MoE3DCNN_11x11_4experts Estimation Model Training"
 #SBATCH --partition=gpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -10,6 +10,9 @@
 #SBATCH --time=14-00:00:00
 #SBATCH -vvv
 
+pause_time=$((RANDOM % 300 + 1))
+echo "Pausing for $pause_time seconds..."
+sleep $pause_time
 
 # If you're using containers with Slurm
 # Uncomment this line if needed:
@@ -45,14 +48,25 @@ cd $SNAPSHOT_DIR
 
 # Random pause
 
-# pause_time=$((RANDOM % 3 + 1))
-# echo "Pausing for $pause_time seconds..."
-# sleep $pause_time
+
 
 # sed -i '/section_start/,/section_end/{/key/s/:.*/: value/}'
 
 Buffer_size=[80]
 sed -i "/'BLISCO-CrossValidation'/,/'Temporal-CrossValidation'/{/'BLISCO_CV_buffer_radius_km'/s/:.*/: ${Buffer_size},/}" config.py
+
+Temporal_Buffer_size=[0]
+sed -i "/'Temporal-Buffer-Out-CrossValidation'/,'Estimation-Settings'/{/'Temporal_Buffer_days'/s/:.*/: ${Temporal_Buffer_size},/}" config.py
+
+
+Estimation_trained_begin_dates=[20150101,20230101]
+Estimation_trained_end_dates=[202151231,20231231]
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_trained_begin_dates'/s/:.*/: ${Estimation_trained_begin_dates},/}" config.py
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_trained_end_dates'/s/:.*/: ${Estimation_trained_end_dates},/}" config.py
+Estimation_begindates=[[20150101],[20230101]]
+Estimation_enddates=[[20151231],[20231231]]
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_begindates'/s/:.*/: ${Estimation_begindates},/}" config.py
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_enddates'/s/:.*/: ${Estimation_enddates},/}" config.py
 
 nvidia-smi
 

@@ -41,7 +41,7 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
     world_size = torch.cuda.device_count()
     print(f"Number of available GPUs: {world_size}")
     typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species, log_species=False, species=species)
-    Evaluation_type = 'BLISCO_CrossValidation_{}-km_{}-folds_{}-seeds'.format(buffer_radius,BLISCO_CV_folds,BLISCO_CV_seeds_number)
+    Evaluation_type = 'BLISCO_{}km_{}folds_{}seeds'.format(buffer_radius,BLISCO_CV_folds,BLISCO_CV_seeds_number)
 
     #####################################################################
     

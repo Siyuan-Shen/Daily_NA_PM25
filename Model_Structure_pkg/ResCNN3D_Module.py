@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Conv3d, BatchNorm3d, ReLU, MaxPool3d, AvgPool3d, Dropout3d
 from Model_Structure_pkg.utils import *
-from Training_pkg.utils import activation_function_table,define_activation_func
+from Training_pkg.utils import activation_function_table,define_activation_func, channel_names
 
 
 
@@ -27,15 +27,29 @@ def initial_3dcnn_net(main_stream_nchannel,wandb_config):
     block = resnet_block_lookup_table(ResCNN3D_Blocks)
     ResCNN3D_blocks_num = wandb_config['ResCNN3D_blocks_num']
     ResCNN3D_output_channels = wandb_config['ResCNN3D_output_channels']
-    cnn3D_model = ResCNN3D(nchannel=main_stream_nchannel,
+    
+    if not MoE_Settings:
+        cnn3D_model = ResCNN3D(nchannel=main_stream_nchannel,
                            block=block,
                            blocks_num=ResCNN3D_blocks_num,
                             output_channels=ResCNN3D_output_channels,
                             num_classes=1,  # Assuming a single output for regression
                             include_top=True  # Include the top layer for classification/regression
     )
-
+    else:
+        MoE_num_experts = wandb_config['MoE_num_experts']
+        MoE_gating_hidden_size = wandb_config['MoE_gating_hidden_size']
+        MoE_selected_channels = wandb_config['MoE_selected_channels']
+        selected_channels_index_for_gate = [channel_names.index(ch) for ch in MoE_selected_channels]
+        cnn3D_model = ResCNN3D_MoE(nchannel=main_stream_nchannel,num_experts=MoE_num_experts,
+                                   selected_channels_index_for_gate=selected_channels_index_for_gate,
+                                   blocks_num=ResCNN3D_blocks_num,
+                                   output_channels=ResCNN3D_output_channels,
+                                   num_classes=1,
+                                   include_top=True,
+                                   gating_hidden_dim=MoE_gating_hidden_size)
     return cnn3D_model
+
 class BasicBlock(nn.Module):
     expansion = 1
     # expansion = 1 means that the output channels are equal to the input channels
@@ -113,14 +127,13 @@ class ResCNN3D(nn.Module):
             Conv3d(nchannel, self.in_channels, kernel_size=(ResNet3D_depth,3,3), stride=(1,1,1), padding=(0,1,1), padding_mode=CovLayer_padding_mode_3D),
             BatchNorm3d(self.in_channels),
             self.actfunc,
-
         )
         self.apply_pooling_layer = True
 
         if Pooling_layer_type_3D == 'MaxPooling3d':
-            self.pooling = nn.MaxPool3d(kernel_size=(1,3,3), stride=(1,2,2)) # output 4x4
+            self.pooling = nn.MaxPool3d(kernel_size=ResCNN3D_pooling_kernel_size, stride=(1,2,2)) # output 4x4
         elif Pooling_layer_type_3D == 'AvgPooling3d':
-            self.pooling = nn.AvgPool3d(kernel_size=(1,3,3), stride=(1,2,2)) # output 4x4
+            self.pooling = nn.AvgPool3d(kernel_size=ResCNN3D_pooling_kernel_size, stride=(1,2,2)) # output 4x4
         else:
             print('Pooling layer type not supported! Please use MaxPooling3d or AvgPooling3d.')
             self.apply_pooling_layer = False
@@ -193,3 +206,74 @@ class ResCNN3D(nn.Module):
             x = torch.flatten(x, 1)
             x = self.fc(x)
         return x
+    
+
+class GatingNetwork3D_Subset(nn.Module):
+    def __init__(self, in_channels_subset, num_experts, selected_channels, hidden_dim=64, activation='gelu'):
+        """
+        in_channels_subset : len(selected_channels)
+        selected_channels  : list of channel indices to use for gating, e.g. [0, 1, 5, 10]
+        """
+        super().__init__()
+        self.selected_channels = selected_channels
+        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
+        self.fc1 = nn.Linear(in_channels_subset, hidden_dim)
+        self.actfunc = define_activation_func(activation)
+        self.fc2 = nn.Linear(hidden_dim, num_experts)
+
+    def forward(self, x):
+        # x: [B, C, D, H, W]
+        x_sub = x[:, self.selected_channels, -1:, :, :]   # [B, C_sub, last day, H, W]
+        pooled = self.avgpool(x_sub).view(x.size(0), -1)   # [B, C_sub]
+        h = self.actfunc(self.fc1(pooled))
+        logits = self.fc2(h)                        # [B, num_experts]
+        gates = F.softmax(logits, dim=-1)           # [B, num_experts]
+        print('gates[0,:]: ', gates[0,:])
+        return gates, logits
+    
+class ResCNN3D_MoE(nn.Module):
+    def __init__(self,
+                 nchannel,
+                 num_experts,
+                 selected_channels_index_for_gate,
+                 blocks_num,
+                 output_channels,
+                 num_classes=1,
+                 include_top=True,
+                 gating_hidden_dim=64,
+                 ):
+        super().__init__()
+        # experts
+        experts = []
+        for iexpert in range(num_experts):
+            block = resnet_block_lookup_table(ResCNN3D_Blocks)
+            expert_model = ResCNN3D(nchannel=nchannel,
+                                    block=block,
+                                    blocks_num=ResCNN3D_blocks_num,
+                                    output_channels=ResCNN3D_output_channels,
+                                    num_classes=num_classes,
+                                    include_top=include_top)
+            experts.append(expert_model)
+        self.experts = nn.ModuleList(experts)
+        
+        # gating on subset of channels
+        self.gating_network = GatingNetwork3D_Subset(
+            in_channels_subset=len(selected_channels_index_for_gate),
+            num_experts=num_experts,
+            selected_channels=selected_channels_index_for_gate,
+            hidden_dim=gating_hidden_dim,
+            activation=activation
+        )
+        
+    def forward(self, x):
+        gates, logits = self.gating_network(x)      # only sees selected channels
+        batch_size = x.size(0)
+
+        expert_preds = []
+        for expert in self.experts:
+            y = expert(x)                           # experts still see all channels
+            expert_preds.append(y.view(batch_size, 1))
+        expert_outputs = torch.cat(expert_preds, dim=1)  # [B, num_experts]
+
+        y_moe = torch.sum(gates * expert_outputs, dim=1, keepdim=True)
+        return y_moe

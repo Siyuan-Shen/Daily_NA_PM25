@@ -74,10 +74,15 @@ Pooling_padding_mode_3D = CNN3D_architeture_cfg['Pooling_padding_mode_3D']
 ResCNN3D_Settings = CNN3D_architeture_cfg['ResNet3D']['Settings']
 ResCNN3D_Blocks = CNN3D_architeture_cfg['ResNet3D']['Blocks']
 ResCNN3D_blocks_num = CNN3D_architeture_cfg['ResNet3D']['blocks_num']
+ResCNN3D_pooling_kernel_size = CNN3D_architeture_cfg['ResNet3D']['pooling_kernel_size']
 ResCNN3D_output_channels = CNN3D_architeture_cfg['ResNet3D']['output_channels']
 Pooling_layer_type_3D = CNN3D_architeture_cfg['ResNet3D']['Pooling_layer_type_3D']
 ResNet3D_depth = CNN3D_architeture_cfg['ResNet3D']['Depth']
 
+MoE_Settings = CNN3D_architeture_cfg['MoE-architecture']['Settings']
+MoE_num_experts = CNN3D_architeture_cfg['MoE-architecture']['num_experts']
+MoE_gating_hidden_size = CNN3D_architeture_cfg['MoE-architecture']['gating_hidden_size']
+MoE_selected_channels = CNN3D_architeture_cfg['MoE-architecture']['selected_channels']
 
 ## Transformer Architecture
 Transformer_cfg = network_architecture_cfg['Transformer-architecture']

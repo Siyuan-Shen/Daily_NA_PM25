@@ -12,6 +12,7 @@ def wandb_run_config():
             "ResNet_blocks_num": ResNet_blocks_num,
         }
     if Apply_3D_CNN_architecture:
+        
         run_config = {
             "learning_rate0": learning_rate0,  # Replace with your learning rate variable
             "architecture": "3DCNN",
@@ -19,7 +20,13 @@ def wandb_run_config():
             "batch_size": batchsize,  # Replace with your batch size variable
             "ResCNN3D_blocks_num": ResCNN3D_blocks_num,
             "ResCNN3D_output_channels": ResCNN3D_output_channels,
+            
         }
+        if MoE_Settings:
+            run_config["MoE_num_experts"] = MoE_num_experts
+            run_config["MoE_gating_hidden_size"] = MoE_gating_hidden_size
+            run_config["MoE_selected_channels"] = MoE_selected_channels
+            
     if Apply_Transformer_architecture:
         run_config = {
             "learning_rate0": learning_rate0,
@@ -136,19 +143,19 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [0.0001]
+                    'values': [0.01,0.001,0.0003,0.0001]
                 },
                 'batch_size': {
-                    'values': [256]
+                    'values': [32,64,128,256,512]
                 },
                 'epoch':{
-                    'values': [71]
+                    'values': [31,51,71,91,111,131]
                 },
                'channel_to_exclude': {
                     'values': [[]] 
                 },
                 'ResCNN3D_blocks_num': {
-                    'values': [[1,1,1,1]]
+                    'values': [[1,1,1,1],[1,0,0,1],[2,1,1,1],[2,2,2,2]]
                 },
 
                 'ResCNN3D_output_channels': {
@@ -156,18 +163,23 @@ def wandb_sweep_config():
                 },
                 
                 'channel_to_exclude': {
-                    'values': [['GC_PM25'],['GC_SO4'],['GC_NH4'],['GC_NIT'],['GC_BC'],['GC_OM'],['GC_SOA'],['GC_DST'],['GC_SSLT'],
-                                                     ['PBLH'],['RH'],['PRECTOT'],['T2M'],['V10M'],['U10M'],['PS'],['USTAR'],
-                                                     ['NH3_anthro_emi'],['SO2_anthro_emi'],['NO_anthro_emi'],['OC_anthro_emi'],['BC_anthro_emi'],['NMVOC_anthro_emi'],
-                                                      ['DST_offline_emi'],['SSLT_offline_emi'],
-                                                        ['Urban_Builtup_Lands'],  ['Crop_Nat_Vege_Mos'],['Permanent_Wetlands'],['Croplands'],
-                                                        ["ocfire"], ["pm2p5fire"], ["mami"], ["tcfire"],
-                                                        ["primary"], ["residential"],['secondary'],["trunk"],["unclassified"],
-                                                      ['elevation'],['Population'],
-                                                      ['lat'],['lon'],['sin_days'],['cos_days']]                
+                    'values': [[]]#['GC_PM25'],['GC_SO4'],['GC_NH4'],['GC_NIT'],['GC_BC'],['GC_OM'],['GC_SOA'],['GC_DST'],['GC_SSLT'],
+                               #                      ['PBLH'],['RH'],['PRECTOT'],['T2M'],['V10M'],['U10M'],['PS'],['USTAR'],
+                               #                      ['NH3_anthro_emi'],['SO2_anthro_emi'],['NO_anthro_emi'],['OC_anthro_emi'],['BC_anthro_emi'],['NMVOC_anthro_emi'],
+                               #                       ['DST_offline_emi'],['SSLT_offline_emi'],
+                               #                         ['Urban_Builtup_Lands'],  ['Crop_Nat_Vege_Mos'],['Permanent_Wetlands'],['Croplands'],
+                               #                         ["ocfire"], ["pm2p5fire"], ["mami"], ["tcfire"],
+                               #                         ["primary"], ["residential"],['secondary'],["trunk"],["unclassified"],
+                               #                       ['elevation'],['Population'],
+                               #                      ['lat'],['lon'],['sin_days'],['cos_days']]                
                 },
             }
         }
+        if MoE_Settings:
+            sweep_configuration["MoE_num_experts"] = [4,6,8]
+            sweep_configuration["MoE_gating_hidden_size"] = [32,64,128]
+            sweep_configuration["MoE_selected_channels"] = [[ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",],
+                                                            ]
     if Apply_Transformer_architecture:
         sweep_configuration = {
             'name': 'HSV_Transformer_Sweep_Normalized_Speices',
