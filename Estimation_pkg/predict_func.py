@@ -69,7 +69,8 @@ def cnn_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_en
     lon_infile = LATLON_indir + 'NA_SATLON_0p01.npy'
     SATLAT = np.load(lat_infile)
     SATLON = np.load(lon_infile)
-
+    AOD_index = total_channel_names.index('tSATAOD')
+    
     with torch.no_grad():
         model.eval()
 
@@ -86,7 +87,7 @@ def cnn_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_en
             ## Convert to 3D CNN reading and predict
             for ix in range(len(lat_index)//world_size):
                 ix = ix*world_size + rank
-                land_index = np.where(landtype[ix,:] != 0)
+                land_index = np.where((landtype[ix,:] != 0) & (~np.isnan(temp_map_data[AOD_index, lat_index[ix], lon_index])))
 
                 print('It is procceding ' + str(np.round(100*(ix/len(lat_index)),2))+'%.' )
                 if len(land_index[0]) == 0:
@@ -187,7 +188,7 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
             ## Convert to 3D CNN reading and predict
             for ix in range(len(lat_index)//world_size):
                 ix = ix*world_size + rank
-                land_index = np.where((landtype[ix,:] != 0) & (~np.isnan(temp_map_data[AOD_index, -1, ix, :])))
+                land_index = np.where((landtype[ix,:] != 0) & (~np.isnan(temp_map_data[AOD_index, -1, lat_index[ix], lon_index])))
 
                 print('It is procceding ' + str(np.round(100*(ix/len(lat_index)),2))+'%.' )
                 if len(land_index[0]) == 0:
