@@ -101,21 +101,21 @@ def cnn_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_en
                     temp_input /= train_std
                 
                 
-                final_output = np.array([])
-                if world_size <= 1:
-                    predict_loader = DataLoader(Dataset_Val(temp_input), 2000, shuffle=False)
-                elif world_size > 1:
-                    predict_dataset = Dataset_Val(temp_input)
-                    predict_loader = DataLoader(predict_dataset, 2000, shuffle=False)
-                
-                for i, image in enumerate(predict_loader):
-                    # Your original prediction logic goes here...
-                    image = image.to(device)
-                    temp_output = model(image).cpu().detach().numpy()
-                    final_output = np.append(final_output, temp_output)
+                    final_output = np.array([])
+                    if world_size <= 1:
+                        predict_loader = DataLoader(Dataset_Val(temp_input), 2000, shuffle=False)
+                    elif world_size > 1:
+                        predict_dataset = Dataset_Val(temp_input)
+                        predict_loader = DataLoader(predict_dataset, 2000, shuffle=False)
+                    
+                    for i, image in enumerate(predict_loader):
+                        # Your original prediction logic goes here...
+                        image = image.to(device)
+                        temp_output = model(image).cpu().detach().numpy()
+                        final_output = np.append(final_output, temp_output)
 
-                output[ix,land_index[0]] = final_output
-            
+                    output[ix,land_index[0]] = final_output
+                
             if world_size > 1:
                 out_t = torch.from_numpy(output).to(device)
                 dist.all_reduce(out_t, op=dist.ReduceOp.MAX)
@@ -182,8 +182,8 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
             ## Load Map Data for the date
             for iday in range(depth):
                 temp_date = get_previous_date_YYYY_MM_DD(date,iday)
-                YYYY, MM, DD = getGrg_YYYY_MM_DD(temp_date)
-                temp_map_data[:, (depth - iday -1),:,:] = load_map_data(total_channel_names, YYYY, MM, DD)
+                iYYYY, iMM, iDD = getGrg_YYYY_MM_DD(temp_date)
+                temp_map_data[:, (depth - iday -1),:,:] = load_map_data(total_channel_names, iYYYY, iMM, iDD)
             
             ## Convert to 3D CNN reading and predict
             for ix in range(len(lat_index)//world_size):
@@ -205,20 +205,21 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
                     center_full = np.broadcast_to(center_values[:, :, None, None, None],temp_input.shape)
                     nan_index = np.where(np.isnan(temp_input))
                     temp_input[nan_index] = center_full[nan_index]
-                final_output = np.array([])
-                if world_size <= 1:
-                    predict_loader = DataLoader(Dataset_Val(temp_input), 2000, shuffle=False)
-                elif world_size > 1:
-                    predict_dataset = Dataset_Val(temp_input)
-                    predict_loader = DataLoader(predict_dataset, 2000, shuffle=False)
-                
-                for i, image in enumerate(predict_loader):
-                    # Your original prediction logic goes here...
-                    image = image.to(device)
-                    temp_output = model(image).cpu().detach().numpy()
-                    final_output = np.append(final_output, temp_output)
+                    
+                    final_output = np.array([])
+                    if world_size <= 1:
+                        predict_loader = DataLoader(Dataset_Val(temp_input), 2000, shuffle=False)
+                    elif world_size > 1:
+                        predict_dataset = Dataset_Val(temp_input)
+                        predict_loader = DataLoader(predict_dataset, 2000, shuffle=False)
+                    
+                    for i, image in enumerate(predict_loader):
+                        # Your original prediction logic goes here...
+                        image = image.to(device)
+                        temp_output = model(image).cpu().detach().numpy()
+                        final_output = np.append(final_output, temp_output)
 
-                output[ix,land_index[0]] = final_output
+                    output[ix,land_index[0]] = final_output
             
             if world_size > 1:
                 out_t = torch.from_numpy(output).to(device)
