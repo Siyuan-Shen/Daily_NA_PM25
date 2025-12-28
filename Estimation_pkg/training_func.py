@@ -111,7 +111,7 @@ def Train_Model_forEstimation(total_channel_names, main_stream_channel_names,
                                                                                                                                 desired_ground_observation_data=desired_ground_observation_data,
                                                                                                                                 desired_geophysical_species_data=desired_geophysical_species_data)            
         
-        X_test, y_test = cctnd_trainingdatasets[0:10000,:], cctnd_true_input[0:10000] ## Just to get the shape of the input data for the model to feed into the function. No need to get the validation datasets for estimation.
+        X_test, y_test = cctnd_trainingdatasets[0:100,:], cctnd_true_input[0:100] ## Just to get the shape of the input data for the model to feed into the function. No need to get the validation datasets for estimation.
 
         if Apply_CNN_architecture:
             if world_size > 1:
