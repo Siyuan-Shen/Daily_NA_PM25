@@ -502,7 +502,8 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
     if Test_Train_Buffers_Distributions_plot_switch:
         for imodel in range(len(BLISCO_CV_training_begindates)):
             for ifold in range(BLISCO_CV_folds):
-                valid_site_lat, valid_site_lat, index_for_BLISCO = load_BLISCO_sites_indices(type_Name=typeName,evaluation_type=Evaluation_type,
+                print('Plotting the buffer distribution for No.{}-fold...'.format(ifold+1), 'for model trained from {} to {}'.format(BLISCO_CV_training_begindates[imodel],BLISCO_CV_training_enddates[imodel]))
+                valid_site_lat, valid_site_lon, index_for_BLISCO = load_BLISCO_sites_indices(type_Name=typeName,evaluation_type=Evaluation_type,
                                                                                             BLISCO_training_begin_date=BLISCO_CV_training_begindates[imodel],
                                                                                             BLISCO_training_end_date=BLISCO_CV_training_enddates[imodel], nchannel=len(main_stream_channel_names),
                                                                                             **args)
@@ -547,7 +548,7 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
                 Annual_statistics_recording=Annual_statistics_recording,)    
        
     ####   Calculate the statistics and recording to each time period that is interested
-    for idate in range(len(BLISCO_CV_validation_addtional_regions)):
+    for idate in range(len(BLISCO_CV_validation_begindates)):
         test_begindate =  BLISCO_CV_validation_begindates[idate]
         test_enddate = BLISCO_CV_validation_enddates[idate]          
         Daily_statistics_recording, Monthly_statistics_recording, Annual_statistics_recording = calculate_statistics(test_begindates=test_begindate,
