@@ -125,6 +125,9 @@ def wandb_sweep_config():
                                 #                      ['elevation'],['Population'],
                                  #                     ['lat'],['lon'],['sin_days'],['cos_days']]                
                 },
+                'channel_to_add' : {
+                    'values': [[]]
+                    },
 
                 'ResNet_blocks_num': {
                     'values': [[2,2,2,2],[1,1,1,1],[3,3,3,3],[4,4,4,4]]
@@ -143,19 +146,19 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [0.01,0.001,0.0003,0.0001]
+                    'values': [0.0003]
                 },
                 'batch_size': {
-                    'values': [32,64,128,256,512]
+                    'values': [256]
                 },
                 'epoch':{
-                    'values': [31,51,71,91,111,131]
+                    'values': [71]
                 },
                'channel_to_exclude': {
                     'values': [[]] 
                 },
                 'ResCNN3D_blocks_num': {
-                    'values': [[1,1,1,1],[1,0,0,1],[2,1,1,1],[2,2,2,2]]
+                    'values': [[1,1,1,1],]
                 },
 
                 'ResCNN3D_output_channels': {
@@ -163,7 +166,18 @@ def wandb_sweep_config():
                 },
                 
                 'channel_to_exclude': {
-                    'values': [[]]#['GC_PM25'],['GC_SO4'],['GC_NH4'],['GC_NIT'],['GC_BC'],['GC_OM'],['GC_SOA'],['GC_DST'],['GC_SSLT'],
+                    'values': [[]] #["ocfire", "pm2p5fire", "mami", "tcfire",
+               # 'Crop_Nat_Vege_Mos', 'Permanent_Wetlands', 'Croplands', 
+                #'major_roads', 'minor_roads', 'motorway', 'primary', 'secondary', 'trunk', 'unclassified', 'residential'],
+                     #          ["ocfire", "pm2p5fire", "mami", "tcfire",],
+                       #        ['Crop_Nat_Vege_Mos', 'Permanent_Wetlands', 'Croplands',],
+                      #        ['major_roads', 'minor_roads', 'motorway', 'primary', 'secondary', 'trunk', 'unclassified', 'residential'],
+                      #         ['Crop_Nat_Vege_Mos', 'Permanent_Wetlands','minor_roads', 'trunk', 'unclassified', 'residential'],
+                      #         ["ocfire"], ['pm2p5fire'], ['mami'], ['tcfire'],
+                      #         ['Crop_Nat_Vege_Mos'], ['Permanent_Wetlands'], ['Croplands'],
+                      #           ['major_roads'], ['minor_roads'], ['motorway'], ['primary'], ['secondary'], ['trunk'], ['unclassified'], ['residential'],
+                    #]
+                                #['GC_PM25'],['GC_SO4'],['GC_NH4'],['GC_NIT'],['GC_BC'],['GC_OM'],['GC_SOA'],['GC_DST'],['GC_SSLT'],
                                #                      ['PBLH'],['RH'],['PRECTOT'],['T2M'],['V10M'],['U10M'],['PS'],['USTAR'],
                                #                      ['NH3_anthro_emi'],['SO2_anthro_emi'],['NO_anthro_emi'],['OC_anthro_emi'],['BC_anthro_emi'],['NMVOC_anthro_emi'],
                                #                       ['DST_offline_emi'],['SSLT_offline_emi'],
@@ -173,13 +187,35 @@ def wandb_sweep_config():
                                #                       ['elevation'],['Population'],
                                #                      ['lat'],['lon'],['sin_days'],['cos_days']]                
                 },
+                'channel_to_add' : {
+                    'values': [["ocfire"], ["pm2p5fire"], ["mami"], ["tcfire"],
+                                ['Crop_Nat_Vege_Mos'], ['Permanent_Wetlands'], ['Croplands'], 
+                                ['major_roads'], ['minor_roads'], ['motorway'], ['primary'], ['secondary'], ['trunk'], ['unclassified'], ['residential'],
+                               ]},
             }
         }
         if MoE_Settings:
-            sweep_configuration["MoE_num_experts"] = [4,6,8]
-            sweep_configuration["MoE_gating_hidden_size"] = [32,64,128]
-            sweep_configuration["MoE_selected_channels"] = [[ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",],
-                                                            ]
+            sweep_configuration['parameters']['MoE_num_experts'] = {
+                'values': [4]
+            }
+            sweep_configuration['parameters']['MoE_gating_hidden_size'] = {
+                'values': [128]
+            }
+            sweep_configuration['parameters']['MoE_selected_channels'] = {
+                'values': [ #[ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",],
+                            [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",   
+                                "PBLH", "RH","V10M", "U10M", ],
+                                #[ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
+                                #"Urban_Builtup_Lands", "Population", ],
+                               #[ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
+                               # "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",],
+                               # [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
+                               # "PBLH", "RH","V10M", "U10M",
+                               # "Urban_Builtup_Lands", "Population",
+                               # "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",],
+                            ]   
+            }
+            
     if Apply_Transformer_architecture:
         sweep_configuration = {
             'name': 'HSV_Transformer_Sweep_Normalized_Speices',
@@ -223,6 +259,9 @@ def wandb_sweep_config():
                 },
                 'channel_to_exclude': {
                     'values': [[]]  # No channels to exclude for Transformer
+                },
+                'channel_to_add' : {
+                    'values': [[]]
                 }
 
             }

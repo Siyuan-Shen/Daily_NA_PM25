@@ -62,7 +62,11 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         name = temp_sweep_config.get("name", None)
         if Apply_Transformer_architecture or Apply_CNN_Transformer_architecture:
             d_model, n_head, ffn_hidden, num_layers, max_len,spin_up_len = temp_sweep_config.get("d_model", 64), temp_sweep_config.get("n_head", 8), temp_sweep_config.get("ffn_hidden", 256), temp_sweep_config.get("num_layers", 6), temp_sweep_config.get("max_len", 1000), temp_sweep_config.get("spin_up_len", 100)
-        
+        try:
+            channels_to_add = temp_sweep_config.get("channel_to_add", [])
+        except AttributeError:
+            channels_to_add = []
+        total_channel_names = total_channel_names + channels_to_add
     else:
         sweep_mode = False
         temp_sweep_config = None
