@@ -1,7 +1,7 @@
 
-TBO_buffers=(0 1 3 5 7 15)
+TBO_buffers=( 1  7  15)
 job_script="run_aws_gpu.slurm"
-for TBO_buffer in ${TBO_buffers[@]}
+for TBO_buffer in ${TBO_buffers[@]}; do
     TBO_running_buffer="[$TBO_buffer]"
     modified_script="modified_job_script_TBO_${TBO_running_buffer}.slurm"
     cp $job_script $modified_script
@@ -13,5 +13,5 @@ for TBO_buffer in ${TBO_buffers[@]}
 
     echo "Submitting job for TBO buffer $TBO_buffer..."
     sbatch < $modified_script
-    
+    rm $modified_script
 done

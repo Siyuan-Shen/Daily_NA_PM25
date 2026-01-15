@@ -20,7 +20,7 @@ def plot_longterm_Annual_Monthly_Daily_Scatter_plots(Evaluation_type,typeName,fi
     fig_outdir = figure_outdir + '{}/{}/Figures/Scatter_Plot/{}/'.format(species, version,Evaluation_type)
     if not os.path.exists(fig_outdir):
         os.makedirs(fig_outdir)
-    temp_index = temp_index = np.where((dates_recording >= plot_begin_date) & (dates_recording <= plot_end_date))[0]
+    temp_index = np.where((dates_recording >= plot_begin_date) & (dates_recording <= plot_end_date))[0]
     YYYY_series_dict,MM_series_dict, total_unique_YYYY = get_YYYY_MM(plot_begin_date, plot_end_date)
     ### First print the all data points daily scatter plot
     print('Plotting the daily scatter plot for {} from {} to {}'.format(species, plot_begin_date, plot_end_date))

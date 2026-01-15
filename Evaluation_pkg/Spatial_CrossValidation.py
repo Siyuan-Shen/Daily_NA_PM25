@@ -84,7 +84,12 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
         width, height = Init_CNN_Datasets.width, Init_CNN_Datasets.height
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
     elif Apply_3D_CNN_architecture:
-        Model_structure_type = '3DCNNModel'
+        if MoE_Settings:
+            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+        elif MoCE_Settings:
+            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+        else:
+            Model_structure_type = '3DCNNModel'
         print('Init_CNN_Datasets starting...')
         start_time = time.time()
         Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
@@ -268,12 +273,6 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                 Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                 Spatial_CV_training_enddates[imodel],ifold)
                         
-                            try:
-                                channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
-                            except AttributeError:
-                                channels_to_exclude = []
-
-                            excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
                             index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                             X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:]
                             X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:]
@@ -301,12 +300,13 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                     X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                     Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                     Spatial_CV_training_enddates[imodel],ifold)
+                            
+                            ## This exclusion is for output prediction after training
                             try:
                                 channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
                             except AttributeError:
                                 channels_to_exclude = []
-
-                            excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
+                            
                             index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                             X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:,:]
                             X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:,:]
@@ -332,12 +332,7 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                     X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
                                                     Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                     Spatial_CV_training_enddates[imodel],ifold)
-                            try:
-                                channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
-                            except AttributeError:
-                                channels_to_exclude = []
                             
-                            excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
                             index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                             X_train = X_train[:,:,index_of_main_stream_channels_of_initial]
                             X_test  = X_test[:,:,index_of_main_stream_channels_of_initial]

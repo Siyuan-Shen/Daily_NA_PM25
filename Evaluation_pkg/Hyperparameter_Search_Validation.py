@@ -26,7 +26,7 @@ from Training_pkg.TensorData_func import Dataset_Val, Dataset
 from Training_pkg.TrainingModule import CNN_train, cnn_predict, CNN3D_train, cnn_predict_3D,Transformer_train,transformer_predict, CNN_Transformer_train, cnn_transformer_predict
 from Training_pkg.data_func import CNNInputDatasets, CNN3DInputDatasets,TransformerInputDatasets, CNN_Transformer_InputDatasets
 from Training_pkg.iostream import load_daily_datesbased_model
-from wandb_config import init_get_sweep_config
+from wandb_config import init_get_sweep_config,MOCE_CHANNEL_POOL
 from multiprocessing import Manager
 
 ####################################################################################
@@ -51,6 +51,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
     typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species, log_species=False, species=species)
     world_size = torch.cuda.device_count()
 
+       
     if HSV_Spatial_splitting_Switch:
             Evaluation_type = 'Hyperparameters_Search_Validation_Spatial_Splitting'
 
@@ -62,11 +63,20 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         name = temp_sweep_config.get("name", None)
         if Apply_Transformer_architecture or Apply_CNN_Transformer_architecture:
             d_model, n_head, ffn_hidden, num_layers, max_len,spin_up_len = temp_sweep_config.get("d_model", 64), temp_sweep_config.get("n_head", 8), temp_sweep_config.get("ffn_hidden", 256), temp_sweep_config.get("num_layers", 6), temp_sweep_config.get("max_len", 1000), temp_sweep_config.get("spin_up_len", 100)
+        
+        if Apply_3D_CNN_architecture and MoCE_Settings:
+            channel_combo = temp_sweep_config.get("channel_combo", None)
+            temp_sweep_config['MoCE_side_experts_channels_list'] = [MOCE_CHANNEL_POOL[combo] for combo in channel_combo] if channel_combo else []
+            total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=[],MoCE_base_model_channels=temp_sweep_config['MoCE_base_model_channels'],
+                                                                                                MoCE_side_experts_channels_list=temp_sweep_config['MoCE_side_experts_channels_list'])
+     
+        
         try:
             channels_to_add = temp_sweep_config.get("channel_to_add", [])
         except AttributeError:
             channels_to_add = []
         total_channel_names = total_channel_names + channels_to_add
+        total_channel_names = list(dict.fromkeys(total_channel_names))
     else:
         sweep_mode = False
         temp_sweep_config = None
@@ -91,7 +101,13 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         width, height = Init_CNN_Datasets.width, Init_CNN_Datasets.height
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
     elif Apply_3D_CNN_architecture:
-        Model_structure_type = '3DCNNModel'
+        if MoE_Settings:
+            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(temp_sweep_config['MoE_num_experts'])
+        elif MoCE_Settings:
+            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(temp_sweep_config['MoCE_num_experts'])
+        else:
+            Model_structure_type = '3DCNNModel'
+            
         print('Init_3DCNN_Datasets starting...')
         start_time = time.time()
         Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
@@ -276,7 +292,16 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                                                         mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                     
                     if Apply_3D_CNN_architecture:
-                        
+                        ## Check if there are NaN values in the input data
+                        ## If so, get the index of channels containing NaN
+                        nan_indices_train = torch.isnan(torch.tensor(X_train)).nonzero()
+                        nan_indices_test = torch.isnan(torch.tensor(X_test)).nonzero()
+                        print('NaN indices in training data: ', nan_indices_train)
+                        print('NaN indices in testing data: ', nan_indices_test)
+                        if nan_indices_train.numel() > 0 or nan_indices_test.numel() > 0:
+                            print(total_channel_names)
+                            print('Warning: NaN values detected in input data.')
+                            
                         if world_size > 1:
                             mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                   X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
@@ -291,12 +316,18 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                             channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
                         except AttributeError:
                             channels_to_exclude = []
-
-                        excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
+                        
+                        if MoCE_Settings:
+                            excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude,MoCE_base_model_channels=temp_sweep_config['MoCE_base_model_channels'],
+                                                                                                MoCE_side_experts_channels_list=temp_sweep_config['MoCE_side_experts_channels_list'])
+                        else:
+                            excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
+                        
                         index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                         X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:,:]
                         X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:,:]
-
+                        
+                            
                         # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in 
                         # different time ranges. 
                         Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=HSV_Spatial_splitting_begindates[imodel],
@@ -455,12 +486,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                                             test_enddate=HSV_Spatial_splitting_enddates[-1],
                                           d_model=d_model, n_head=n_head, ffn_hidden=ffn_hidden, num_layers=num_layers, max_len=max_len+spin_up_len,
                                           width=width,height=height, entity=entity,project=project,sweep_id=sweep_id,name=name,CNN_nchannel=len(main_stream_CNN_channel_names),Transformer_nchannel=len(main_stream_Transformer_channel_names))
-    print('csvfile_outfile: ', csvfile_outfile)
-    output_csv(outfile=csvfile_outfile,status='w',Area='North America',
-                test_begindate=HSV_Spatial_splitting_begindates[0],test_enddate=HSV_Spatial_splitting_enddates[-1],
-                Daily_statistics_recording=Daily_statistics_recording,
-                Monthly_statistics_recording=Monthly_statistics_recording,
-                Annual_statistics_recording=Annual_statistics_recording,)
+    
     
     print('Start to log the validation results to wandb... for {}'.format(Model_structure_type))
     if not Use_recorded_data_to_show_validation_results:
@@ -501,6 +527,13 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                                                         'slope: {}'.format(Daily_statistics_recording['All_points']['slope'])]))
         
         wandb.finish()
+        
+        print('csvfile_outfile: ', csvfile_outfile)
+        output_csv(outfile=csvfile_outfile,status='w',Area='North America',
+                test_begindate=HSV_Spatial_splitting_begindates[0],test_enddate=HSV_Spatial_splitting_enddates[-1],
+                Daily_statistics_recording=Daily_statistics_recording,
+                Monthly_statistics_recording=Monthly_statistics_recording,
+                Annual_statistics_recording=Annual_statistics_recording,)
 
         del final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording
         del training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording

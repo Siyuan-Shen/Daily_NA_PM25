@@ -480,11 +480,18 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         wandb_config = run_config
 
     BATCH_SIZE, learning_rate, TOTAL_EPOCHS = wandb_parameters_return(wandb_config=wandb_config)
+    
+    ## This is for training
     try:
         channels_to_exclude = wandb_config.get("channel_to_exclude", [])
     except AttributeError:
         channels_to_exclude = []
-    total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
+    if Apply_3D_CNN_architecture and MoCE_Settings:
+        total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude,
+                                                                                                      MoCE_base_model_channels=wandb_config['MoCE_base_model_channels'],
+                                                                                                MoCE_side_experts_channels_list=wandb_config['MoCE_side_experts_channels_list'])
+    else:
+        total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
 
 
     index_of_main_stream_channels_of_initial = [init_total_channel_names.index(channel) for channel in main_stream_channel_names]
@@ -502,7 +509,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         os.environ['WANDB_MODE'] = 'disabled'
     
     if world_size <= 1:
-        Daily_Model = initial_3dcnn_net(main_stream_nchannel=len(main_stream_channel_names),wandb_config=wandb_config)
+        Daily_Model = initial_3dcnn_net(main_stream_channel=main_stream_channel_names,wandb_config=wandb_config)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         Daily_Model.to(device)
         torch.manual_seed(21)
@@ -510,7 +517,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         validation_loader = DataLoader(Dataset(X_test, y_test), 2000, shuffle=True)
     elif world_size > 1:
         ddp_setup(rank, world_size)
-        Daily_Model = initial_3dcnn_net(main_stream_nchannel=len(main_stream_channel_names),wandb_config=wandb_config)
+        Daily_Model = initial_3dcnn_net(main_stream_channel=main_stream_channel_names,wandb_config=wandb_config)
         device = rank
         Daily_Model.to(device)
         torch.manual_seed(21)
@@ -545,6 +552,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         if world_size > 1:
             train_loader.sampler.set_epoch(epoch)
         for i, (images, labels) in enumerate(train_loader):
+            ## Example: Check for NaN values in input images
             
             Daily_Model.train()
             images = images.to(device)

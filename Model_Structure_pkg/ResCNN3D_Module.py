@@ -5,9 +5,6 @@ from torch.nn import Conv3d, BatchNorm3d, ReLU, MaxPool3d, AvgPool3d, Dropout3d
 from Model_Structure_pkg.utils import *
 from Training_pkg.utils import activation_function_table,define_activation_func, channel_names
 
-
-
-
 def conv3x3x3(in_channels, out_channels, stride=1):
     """3x3x3 convolution with padding"""
     return Conv3d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False,padding_mode=CNN3D_architeture_cfg)
@@ -23,24 +20,21 @@ def resnet_block_lookup_table(blocktype):
         print(' Wrong Key Word! BasicBlock or Bottleneck only! ')
         return None
 
-def initial_3dcnn_net(main_stream_nchannel,wandb_config):
+def initial_3dcnn_net(main_stream_channel,wandb_config):
+    main_stream_nchannel = len(main_stream_channel)
     block = resnet_block_lookup_table(ResCNN3D_Blocks)
     ResCNN3D_blocks_num = wandb_config['ResCNN3D_blocks_num']
     ResCNN3D_output_channels = wandb_config['ResCNN3D_output_channels']
     
-    if not MoE_Settings:
-        cnn3D_model = ResCNN3D(nchannel=main_stream_nchannel,
-                           block=block,
-                           blocks_num=ResCNN3D_blocks_num,
-                            output_channels=ResCNN3D_output_channels,
-                            num_classes=1,  # Assuming a single output for regression
-                            include_top=True  # Include the top layer for classification/regression
-    )
-    else:
+    pooling_layer_switch = wandb_config['pooling_layer_switch']
+    pooling_layer_type_3D = wandb_config['pooling_layer_type_3D']
+    ResCNN3D_pooling_kernel_size = wandb_config['ResCNN3D_pooling_kernel_size']
+    
+    if MoE_Settings:
         MoE_num_experts = wandb_config['MoE_num_experts']
         MoE_gating_hidden_size = wandb_config['MoE_gating_hidden_size']
         MoE_selected_channels = wandb_config['MoE_selected_channels']
-        selected_channels_index_for_gate = [channel_names.index(ch) for ch in MoE_selected_channels]
+        selected_channels_index_for_gate = [main_stream_channel.index(ch) for ch in MoE_selected_channels]
         cnn3D_model = ResCNN3D_MoE(nchannel=main_stream_nchannel,num_experts=MoE_num_experts,
                                    selected_channels_index_for_gate=selected_channels_index_for_gate,
                                    blocks_num=ResCNN3D_blocks_num,
@@ -48,6 +42,72 @@ def initial_3dcnn_net(main_stream_nchannel,wandb_config):
                                    num_classes=1,
                                    include_top=True,
                                    gating_hidden_dim=MoE_gating_hidden_size)
+    elif MoCE_Settings:
+        MoCE_num_experts = wandb_config['MoCE_num_experts']
+        MoCE_gating_hidden_size = wandb_config['MoCE_gating_hidden_size']
+        MoCE_selected_channels_index_for_gate = wandb_config['MoCE_selected_channels_index_for_gate']
+        selected_channels_index_for_gate = [main_stream_channel.index(ch) for ch in MoCE_selected_channels_index_for_gate]    
+        MoCE_base_model_channels = wandb_config['MoCE_base_model_channels']
+        MoCE_side_blocks_num = wandb_config['MoCE_side_blocks_num']
+        MoCE_side_output_channels = wandb_config['MoCE_side_output_channels']
+        MoCE_side_pooling_kernel_switch = wandb_config['MoCE_side_pooling_kernel_switch']
+        MoCE_side_pooling_layer_type_3D = wandb_config['MoCE_side_pooling_layer_type_3D']
+        MoCE_side_pooling_kernel_size = wandb_config['MoCE_side_pooling_kernel_size']
+        MoCE_side_experts_channels_list = wandb_config['MoCE_side_experts_channels_list']
+        try:
+            channels_to_add = wandb_config.get("channel_to_add", [])
+        except AttributeError:
+            channels_to_add = []
+        MoCE_base_model_channels = MoCE_base_model_channels + channels_to_add ## the add of main_stream_channel is already done in the main function
+        try:
+            channels_to_exclude = wandb_config.get("channel_to_exclude", [])
+        except AttributeError:
+            channels_to_exclude = []
+        for ichannel in range(len(channels_to_exclude)):
+            if channels_to_exclude[ichannel] in MoCE_base_model_channels:
+                MoCE_base_model_channels.remove(channels_to_exclude[ichannel])
+            else:
+                print('{} is not in the MoCE base model channel list.'.format(channels_to_exclude[ichannel]))
+            for iexpert in range(len(MoCE_side_experts_channels_list)):
+                if channels_to_exclude[ichannel] in MoCE_side_experts_channels_list[iexpert]:
+                    MoCE_side_experts_channels_list[iexpert].remove(channels_to_exclude[ichannel])
+                else:
+                    print('{} is not in the MoCE side expert {} channel list.'.format(channels_to_exclude[ichannel], iexpert))
+        
+        cnn3D_model = ResCNN3D_MoCE(num_experts=MoCE_num_experts,
+                                    total_input_channels_list=main_stream_channel,
+                                    selected_channels_index_for_gate=selected_channels_index_for_gate,
+                                    CovLayer_padding_mode_3D=CovLayer_padding_mode_3D,
+                                    Pooling_padding_mode_3D=Pooling_padding_mode_3D,
+                                    base_model_channels=MoCE_base_model_channels,
+                                    basemodel_blocks_num=ResCNN3D_blocks_num,
+                                    basemodel_output_channels=ResCNN3D_output_channels,
+                                    base_model_apply_pooling_layer=pooling_layer_switch,
+                                    base_model_pooling_layer_type_3D=pooling_layer_type_3D,
+                                    base_model_pooling_kernel_size=ResCNN3D_pooling_kernel_size,
+                                    side_experts_channels_list=MoCE_side_experts_channels_list,
+                                    side_model_blocks_num=MoCE_side_blocks_num,
+                                    side_model_output_channels=MoCE_side_output_channels,
+                                    side_model_apply_pooling_layer=MoCE_side_pooling_kernel_switch,
+                                    side_model_pooling_layer_type_3D=MoCE_side_pooling_layer_type_3D,
+                                    side_model_pooling_kernel_size=MoCE_side_pooling_kernel_size,
+                                    num_classes=1,
+                                    include_top=True,
+                                    gating_hidden_dim=MoCE_gating_hidden_size,
+                                    )
+    else:
+        cnn3D_model = ResCNN3D(nchannel=main_stream_nchannel,
+                           block=block,
+                           blocks_num=ResCNN3D_blocks_num,
+                            output_channels=ResCNN3D_output_channels,
+                            apply_pooling_layer=pooling_layer_switch,
+                            pooling_layer_type_3D=pooling_layer_type_3D,
+                            pooling_kernel_size=ResCNN3D_pooling_kernel_size,
+                            CovLayer_padding_mode_3D=CovLayer_padding_mode_3D,
+                            Pooling_padding_mode_3D=Pooling_padding_mode_3D,
+                            num_classes=1,  # Assuming a single output for regression
+                            include_top=True  # Include the top layer for classification/regression
+    )
     return cnn3D_model
 
 class BasicBlock(nn.Module):
@@ -114,6 +174,11 @@ class ResCNN3D(nn.Module):
                     block, # block type, 'BasicBlock' or 'Bottleneck'
                     blocks_num, # number of blocks in each layer [n1, n2, n3, n4]   
                     output_channels, # output channels for each layer [c1, c2, c3, c4]
+                    apply_pooling_layer,  # whether to apply pooling layer after the first conv layer
+                    pooling_layer_type_3D,
+                    pooling_kernel_size,
+                    CovLayer_padding_mode_3D,
+                    Pooling_padding_mode_3D,
                     num_classes=1, # number of output classes
                     include_top=True, # whether to include the top layer
                  ):
@@ -122,18 +187,21 @@ class ResCNN3D(nn.Module):
         self.include_top = include_top
 
         self.actfunc = define_activation_func(activation)
+        self.apply_pooling_layer = apply_pooling_layer
+        self.pooling_layer_type_3D = pooling_layer_type_3D
+        self.CovLayer_padding_mode_3D = CovLayer_padding_mode_3D
+        self.Pooling_padding_mode_3D = Pooling_padding_mode_3D
+        self.pooling_kernel_size = pooling_kernel_size
         
         self.layer0 = nn.Sequential(
-            Conv3d(nchannel, self.in_channels, kernel_size=(ResNet3D_depth,3,3), stride=(1,1,1), padding=(0,1,1), padding_mode=CovLayer_padding_mode_3D),
+            Conv3d(nchannel, self.in_channels, kernel_size=(ResNet3D_depth,3,3), stride=(1,1,1), padding=(0,1,1), padding_mode=self.CovLayer_padding_mode_3D),
             BatchNorm3d(self.in_channels),
             self.actfunc,
         )
-        self.apply_pooling_layer = True
-
-        if Pooling_layer_type_3D == 'MaxPooling3d':
-            self.pooling = nn.MaxPool3d(kernel_size=ResCNN3D_pooling_kernel_size, stride=(1,2,2)) # output 4x4
-        elif Pooling_layer_type_3D == 'AvgPooling3d':
-            self.pooling = nn.AvgPool3d(kernel_size=ResCNN3D_pooling_kernel_size, stride=(1,2,2)) # output 4x4
+        if self.pooling_layer_type_3D == 'MaxPooling3d':
+            self.pooling = nn.MaxPool3d(kernel_size=self.pooling_kernel_size, stride=(1,2,2)) # output 4x4
+        elif self.pooling_layer_type_3D == 'AvgPooling3d':
+            self.pooling = nn.AvgPool3d(kernel_size=self.pooling_kernel_size, stride=(1,2,2)) # output 4x4
         else:
             print('Pooling layer type not supported! Please use MaxPooling3d or AvgPooling3d.')
             self.apply_pooling_layer = False
@@ -186,11 +254,11 @@ class ResCNN3D(nn.Module):
         return nn.Sequential(*layers)
     
     def forward(self, x):
+            
         x = self.layer0(x)
         if self.apply_pooling_layer:
-            x = F.pad(x,pad=(1,1,1,1,0,0,),mode=Pooling_padding_mode_3D,value=0)
+            x = F.pad(x,pad=(1,1,1,1,0,0,),mode=self.Pooling_padding_mode_3D,value=0)
             x = self.pooling(x)
-        
         #print('size of x after layer0: {}'.format(x.size()))
         x = self.layer1(x)
         #print('size of x after layer1: {}'.format(x.size()))
@@ -234,10 +302,14 @@ class GatingNetwork3D_Subset(nn.Module):
 class ResCNN3D_MoE(nn.Module):
     def __init__(self,
                  nchannel,
+                 blocks_num,
+                 output_channels, # output channels for each layer [c1, c2, c3, c4]
                  num_experts,
                  selected_channels_index_for_gate,
-                 blocks_num,
-                 output_channels,
+                 pooling_layer_type_3D,
+                 pooling_kernel_size,
+                 CovLayer_padding_mode_3D,
+                 Pooling_padding_mode_3D,
                  num_classes=1,
                  include_top=True,
                  gating_hidden_dim=64,
@@ -245,12 +317,19 @@ class ResCNN3D_MoE(nn.Module):
         super().__init__()
         # experts
         experts = []
+        self.in_channels = output_channels[0] ## output channel for the first layer ,and inchannel for other blocks
+        self.include_top = include_top
+        
         for iexpert in range(num_experts):
             block = resnet_block_lookup_table(ResCNN3D_Blocks)
             expert_model = ResCNN3D(nchannel=nchannel,
                                     block=block,
-                                    blocks_num=ResCNN3D_blocks_num,
-                                    output_channels=ResCNN3D_output_channels,
+                                    blocks_num=blocks_num,
+                                    output_channels=output_channels,
+                                    pooling_layer_type_3D=pooling_layer_type_3D,
+                                    pooling_kernel_size=pooling_kernel_size,
+                                    CovLayer_padding_mode_3D=CovLayer_padding_mode_3D,
+                                    Pooling_padding_mode_3D=Pooling_padding_mode_3D,
                                     num_classes=num_classes,
                                     include_top=include_top)
             experts.append(expert_model)
@@ -272,6 +351,116 @@ class ResCNN3D_MoE(nn.Module):
         expert_preds = []
         for expert in self.experts:
             y = expert(x)                           # experts still see all channels
+            expert_preds.append(y.view(batch_size, 1))
+        expert_outputs = torch.cat(expert_preds, dim=1)  # [B, num_experts]
+
+        y_moe = torch.sum(gates * expert_outputs, dim=1, keepdim=True)
+        return y_moe
+
+
+class ResCNN3D_MoCE(nn.Module):
+    def __init__(self,
+                 num_experts,
+                 total_input_channels_list,
+                 selected_channels_index_for_gate,
+                 CovLayer_padding_mode_3D,
+                 Pooling_padding_mode_3D,
+                 
+                 base_model_channels,
+                 basemodel_blocks_num,
+                 basemodel_output_channels,
+                 base_model_apply_pooling_layer,
+                 base_model_pooling_layer_type_3D,
+                 base_model_pooling_kernel_size,
+                 
+                 side_experts_channels_list,
+                 side_model_blocks_num,
+                 side_model_output_channels,
+                 side_model_apply_pooling_layer,
+                 side_model_pooling_layer_type_3D,
+                 side_model_pooling_kernel_size,
+                 
+                 num_classes=1,
+                 include_top=True,
+                 gating_hidden_dim=64,
+                 ):
+        super().__init__()
+        # experts
+        experts = []
+        self.total_input_channels_list = total_input_channels_list
+        self.experts_channels_list = [base_model_channels] + side_experts_channels_list
+        self.experts_channels_index = []
+        self.selected_channels_index_for_gate = selected_channels_index_for_gate
+        for iexpert in range(num_experts):
+            channels = self.experts_channels_list[iexpert]
+            channel_indices = [self.total_input_channels_list.index(ch) for ch in channels]
+            self.experts_channels_index.append(channel_indices)
+        # base model expert
+        block = resnet_block_lookup_table(ResCNN3D_Blocks)
+        nchannel = len(base_model_channels)
+        base_expert_model = ResCNN3D(nchannel=nchannel,
+                                    block=block,
+                                    blocks_num=basemodel_blocks_num,
+                                    output_channels=basemodel_output_channels,
+                                    apply_pooling_layer=base_model_apply_pooling_layer,
+                                    pooling_layer_type_3D=base_model_pooling_layer_type_3D,
+                                    pooling_kernel_size=base_model_pooling_kernel_size,
+                                    CovLayer_padding_mode_3D=CovLayer_padding_mode_3D,
+                                    Pooling_padding_mode_3D=Pooling_padding_mode_3D,
+                                    num_classes=num_classes,
+                                    include_top=include_top)
+        experts.append(base_expert_model)
+        # side model experts
+        for iexpert in range(num_experts - 1):
+            expert_channels = side_experts_channels_list[iexpert]
+            nchannel = len(expert_channels)
+            side_expert_model = ResCNN3D(nchannel=nchannel,
+                                        block=block,
+                                        blocks_num=side_model_blocks_num,
+                                        output_channels=side_model_output_channels,
+                                        apply_pooling_layer=side_model_apply_pooling_layer,
+                                        pooling_layer_type_3D=side_model_pooling_layer_type_3D,
+                                        pooling_kernel_size=side_model_pooling_kernel_size,
+                                        CovLayer_padding_mode_3D=CovLayer_padding_mode_3D,
+                                        Pooling_padding_mode_3D=Pooling_padding_mode_3D,
+                                        num_classes=num_classes,
+                                        include_top=include_top)
+            experts.append(side_expert_model)
+        self.experts = nn.ModuleList(experts)
+        
+        # gating on subset of channels
+        self.gating_network = GatingNetwork3D_Subset(
+            in_channels_subset=len(selected_channels_index_for_gate),
+            num_experts=num_experts,
+            selected_channels=selected_channels_index_for_gate,
+            hidden_dim=gating_hidden_dim,
+            activation=activation
+        )
+    
+    def _check_indices(self, x, idx, name):
+        C = x.size(1)
+        print('x size in _check_indices: ', x.size())
+        print(f'Checking indices for {name}, total channels C={C}, indices: {len(idx)}')
+        # idx can be list/np array/tensor
+        if isinstance(idx, torch.Tensor):
+            idx_cpu = idx.detach().cpu()
+            mx, mn = int(idx_cpu.max()), int(idx_cpu.min())
+        else:
+            mx, mn = max(idx), min(idx)
+        assert mn >= 0, f"{name}: has negative index (min={mn})"
+        assert mx < C, f"{name}: index out of range (max={mx}, C={C})"
+    def forward(self, x):   
+        #self._check_indices(x, self.selected_channels_index_for_gate, "GatingNetwork3D_Subset")
+        #for iexpert, expert in enumerate(self.experts):
+        #    self._check_indices(x, self.experts_channels_index[iexpert], f"Expert {iexpert}")
+        #    print(f'Expert {iexpert} indices: {self.experts_channels_index[iexpert]}')
+        gates, logits = self.gating_network(x)      # only sees selected channels
+        batch_size = x.size(0)
+
+        expert_preds = []
+        for iexpert, expert in enumerate(self.experts):
+            x_expert = x[:, self.experts_channels_index[iexpert], :, :, :]  # select channels for this expert
+            y = expert(x_expert)                           # experts only see selected channels
             expert_preds.append(y.view(batch_size, 1))
         expert_outputs = torch.cat(expert_preds, dim=1)  # [B, num_experts]
 

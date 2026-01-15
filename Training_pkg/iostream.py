@@ -27,16 +27,21 @@ def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,endd
         os.makedirs(outdir)
     if Apply_CNN_architecture:
         Model_structure_type = 'CNNModel'
-        model_outfile = outdir +  '{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, width,height, begindates,enddates,nchannel,special_name, ifold)
+        model_outfile = outdir +  '{}_{}_{}_{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, width,height, begindates,enddates,nchannel,special_name, ifold)
         torch.save(model, model_outfile)
     elif Apply_3D_CNN_architecture:
-        Model_structure_type = '3DCNNModel'
-        model_outfile = outdir +  '{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
+        if MoE_Settings:
+            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+        elif MoCE_Settings:
+            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+        else:
+            Model_structure_type = '3DCNNModel'
+        model_outfile = outdir +  '{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
         torch.save(model, model_outfile)
     
     elif Apply_Transformer_architecture:
         Model_structure_type = 'TransformerModel'
-        model_outfile = outdir +  '{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindates,enddates,nchannel,special_name, ifold)
+        model_outfile = outdir +  '{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindates,enddates,nchannel,special_name, ifold)
         torch.save(model, model_outfile)
     elif Apply_CNN_Transformer_architecture:
         Model_structure_type = 'CNNTransformerModel'
@@ -59,15 +64,20 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
     indir = model_outdir + '{}/{}/Results/results-Trained_Models/{}/'.format(species, version,evaluation_type)
     if Apply_CNN_architecture:
         Model_structure_type = 'CNNModel'
-        model_infile = indir + '{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, width,height, begindates,enddates,nchannel,special_name, ifold)
+        model_infile = indir + '{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, width,height, begindates,enddates,nchannel,special_name, ifold)
         
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
         
         model = torch.load(model_infile)
     elif Apply_3D_CNN_architecture:
-        Model_structure_type = '3DCNNModel'
-        model_infile = indir + '{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
+        if MoE_Settings:
+            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+        elif MoCE_Settings:
+            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+        else:
+            Model_structure_type = '3DCNNModel'
+        model_infile = indir + '{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
         
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
@@ -76,7 +86,7 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
 
     elif Apply_Transformer_architecture:
         Model_structure_type = 'TransformerModel'
-        model_infile = indir + '{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, evaluation_type, typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindates,enddates,nchannel,special_name, ifold)
+        model_infile = indir + '{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindates,enddates,nchannel,special_name, ifold)
         
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
@@ -85,7 +95,7 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
     
     elif Apply_CNN_Transformer_architecture:
         Model_structure_type = 'CNNTransformerModel'
-        model_infile = indir + f'{Model_structure_type}_{evaluation_type}_{typeName}_{species}_{width}x{height}_{d_model}dmodel_{n_head}heads_{ffn_hidden}ffnHidden_{num_layers}numlayers_{max_len}lens_{begindates}-{enddates}_{CNN_nchannel}CNNChannels_{Transformer_nchannel}TransformerChannels_No{ifold}.pt'
+        model_infile = indir + f'{Model_structure_type}_{typeName}_{species}_{width}x{height}_{d_model}dmodel_{n_head}heads_{ffn_hidden}ffnHidden_{num_layers}numlayers_{max_len}lens_{begindates}-{enddates}_{CNN_nchannel}CNNChannels_{Transformer_nchannel}TransformerChannels_No{ifold}.pt'
 
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))

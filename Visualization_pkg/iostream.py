@@ -16,7 +16,12 @@ def get_figure_outfile_path(outdir, evaluation_type, figure_type,typeName,begind
         Model_structure_type = 'CNNModel'    
         outfile = outdir + '{}_{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}.png'.format(Model_structure_type, evaluation_type,figure_type,typeName, species, width, height, begindate,enddate,nchannel,description)
     elif Apply_3D_CNN_architecture:
-        Model_structure_type = 'CNN3DModel'
+        if MoE_Settings:
+            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+        elif MoCE_Settings:
+            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+        else:
+            Model_structure_type = '3DCNNModel'
         outfile = outdir + '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}.png'.format(Model_structure_type, evaluation_type,figure_type,typeName, species, depth,width, height, begindate,enddate,nchannel,description)
     elif Apply_Transformer_architecture:
         Model_structure_type = 'TransformerModel'

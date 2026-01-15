@@ -56,7 +56,12 @@ def Spatial_CV_SHAP_Analysis(total_channel_names, main_stream_channel_names,
         shap_values_values, shap_values_base,shap_values_data = np.zeros([0,nchannel,width,height],dtype=np.float32),np.array([],dtype=np.float32),np.zeros([0,nchannel,width,height],dtype=np.float32) #initialize_AVD_SHAPValues_DataRecording(beginyear=test_beginyear,endyear=test_endyear)
         
     elif Apply_3D_CNN_architecture:
-        Model_structure_type = '3DCNNModel'
+        if MoE_Settings:
+            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+        elif MoCE_Settings:
+            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+        else:
+            Model_structure_type = '3DCNNModel'
         print('Init_CNN_Datasets starting...')
         start_time = time.time()
         Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
