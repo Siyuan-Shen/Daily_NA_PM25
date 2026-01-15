@@ -73,7 +73,12 @@ def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_c
         width, height = Init_CNN_Datasets.width, Init_CNN_Datasets.height
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
     elif Apply_3D_CNN_architecture:
-        Model_structure_type = '3DCNNModel' 
+        if MoE_Settings:
+            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+        elif MoCE_Settings:
+            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+        else:
+            Model_structure_type = '3DCNNModel'
         print('Init_CNN_Datasets starting...')
         start_time = time.time()
         Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
@@ -255,12 +260,6 @@ def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_c
                                         Evaluation_type,typeName,TBO_CV_training_begindates[imodel],\
                                         TBO_CV_training_enddates[imodel],ifold)
 
-                    try:
-                        channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
-                    except AttributeError:
-                        channels_to_exclude = []
-
-                    excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
                     index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                     X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:]
                     X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:]
@@ -288,12 +287,6 @@ def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_c
                                             X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                             Evaluation_type,typeName,TBO_CV_training_begindates[imodel],\
                                             TBO_CV_training_enddates[imodel],ifold)
-                    try:
-                        channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
-                    except AttributeError:
-                        channels_to_exclude = []
-
-                    excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
                     index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                     X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:,:]
                     X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:,:]
@@ -319,12 +312,6 @@ def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_c
                                             X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
                                             Evaluation_type,typeName,TBO_CV_training_begindates[imodel],\
                                             TBO_CV_training_enddates[imodel],ifold)
-                    try:
-                        channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
-                    except AttributeError:
-                        channels_to_exclude = []
-                    
-                    excluded_total_channel_names, main_stream_channel_names, side_stream_channel_names = Get_channel_names(channels_to_exclude=channels_to_exclude)
                     index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                     X_train = X_train[:,:,index_of_main_stream_channels_of_initial]
                     X_test  = X_test[:,:,index_of_main_stream_channels_of_initial]
@@ -355,12 +342,6 @@ def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_c
                                             y_train, y_test,Transformer_trainingdatasets_mean, Transformer_trainingdatasets_std, width,height,
                                             Evaluation_type,typeName,TBO_CV_training_begindates[imodel],TBO_CV_training_enddates[imodel],ifold)
                     
-                    try:
-                        CNN_channels_to_exclude = temp_sweep_config.get("CNN_channel_to_exclude", [])
-                        Transformer_channel_to_exclude = temp_sweep_config.get("Transformer_channel_to_exclude", [])
-                    except AttributeError:
-                        CNN_channels_to_exclude = []
-                        Transformer_channel_to_exclude = []
                     excluded_CNN_channel_names, main_stream_CNN_channel_names, side_stream_CNN_channel_names = Get_channel_names(channels_to_exclude=CNN_channels_to_exclude, initial_channel_names=CNN_Embedding_channel_names)
                     excluded_Transformer_channel_names, main_stream_Transformer_channel_names, side_stream_Transformer_channel_names = Get_channel_names(channels_to_exclude=Transformer_channel_to_exclude, initial_channel_names=Transformer_Embedding_channel_names)
                     index_of_main_stream_CNN_channels_of_initial = [CNN_Embedding_channel_names.index(channel) for channel in main_stream_CNN_channel_names]

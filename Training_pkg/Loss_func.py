@@ -37,11 +37,11 @@ class SelfDesigned_LossFunction(nn.Module):
                 #print('sum of masked_loss:', masked_loss.sum(),'masked_loss.view(-1): ', masked_loss.view(-1), 'sum of mask:', mask.sum())
                 #loss = masked_loss.sum() / mask.sum().clamp(min=1e-8)  # avoid divide by zero
                 loss = torch.sum(masked_loss.view(-1)) / mask.sum().clamp(min=1e-8)
-                #print('MSE Loss: {}'.format(loss))
+                print('MSE Loss: {}'.format(loss))
                 return loss
             else:
                 loss = F.mse_loss(model_output, target)
-                #print('MSE Loss: {}'.format(loss))
+                print('MSE Loss: {}'.format(loss))
                 return loss
         
         elif self.Loss_Type == 'GeoMSE':

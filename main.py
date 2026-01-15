@@ -52,7 +52,12 @@ if __name__ == "__main__":
 
     
     #### Start Running the main functions ####
-    total_channel_names, main_stream_channel_names, side_channel_names = Get_channel_names(channels_to_exclude=[])
+    if Apply_3D_CNN_architecture and MoCE_Settings:
+        total_channel_names, main_stream_channel_names, side_channel_names = Get_channel_names(channels_to_exclude=[],MoCE_base_model_channels=MoCE_base_model_channels,
+                                                                                            MoCE_side_experts_channels_list=MoCE_side_experts_channels_list)
+    else:
+        total_channel_names, main_stream_channel_names, side_channel_names = Get_channel_names(channels_to_exclude=[])
+        
     if Hyperparameters_Search_Validation_Switch:
         if HSV_Apply_wandb_sweep_Switch:
             sweep_config = wandb_sweep_config()

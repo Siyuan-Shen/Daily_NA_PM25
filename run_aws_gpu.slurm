@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="_2019_2023_OneYearModel_Epoch71_bs256_MoE3DCNN_11x11_4experts Estimation Model Training"
+#SBATCH --job-name="Bias MoCE 4 Experts CV"
 #SBATCH --partition=gpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -10,7 +10,7 @@
 #SBATCH --time=14-00:00:00
 #SBATCH -vvv
 
-pause_time=$((RANDOM % 300 + 1))
+pause_time=$((RANDOM % 30 + 1))
 echo "Pausing for $pause_time seconds..."
 sleep $pause_time
 
@@ -34,7 +34,7 @@ SNAPSHOT_DIR=$SNAPSHOT_BASE/$VERSION'_'$TIMESTAMP/
 
 echo "Creating snapshot at: $SNAPSHOT_DIR"
 mkdir -p $SNAPSHOT_DIR
-rsync -av --exclude=Results --exclude=job_output --exclude=Figures --exclude=wandb  /s.siyuan/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25/$VERSION/ $SNAPSHOT_DIR 
+rsync -av --exclude=Results --exclude=job_output --exclude=Figures --exclude=wandb --exclude=Map_Estimation /s.siyuan/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/PM25/$VERSION/ $SNAPSHOT_DIR 
 
 # Run from the snapshot
 cd $SNAPSHOT_DIR
@@ -60,7 +60,9 @@ sed -i "/'Temporal-Buffer-Out-CrossValidation'/,'Estimation-Settings'/{/'Tempora
 
 
 Estimation_trained_begin_dates=[20150101,20230101]
-Estimation_trained_end_dates=[202151231,20231231]
+Estimation_trained_end_dates=[20151231,20231231]
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Training_begin_dates'/s/:.*/: ${Estimation_trained_begin_dates},/}" config.py
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Training_end_dates'/s/:.*/: ${Estimation_trained_end_dates},/}" config.py
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_trained_begin_dates'/s/:.*/: ${Estimation_trained_begin_dates},/}" config.py
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_trained_end_dates'/s/:.*/: ${Estimation_trained_end_dates},/}" config.py
 Estimation_begindates=[[20150101],[20230101]]

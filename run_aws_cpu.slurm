@@ -1,14 +1,19 @@
 #!/bin/bash
 #SBATCH --job-name="Daily HalfYearModel Test AVD_d20250804 True True 5x5 sweep test 8GPU"
-#SBATCH --partition=cpuqueue 
+#SBATCH --partition=cpuqueue-i7i 
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --gpus=0
+#SBATCH --ntasks=1           
 #SBATCH --output=job_output/job-%j-output.txt
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=s.siyuan@wustl.edu
 #SBATCH --time=14-00:00:00
 #SBATCH -vvv
+
+# Random pause
+
+pause_time=$((RANDOM % 3 + 1))
+echo "Pausing for $pause_time seconds..."
+sleep $pause_time
 
 
 # If you're using containers with Slurm
@@ -43,18 +48,27 @@ echo "Running from snapshot: $SNAPSHOT_DIR"
 # Run your code
 cd $SNAPSHOT_DIR
 
-# Random pause
 
-# pause_time=$((RANDOM % 3 + 1))
-# echo "Pausing for $pause_time seconds..."
-# sleep $pause_time
 
 # sed -i '/section_start/,/section_end/{/key/s/:.*/: value/}'
 
 Buffer_size=[80]
 sed -i "/'BLISCO-CrossValidation'/,/'Temporal-CrossValidation'/{/'BLISCO_CV_buffer_radius_km'/s/:.*/: ${Buffer_size},/}" config.py
 
-nvidia-smi
+Temporal_Buffer_size=[0]
+sed -i "/'Temporal-Buffer-Out-CrossValidation'/,'Estimation-Settings'/{/'Temporal_Buffer_days'/s/:.*/: ${Temporal_Buffer_size},/}" config.py
+
+
+Estimation_trained_begin_dates=[20150101,20230101]
+Estimation_trained_end_dates=[202151231,20231231]
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_trained_begin_dates'/s/:.*/: ${Estimation_trained_begin_dates},/}" config.py
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_trained_end_dates'/s/:.*/: ${Estimation_trained_end_dates},/}" config.py
+Estimation_begindates=[[20150101],[20230101]]
+Estimation_enddates=[[20151231],[20231231]]
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_begindates'/s/:.*/: ${Estimation_begindates},/}" config.py
+sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_enddates'/s/:.*/: ${Estimation_enddates},/}" config.py
+
+
 
 MM=/s.siyuan/shared/tools/bin/micromamba
 ENV=/s.siyuan/shared/envs/myenv

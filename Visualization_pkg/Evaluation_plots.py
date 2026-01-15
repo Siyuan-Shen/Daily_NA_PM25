@@ -115,8 +115,15 @@ def every_point_regression_plot(plot_obs_pm25:np.array,plot_pre_pm25:np.array,
 
     ax.text(0, extentlim - (0.05 + 0.064 * 3) * extentlim, 'N = ' + str(len(every_point_plot_obs_pm25)), style='italic',
             fontsize=28)
-    cbar = plt.colorbar(im, cax=cbar_ax, orientation='vertical', shrink=1.0, ticks=[1, 10, 100,1000,10000])
-    cbar.ax.set_yticklabels(['1', '10', r'$10^2$',r'$10^3$',r'$10^4$'], fontsize=28)
+    if len(every_point_plot_obs_pm25) > 100000:
+        cbar = plt.colorbar(im, cax=cbar_ax, orientation='vertical', shrink=1.0, ticks=[1, 10, 100,1000,10000])
+        cbar.ax.set_yticklabels(['1', '10', r'$10^2$',r'$10^3$',r'$10^4$'], fontsize=28)
+    elif len(every_point_plot_obs_pm25) > 10000:
+        cbar = plt.colorbar(im, cax=cbar_ax, orientation='vertical', shrink=1.0, ticks=[1, 10, 100,1000])
+        cbar.ax.set_yticklabels(['1', '10', r'$10^2$',r'$10^3$'], fontsize=28)
+    else:
+        cbar = plt.colorbar(im, cax=cbar_ax, orientation='vertical', shrink=1.0, ticks=[1, 10, 100])
+        cbar.ax.set_yticklabels(['1', '10', r'$10^2$'], fontsize=28)
     #cbar.set_label('Number of points', fontsize=28)
 
     fig.savefig(outfile, dpi=1000,transparent = True,bbox_inches='tight' )
@@ -188,7 +195,8 @@ def longterm_regression_plot(plot_obs_pm25:np.array,plot_pre_pm25:np.array,
     #cbar.set_label('Number of points', fontsize=28)
 
     fig.savefig(outfile, dpi=1000,transparent = True,bbox_inches='tight' )
-    plt.show()
+    plt.close()
+    return
 
 def plot_R2_rRMSE_timeseries(final_data, obs_data, sites_data,dates_data,outfile):
     ## left y-axis is the R2, right y-axis is the rRMSE
@@ -212,6 +220,7 @@ def plot_R2_rRMSE_timeseries(final_data, obs_data, sites_data,dates_data,outfile
     fig.tight_layout()
     fig.savefig(outfile, dpi=1000,transparent = True,bbox_inches='tight' )
     plt.show()
+    
 
 
 def plot_final_obs_comparison(final_data, obs_data, sites_data, dates_data,outfile,area='North America',):

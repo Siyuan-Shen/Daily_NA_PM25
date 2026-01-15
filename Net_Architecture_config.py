@@ -1,6 +1,15 @@
 
 # config_network_architecture.py
-
+##
+# If want to change the network architecture, please change the settings here.
+##
+# If want to add new architecture, please add the settings here and modify the model structure code accordingly.
+# Step 1: Add the settings in this config file.
+# Step 2: import the settings in the model structure code (e.g., Model_Structure_pkg/utils.py).
+# Step 3: Modify the model structure code to implement the new architecture according to the settings. 
+# Step 4: Add the new architecture option in the wandb_config.py file for logging and sweeping.
+# Step 5: Change the code in Training_pkg/TrainingModule.py to use the new architecture.
+# Step 6: Test the new architecture with a small dataset to ensure it works correctly.
 cfg  = {
     'network-architecture':{
         "Apply_CNN_architecture": False,
@@ -86,24 +95,62 @@ cfg  = {
         },
 
         "CNN3D-architecture": {
-            "CovLayer_padding_mode_3D": "replicate",
-            "Pooling_padding_mode_3D": "replicate",
+            "CovLayer_padding_mode_3D": "replicate", # 'replicate' or 'reflect' or 'zeros' or 'circular'
+            "Pooling_padding_mode_3D": "replicate", # 'replicate' or 'reflect' or 'constant' or 'circular'
             "ResNet3D": {
                 "Settings": True, ## Default is True, do not turn it off even if you use MoE
-                "Blocks": "BasicBlock",
+                "Blocks": "BasicBlock", ## for 3D CNN, MoE, and MoCE architectures (both base and side models)
+                ## blocks_num, output_channels, pooling_kernel_size are used in ResNet3D, MoE, and MoCE base model
                 "blocks_num": [1, 1, 1, 1],
                 "output_channels": [128, 256, 512, 1024],
+                "pooling_layer_switch": True,
                 "pooling_kernel_size": (1,3,3),
-                "Pooling_layer_type_3D": "MaxPooling3d",
+                "pooling_layer_type_3D": "MaxPooling3d",
                 "Depth": 3
             },
             
         "MoE-architecture": {
-            "Settings": True, ## Turn on MoE architecture, and also turn on ResNet3D Settings
+            "Settings": False, ## Turn on MoE architecture, and also turn on ResNet3D Settings. Only one of MoE or MoCE can be True.
             "num_experts": 4,
-            "gating_hidden_size": 32,
-            "selected_channels": [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",],
-            }
+            "gating_hidden_size": 128,
+            "selected_channels": [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days","PBLH", "RH","V10M","U10M" ],
+            },
+        
+        'MoCE-architecture': { # Mixture of Channels Experts, the channels are decided here instead of the config.py
+            'Settings': True, ## Turn on MoCE architecture, and also turn on ResNet. Only one of MoE or MoCE can be True.
+            'num_experts': 4,
+            'gating_hidden_size': 128,
+            'gate_selected_channels': [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days","PBLH", "RH","V10M","U10M" ],
+            
+            'base_model_channels' : ["tSATAOD", "tSATPM25", 
+                "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
+                "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
+                "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",
+                "Urban_Builtup_Lands", 
+               "elevation", "Population", "lat", "lon", "sin_days", "cos_days",],
+            
+            "side_blocks_num": [1, 1, 1, 1],
+            "side_output_channels": [128, 256, 512, 1024],
+            "side_pooling_kernel_switch": True,
+            "side_pooling_layer_type_3D": "MaxPooling3d",
+            "side_pooling_kernel_size": (1,3,3),
+            ## Define the selected channels for each expert (length should be equal to num_experts)
+            'side_experts_channels_list': [ # len = num_experts - 1
+                [  "tSATAOD", "tSATPM25", #"eta",
+                     "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                    "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
+                     "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                    "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
+                    "Urban_Builtup_Lands", 
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", ],  
+                [ "tSATPM25", "tSATAOD", "lat", "lon", "sin_days", "cos_days", "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", ], 
+                [ "tSATAOD", "tSATPM25", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
+                        "ocfire", "pm2p5fire", "mami", "tcfire",],
+            ],
+            },   
+        
         },
 
 

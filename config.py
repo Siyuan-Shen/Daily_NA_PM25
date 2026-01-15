@@ -1,3 +1,4 @@
+import time 
 #########################################################################################################################################################
 Pathbegin_YEAR = 2018
 Pathend_YEAR = 2023
@@ -43,8 +44,8 @@ cfg = {
         
         #### Training Datasets infiles
         "TrainingDataset": {
-            "CNN_Training_infiles"          : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
-            "CNN3D_Training_infiles"        : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x11x11_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN_Training_infiles"          : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_5x5_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
+            "CNN3D_Training_infiles"        : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x5x5_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
             "Transformer_Training_infiles"  : f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/Transformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
             "CNN_Transformer_Training_infiles": f"/s.siyuan/s3/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DTransformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy",
         },
@@ -79,9 +80,9 @@ cfg = {
     'Hyperparameters_Search_Validation-Settings' : {
 
         ### Hyperparameters Search and Validation Settings
-        "Hyperparameters_Search_Validation_Switch": False,
+        "Hyperparameters_Search_Validation_Switch": True,
         "HSV_Apply_wandb_sweep_Switch"            : True,
-        "wandb_sweep_count"                       : 100,
+        "wandb_sweep_count"                       : 20,
         "Use_recorded_data_to_show_validation_results": False, # Default: False. Not applicable.
 
 
@@ -105,7 +106,7 @@ cfg = {
 
     'Random-CrossValidation' : {
 
-        "Random_CrossValidation_Switch": False,
+        "Random_CrossValidation_Switch": True,
         "Random_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Random_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -137,7 +138,7 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        "Spatial_CrossValidation_Switch": False,
+        "Spatial_CrossValidation_Switch": True,
         "Spatial_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Spatial_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -178,7 +179,7 @@ cfg = {
     #########################################################################################################################################################
     'BLISCO-CrossValidation' : {
         'BLISCO_CV_Switch': False,
-        'Use_recorded_data_to_show_validation_results': False,
+        'Use_recorded_data_to_show_validation_results': True,
         
         ##### BLISCO Cross Validation Settings #####
         'Training-Settings': {
@@ -197,21 +198,21 @@ cfg = {
         
         ##### BLISCO Cross Visualization Settings ####
         'Visualization_Settings': {
-            'Test_Train_Buffers_Distributions_plot_switch': True
+            'Test_Train_Buffers_Distributions_plot_switch': False
         },
     },
     
     #########################################################################################################################################################
     'Temporal-CrossValidation' : {
 
-        "Temporal_CrossValidation_Switch": False,
+        "Temporal_CrossValidation_Switch": True,
         "Use_recorded_data_to_show_validation_results": False,
 
         ##### Temporal Cross Validation Settings #####
         "Training-Settings": {
             "Temporal_CV_folds": 10,
-            "Temporal_CV_training_begindates": [20190101,20190501,20191101,20200501,20201101,20210501,20211101,20220501,20221101,20230501,20231101],
-            "Temporal_CV_training_enddates": [20190430,20191031,20200430,20201031,20210430,20211031,20220430,20221031,20230430,20231031,20231231],
+            "Temporal_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
+            "Temporal_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
             "Temporal_CV_validation_begindates": [20190101,20220101],
             "Temporal_CV_validation_enddates": [20231231,20231231],
             "additional_validation_regions": [
@@ -261,15 +262,15 @@ cfg = {
     },
     #########################################################################################################################################################
     'Estimation-Settings' : {
-        'Estimation_Switch': True,
+        'Estimation_Switch': False,
         'Train_model_Switch': False,
         'Map_estimation_Switch': True,
-        'Estimation_visualization_Switch': False,
+        'Estimation_visualization_Switch': True,
 
         ###### Training Settings ######
         'Training_Settings': {
-            'Training_begin_dates': [20220101,20230101],
-            'Training_end_dates': [20221231,20231231],
+            'Training_begin_dates': [20190101,20200101,20210101,20220101,20230101],
+            'Training_end_dates': [20191231,20201231,20211231,20221231,20231231],
         },
         ###### Estimation Settings ######
         'Map_Estimation_Settings': {
@@ -312,17 +313,17 @@ cfg = {
     'Training-Settings' : {
         "identity": {
             "version": "v0.4.0",
-            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_2019_2023_OneYearModel_Epoch71_bs256_MoE3DCNN_11x11_4experts",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_OneModelEachYear_Test1",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
-            "runningdate": "2025-08-31"
+            "runningdate": "{}-{}-{}".format(time.strftime("%Y"), time.strftime("%m"), time.strftime("%d"))
         },
         "learning-objective": {
             "species": "PM25",
             "normalize_type": "Gaussian", # Options: "Gaussian", "MinMax", "Robust",only applicable to learning objects normalize_species or normalize_bias
-            "bias": False,
+            "bias": True,
             "normalize_bias": False,
-            "normalize_species": True,
+            "normalize_species": False,
             "absolute_species": False,
             "log_species": False,
         },
@@ -332,16 +333,20 @@ cfg = {
 
             ##################################################################################################################
             ## This is for 2DCNN, 3DCNN, and transformer architectures. tSATPM25 must be included.
-            "channel_names": [
+            ## If use MoCE architecture, the selected channels for each expert and gate are defined in Net_Architecture_config.py
+            "channel_names": 
+               
+                [
                  "tSATAOD", "tSATPM25", #"eta",
                 "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                 "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
                 "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
-                "Urban_Builtup_Lands", 
-                "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
-                #"ocfire", "pm2p5fire", "mami", "tcfire",
-
+                "Urban_Builtup_Lands", "Permanent-Snow-Ice",'Grasslands','Evergreen-Broadleaf-Forests',
+               "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
+               # "ocfire", "pm2p5fire", "mami", "tcfire",
+               # 'Crop_Nat_Vege_Mos', 'Permanent_Wetlands', 'Croplands', 
+               # 'major_roads', 'minor_roads', 'motorway', 'primary', 'secondary', 'trunk', 'unclassified', 'residential'
             ], 
 
             ##################################################################################################################

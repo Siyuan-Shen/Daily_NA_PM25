@@ -141,6 +141,8 @@ ELU_ACF = activation_function_cfg['ELU']['Settings']
 def Get_channel_names(channels_to_exclude:list,**args):
 
     init_channels = args.get('init_channels',[])
+    MoCE_base_model_channels_list = args.get('MoCE_base_model_channels',[])
+    MoCE_side_experts_channels_lists = args.get('MoCE_side_experts_channels_list',[])
     if Apply_CNN_architecture:
         if ResNet_Settings or ResNet_MLP_Settings or ResNet_Classification_Settings or ResNet_MultiHeadNet_Settings:
             if len(channels_to_exclude) == 0:
@@ -206,22 +208,53 @@ def Get_channel_names(channels_to_exclude:list,**args):
                         print('{} is not in the side channel list.'.format(channels_to_exclude[ichannel]))
     elif Apply_3D_CNN_architecture or Apply_Transformer_architecture:
         if len(channels_to_exclude) == 0:
-            total_channel_names = channel_names.copy()
-            main_stream_channel_names = channel_names.copy()
-            side_channel_names = []
+            if MoCE_Settings:
+                 total_channel_names = MoCE_base_model_channels_list.copy()
+                 main_stream_channel_names = MoCE_base_model_channels_list.copy()
+                 side_channel_names = []
+                 for iexpert in range(len(MoCE_side_experts_channels_lists)):
+                     total_channel_names = total_channel_names + MoCE_side_experts_channels_lists[iexpert]
+                     main_stream_channel_names = main_stream_channel_names + MoCE_side_experts_channels_lists[iexpert]
+                 total_channel_names = list(dict.fromkeys(total_channel_names))
+                 main_stream_channel_names = list(dict.fromkeys(main_stream_channel_names))
+                 side_channel_names = []
+            else:
+                total_channel_names = channel_names.copy()
+                main_stream_channel_names = channel_names.copy()
+                side_channel_names = []
         else:
-            total_channel_names = channel_names.copy()
-            main_stream_channel_names = channel_names.copy()
-            side_channel_names = []
-            for ichannel in range(len(channels_to_exclude)):
-                if channels_to_exclude[ichannel] in total_channel_names:
-                    total_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
-                if channels_to_exclude[ichannel] in main_stream_channel_names:
-                    main_stream_channel_names.remove(channels_to_exclude[ichannel])
-                else:
-                    print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
+            if MoCE_Settings:
+                total_channel_names = MoCE_base_model_channels_list.copy()
+                main_stream_channel_names = MoCE_base_model_channels_list.copy()
+                side_channel_names = []
+                for iexpert in range(len(MoCE_side_experts_channels_lists)):
+                    total_channel_names = total_channel_names + MoCE_side_experts_channels_lists[iexpert]
+                    main_stream_channel_names = main_stream_channel_names + MoCE_side_experts_channels_lists[iexpert]
+                total_channel_names = list(dict.fromkeys(total_channel_names))
+                main_stream_channel_names = list(dict.fromkeys(main_stream_channel_names))
+                side_channel_names = []
+                for ichannel in range(len(channels_to_exclude)):
+                    if channels_to_exclude[ichannel] in total_channel_names:
+                        total_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
+                    if channels_to_exclude[ichannel] in main_stream_channel_names:
+                        main_stream_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
+            else:
+                total_channel_names = channel_names.copy()
+                main_stream_channel_names = channel_names.copy()
+                side_channel_names = []
+                for ichannel in range(len(channels_to_exclude)):
+                    if channels_to_exclude[ichannel] in total_channel_names:
+                        total_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the total channel list.'.format(channels_to_exclude[ichannel]))
+                    if channels_to_exclude[ichannel] in main_stream_channel_names:
+                        main_stream_channel_names.remove(channels_to_exclude[ichannel])
+                    else:
+                        print('{} is not in the main channel list.'.format(channels_to_exclude[ichannel]))
     elif Apply_CNN_Transformer_architecture:
         if len(channels_to_exclude) == 0:
             total_channel_names = init_channels.copy()

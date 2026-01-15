@@ -115,10 +115,24 @@ def inputfiles_table(YYYY, MM, DD):
         'SSLT_offline_emi'   : Offline_Emissions_input_indir + '{}/SSLT-em-EMI_Total_001x001_NA_{}{}.npy'.format(YYYY,YYYY,MM),
         
         ##################### [Variables from Land Cover] ###################
+        
+        'Barren'             : LandCover_input_indir + 'Barren/Barren-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Closed-Shrublands'  : LandCover_input_indir + 'Closed-Shrublands/Closed-Shrublands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         'Crop_Nat_Vege_Mos'  : LandCover_input_indir + 'Cropland-Natural-Vegetation-Mosaics/Cropland-Natural-Vegetation-Mosaics-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
-        'Permanent_Wetlands' : LandCover_input_indir + 'Permanent-Wetlands/Permanent-Wetlands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         'Croplands'          : LandCover_input_indir + 'Croplands/Croplands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Deciduous-Broadleaf-Forests' : LandCover_input_indir + 'Deciduous-Broadleaf-Forests/Deciduous-Broadleaf-Forests-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Deciduous-Needleleaf-Forests' : LandCover_input_indir + 'Deciduous-Needleleaf-Forests/Deciduous-Needleleaf-Forests-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Evergreen-Broadleaf-Forests' : LandCover_input_indir + 'Evergreen-Broadleaf-Forests/Evergreen-Broadleaf-Forests-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Evergreen-Needleleaf-Forests' : LandCover_input_indir + 'Evergreen-Needleleaf-Forests/Evergreen-Needleleaf-Forests-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Grasslands'         : LandCover_input_indir + 'Grasslands/Grasslands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Mixed-Forests'      : LandCover_input_indir + 'Mixed-Forests/Mixed-Forests-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Open-Shrublands'    : LandCover_input_indir + 'Open-Shrublands/Open-Shrublands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Permanent-Snow-Ice' : LandCover_input_indir + 'Permanent-Snow-Ice/Permanent-Snow-Ice-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Permanent_Wetlands' : LandCover_input_indir + 'Permanent-Wetlands/Permanent-Wetlands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Savannas'           : LandCover_input_indir + 'Savannas/Savannas-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         'Urban_Builtup_Lands': LandCover_input_indir + 'Urban-Builtup-Lands/Urban-Builtup-Lands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Water-Bodies'       : LandCover_input_indir + 'Water-Bodies/Water-Bodies-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
+        'Woody-Shrublands'   : LandCover_input_indir + 'Woody-Shrublands/Woody-Shrublands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         
         ##################### [GFAS Fire Emission] ###################
 
