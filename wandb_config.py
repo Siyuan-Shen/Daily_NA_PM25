@@ -43,7 +43,7 @@ def wandb_run_config():
             run_config["MoCE_side_pooling_kernel_switch"] = MoCE_side_pooling_kernel_switch
             run_config["MoCE_side_pooling_layer_type_3D"] = MoCE_side_pooling_layer_type_3D
             run_config["MoCE_side_pooling_kernel_size"] = MoCE_side_pooling_kernel_size
-            run_config["xd"] = MoCE_side_experts_channels_list
+            run_config["MoCE_side_experts_channels_list"] = MoCE_side_experts_channels_list
             
     if Apply_Transformer_architecture:
         run_config = {
@@ -113,7 +113,25 @@ def init_get_sweep_config():
 
 
 ### This is for the sweep for MoCE channel pool selection.
-MOCE_CHANNEL_POOL =[ [  "tSATAOD", "tSATPM25", #"eta",
+MOCE_CHANNEL_POOL =[
+                    [  "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                    "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
+                    "lat", "lon", "sin_days", "cos_days", ],
+                    ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                            "elevation", "Population", ],
+                    [ "tSATAOD", "tSATPM25", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                        "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
+                            "ocfire", "pm2p5fire", "mami", "tcfire",],] ### Put the comments outside, otherwise the length will be real length + 1
+                            
+""" 
+                    [  "tSATAOD", "tSATPM25", #"eta",
+                     "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                    "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
+                     "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                    "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
+                    "Urban_Builtup_Lands", 'Grasslands','Evergreen-Broadleaf-Forests',
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", ],  
+                     [  "tSATAOD", "tSATPM25", #"eta",
                      "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                     "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                      "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
@@ -125,23 +143,38 @@ MOCE_CHANNEL_POOL =[ [  "tSATAOD", "tSATPM25", #"eta",
                     "lat", "lon", "sin_days", "cos_days", ],
                     ["tSATPM25", "tSATAOD", "lat", "lon", "sin_days", "cos_days", "ocfire", "pm2p5fire", "mami", "tcfire",],
                     [ "tSATPM25", "tSATAOD", "lat", "lon", "sin_days", "cos_days", "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", ], 
+                    
                     [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days","NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
                          "BC_anthro_emi", "Urban_Builtup_Lands", "Population", ], 
                     ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
                          "elevation", "Population", ],
+                    
                     [ "tSATAOD", 
                         "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                         "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                         "Urban_Builtup_Lands", 'Grasslands','Evergreen-Broadleaf-Forests',
                     "elevation", "Population", "lat", "lon", "sin_days", "cos_days",],
+                    
                      ["tSATAOD", "tSATPM25",
                         "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
                          "elevation", "Population", "lat", "lon", "sin_days", "cos_days",],
+                     
                     [ "tSATAOD", "tSATPM25", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
                     "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
                         "ocfire", "pm2p5fire", "mami", "tcfire",],
                     
-                            ] 
+                    ["tSATAOD","PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
+                     "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                    "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
+                    "Urban_Builtup_Lands", 
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", "ocfire", "pm2p5fire", "mami", "tcfire", ],
+                    
+                    ["tSATAOD","PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
+                     "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                    "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
+                    "Urban_Builtup_Lands", 'Grasslands','Evergreen-Broadleaf-Forests',
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", "ocfire", "pm2p5fire", "mami", "tcfire", ]
+"""
 
 def wandb_sweep_config():
     # Define the sweep configuration
@@ -186,7 +219,7 @@ def wandb_sweep_config():
         }
     if Apply_3D_CNN_architecture:
         sweep_configuration = {
-            'name':'HSV_3DCNN_Sweep_Normalized_Speices_Variables_test',  # Name of the sweep
+            'name':'HSV_3DCNN_MoCE_Sweep_Normalized_Speices_fixed_channels_Net_Structure',  # Name of the sweep
             'entity': 'ACAG-NorthAmericaDailyPM25',  # Your wandb entity (team name)
             'project': version,  # Your wandb project name
             'method': "random",  # 'grid', 'random', 'bayes'
@@ -196,19 +229,19 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [0.0003]
+                    'values': [ 0.0003]
                 },
                 'batch_size': {
                     'values': [256]
                 },
                 'epoch':{
-                    'values': [71]
+                    'values': [71,91,111]
                 },
                 'pooling_layer_switch': {
-                    'values': [True]
+                    'values': [True,False]
                 },
                 'pooling_layer_type_3D': {
-                    'values': ['MaxPooling3d'] #'AvgPooling3d', 'MaxPooling3d'
+                    'values': ['MaxPooling3d','AvgPooling3d'] #'AvgPooling3d', 'MaxPooling3d'
                 },
                 
                 'ResCNN3D_pooling_kernel_size': {
@@ -216,10 +249,10 @@ def wandb_sweep_config():
                 },
                 
                 'CovLayer_padding_mode_3D': {
-                    'values': ['replicate']#, 'reflect', 'zeros', 'circular'] # 'replicate' or 'reflect' or 'zeros' or 'circular'
+                    'values': ['replicate','reflect', 'zeros', 'circular']#, 'reflect', 'zeros', 'circular'] # 'replicate' or 'reflect' or 'zeros' or 'circular'
                 },
                 'Pooling_padding_mode_3D': {
-                    'values': ['replicate']#, 'reflect', 'constant', 'circular'] # 'replicate' or 'reflect' or 'constant' or 'circular'
+                    'values': ['replicate','reflect', 'constant', 'circular']#, 'reflect', 'constant', 'circular'] # 'replicate' or 'reflect' or 'constant' or 'circular'
                 },
                  
                 'ResCNN3D_blocks_num': {
@@ -285,18 +318,21 @@ def wandb_sweep_config():
                 'values': [4]
             }
             sweep_configuration['parameters']['MoCE_gating_hidden_size'] = {
-                'values': [128]
+                'values': [64,128,256,512]
             }
             sweep_configuration['parameters']['MoCE_selected_channels_index_for_gate'] = {
-                'values': [ #[ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",],
-                            [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",   
-                                "PBLH", "RH","V10M", "U10M", ],
-                                #[ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
-                                #"Urban_Builtup_Lands", "Population", ],
+                'values': [[ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",],
+                           [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",   
+                               "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", ],
+                                [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
+                                "Urban_Builtup_Lands",  'Grasslands','Evergreen-Broadleaf-Forests', "Population", ],
                                #[ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
                                # "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",],
-                               # [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
-                               # "PBLH", "RH","V10M", "U10M",
+                                [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
+                                "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",],
+                                ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
+                                 "ocfire", "pm2p5fire", "mami", "tcfire",
+                                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", ],
                                # "Urban_Builtup_Lands", "Population",
                                # "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",],
                             ]   
@@ -308,25 +344,25 @@ def wandb_sweep_config():
                 "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
                     "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
                     "Urban_Builtup_Lands", 
-                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", ],]
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", ]]
             }
             
             sweep_configuration['parameters']['MoCE_side_blocks_num'] = {
-                'values': [[1,1,1,1],]
+                'values': [[1,1,1,1],[1,0,1,0],[1,1,1,0],[1,0,0,1]]
             }
             sweep_configuration['parameters']['MoCE_side_output_channels'] = {
-                'values': [[128,256,512,1024],]
+                'values': [[128,256,512,1024],[128,128,256,256],[256,512,512,1024], [64,128,256,512],]
             }
             sweep_configuration['parameters']['MoCE_side_pooling_kernel_switch'] = {
-                'values': [True]
+                'values': [True,False]
             }
             sweep_configuration['parameters']['MoCE_side_pooling_layer_type_3D'] = {
-                'values': ['MaxPooling3d']
+                'values': ['MaxPooling3d','AvgPooling3d'] #'AvgPooling3d', 'MaxPooling3d'
             }
             sweep_configuration['parameters']['MoCE_side_pooling_kernel_size'] = {
                 'values': [(1,3,3),]
             }
-            combo_indices = list(itertools.combinations(range(len(MOCE_CHANNEL_POOL)), MoCE_num_experts - 1))
+            combo_indices = list(itertools.combinations(range(len(MOCE_CHANNEL_POOL)), MoCE_num_experts - 1)) ## have to adjust MoCE_num_experts at Net_Architecture.py accordingly.
             sweep_configuration['parameters']['channel_combo'] = {
                 'values': [list(c) for c in combo_indices]  # e.g. [0, 4, 7]
             }

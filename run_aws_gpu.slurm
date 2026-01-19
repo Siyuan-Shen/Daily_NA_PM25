@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="Bias MoCE 4 Experts CV"
+#SBATCH --job-name="MoCE 4 Experts Sweep"
 #SBATCH --partition=gpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

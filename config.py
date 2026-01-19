@@ -82,7 +82,7 @@ cfg = {
         ### Hyperparameters Search and Validation Settings
         "Hyperparameters_Search_Validation_Switch": True,
         "HSV_Apply_wandb_sweep_Switch"            : True,
-        "wandb_sweep_count"                       : 20,
+        "wandb_sweep_count"                       : 100,
         "Use_recorded_data_to_show_validation_results": False, # Default: False. Not applicable.
 
 
@@ -106,7 +106,7 @@ cfg = {
 
     'Random-CrossValidation' : {
 
-        "Random_CrossValidation_Switch": True,
+        "Random_CrossValidation_Switch": False,
         "Random_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Random_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -138,7 +138,7 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        "Spatial_CrossValidation_Switch": True,
+        "Spatial_CrossValidation_Switch": False,
         "Spatial_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Spatial_CV": 100,
         "Use_recorded_data_to_show_validation_results": False,
@@ -205,7 +205,7 @@ cfg = {
     #########################################################################################################################################################
     'Temporal-CrossValidation' : {
 
-        "Temporal_CrossValidation_Switch": True,
+        "Temporal_CrossValidation_Switch": False,
         "Use_recorded_data_to_show_validation_results": False,
 
         ##### Temporal Cross Validation Settings #####
@@ -313,7 +313,7 @@ cfg = {
     'Training-Settings' : {
         "identity": {
             "version": "v0.4.0",
-            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_OneModelEachYear_Test1",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_OneModelEachYear_Test2",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "{}-{}-{}".format(time.strftime("%Y"), time.strftime("%m"), time.strftime("%d"))
@@ -321,9 +321,9 @@ cfg = {
         "learning-objective": {
             "species": "PM25",
             "normalize_type": "Gaussian", # Options: "Gaussian", "MinMax", "Robust",only applicable to learning objects normalize_species or normalize_bias
-            "bias": True,
+            "bias": False,
             "normalize_bias": False,
-            "normalize_species": False,
+            "normalize_species": True,
             "absolute_species": False,
             "log_species": False,
         },
@@ -415,7 +415,7 @@ cfg = {
         },
 
         "activation_func": {
-            "activation_func_name": "relu",
+            "activation_func_name": "relu", ## This is for initialization only
             "ReLU": {"Settings": False},
             "Tanh": {"Settings": True},
             "GeLU": {"Settings": False},
