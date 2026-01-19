@@ -137,14 +137,11 @@ cfg  = {
             "side_pooling_kernel_size": (1,3,3),
             ## Define the selected channels for each expert (length should be equal to num_experts)
             'side_experts_channels_list': [ # len = num_experts - 1
-                [  "tSATAOD", "tSATPM25", #"eta",
-                     "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                [  "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                     "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
-                     "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
-                    "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
-                    "Urban_Builtup_Lands", 
-                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", ],  
-                [ "tSATPM25", "tSATAOD", "lat", "lon", "sin_days", "cos_days", "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", ], 
+                    "lat", "lon", "sin_days", "cos_days", ],
+                ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                         "elevation", "Population", ],
                 [ "tSATAOD", "tSATPM25", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
                     "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
                         "ocfire", "pm2p5fire", "mami", "tcfire",],
