@@ -81,7 +81,7 @@ def BLISCO_cross_validation(buffer_radius,total_channel_names, main_stream_chann
         elif MoCE_Settings:
             Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = '3DCNNModel' 
+            Model_structure_type = 'CNN3DModel' 
         print('Init_CNN_Datasets starting...')
         start_time = time.time()
         Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)

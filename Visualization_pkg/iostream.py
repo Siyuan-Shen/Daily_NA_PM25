@@ -21,7 +21,7 @@ def get_figure_outfile_path(outdir, evaluation_type, figure_type,typeName,begind
         elif MoCE_Settings:
             Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = '3DCNNModel'
+            Model_structure_type = 'CNN3DModel'
         outfile = outdir + '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}.png'.format(Model_structure_type, evaluation_type,figure_type,typeName, species, depth,width, height, begindate,enddate,nchannel,description)
     elif Apply_Transformer_architecture:
         Model_structure_type = 'TransformerModel'

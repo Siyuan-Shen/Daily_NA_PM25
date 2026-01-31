@@ -26,7 +26,7 @@ def get_Estimation_recording_filename(outdir, file_target,typeName,Area,YYYY,MM,
         elif MoCE_Settings:
             Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = '3DCNNModel'
+            Model_structure_type = 'CNN3DModel'
         outdir = outdir + f'{species}/{version}/{file_target}/{YYYY}/{MM}/'
         if not os.path.isdir(outdir):
             os.makedirs(outdir)

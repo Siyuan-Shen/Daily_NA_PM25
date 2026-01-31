@@ -35,7 +35,7 @@ def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,endd
         elif MoCE_Settings:
             Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = '3DCNNModel'
+            Model_structure_type = 'CNN3DModel'
         model_outfile = outdir +  '{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
         torch.save(model, model_outfile)
     
@@ -64,7 +64,7 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
     indir = model_outdir + '{}/{}/Results/results-Trained_Models/{}/'.format(species, version,evaluation_type)
     if Apply_CNN_architecture:
         Model_structure_type = 'CNNModel'
-        model_infile = indir + '{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, width,height, begindates,enddates,nchannel,special_name, ifold)
+        model_infile = indir + '{}_{}_{}_{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, width,height, begindates,enddates,nchannel,special_name, ifold)
         
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
@@ -76,7 +76,7 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
         elif MoCE_Settings:
             Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = '3DCNNModel'
+            Model_structure_type = 'CNN3DModel'
         model_infile = indir + '{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
         
         if not os.path.isfile(model_infile):
