@@ -106,7 +106,7 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         elif MoCE_Settings:
             Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(temp_sweep_config['MoCE_num_experts'])
         else:
-            Model_structure_type = '3DCNNModel'
+            Model_structure_type = 'CNN3DModel'
             
         print('Init_3DCNN_Datasets starting...')
         start_time = time.time()
