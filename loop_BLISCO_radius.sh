@@ -5,9 +5,9 @@ start_radius=0
 end_radius=110
 radius_bin=20
 
-radii=(0 1 3 10 20 30 40 50 70 100)
+radii=(0 1 3 5 10 20 30 40 50 70 100)
 # Job script file
-job_script="run_aws_cpu.slurm"
+job_script="run_aws_gpu.slurm"
 count=0
 # Loop through the years
 #for (( radius=$start_radius; radius<=$end_radius; radius+=$radius_bin )); do

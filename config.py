@@ -5,7 +5,7 @@ Pathend_YEAR = 2023
 AVD_OBS_version = 'AVD_d20250804' # 'AVD_d20240814' 'AVD_d20250804'
 AVD_GEO_version = 'vAOD20240322vGEO20241212'
 
-Use_AOD_nan_values_filtered_Obs = True ## True: use the AOD that is not filled to filter the obs, high quality geophysical a priori; False: use the filled AOD
+Use_AOD_nan_values_filtered_Obs = False ## True: use the AOD that is not filled to filter the obs, high quality geophysical a priori; False: use the filled AOD
 Include_NAPS = True ### True: include NAPS data; False: not include NAPS data
 NAPS_version = 'NAPS_20250807' # 'NAPS_20250807', 'NAPS-20240813'
 
@@ -80,7 +80,7 @@ cfg = {
     'Hyperparameters_Search_Validation-Settings' : {
 
         ### Hyperparameters Search and Validation Settings
-        "Hyperparameters_Search_Validation_Switch": True,
+        "Hyperparameters_Search_Validation_Switch": False,
         "HSV_Apply_wandb_sweep_Switch"            : True,
         "wandb_sweep_count"                       : 100,
         "Use_recorded_data_to_show_validation_results": False, # Default: False. Not applicable.
@@ -179,7 +179,7 @@ cfg = {
     #########################################################################################################################################################
     'BLISCO-CrossValidation' : {
         'BLISCO_CV_Switch': False,
-        'Use_recorded_data_to_show_validation_results': True,
+        'Use_recorded_data_to_show_validation_results': False,
         
         ##### BLISCO Cross Validation Settings #####
         'Training-Settings': {
@@ -233,7 +233,7 @@ cfg = {
     #########################################################################################################################################################
     'Temporal-Buffer-Out-CrossValidation' : {
 
-        "Temporal_Buffer_Out_CrossValidation_Switch": False,
+        "Temporal_Buffer_Out_CrossValidation_Switch": True,
         "Use_recorded_data_to_show_validation_results": False,
 
         ##### Temporal Cross Validation Settings #####
@@ -263,9 +263,9 @@ cfg = {
     #########################################################################################################################################################
     'Estimation-Settings' : {
         'Estimation_Switch': False,
-        'Train_model_Switch': False,
-        'Map_estimation_Switch': True,
-        'Estimation_visualization_Switch': True,
+        'Train_model_Switch': True,
+        'Map_estimation_Switch': False,
+        'Estimation_visualization_Switch': False,
 
         ###### Training Settings ######
         'Training_Settings': {
@@ -312,8 +312,8 @@ cfg = {
 
     'Training-Settings' : {
         "identity": {
-            "version": "v0.4.0",
-            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_OneModelEachYear_Test2",
+            "version": "v1.0.0",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_OneModelEachYear_RatioCalibration_BenchMark",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "{}-{}-{}".format(time.strftime("%Y"), time.strftime("%m"), time.strftime("%d"))
@@ -329,7 +329,7 @@ cfg = {
         },
         "hyper-parameters": {
             "epoch": 71, # 2DCNN: 131; 3DCNN:71; Transformer:111
-            "batchsize": 256,# 2DCNN: 256; 3DCNN:128; Transformer:32
+            "batchsize": 256,# 2DCNN: 256; 3DCNN:256; 3DCNN MoCE: 256; Transformer:32
 
             ##################################################################################################################
             ## This is for 2DCNN, 3DCNN, and transformer architectures. tSATPM25 must be included.
@@ -337,12 +337,12 @@ cfg = {
             "channel_names": 
                
                 [
-                 "tSATAOD", "tSATPM25", #"eta",
+                 "tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration", #"eta",
                 "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                 "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
                 "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
-                "Urban_Builtup_Lands", "Permanent-Snow-Ice",'Grasslands','Evergreen-Broadleaf-Forests',
+                "Urban_Builtup_Lands", 
                "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
                # "ocfire", "pm2p5fire", "mami", "tcfire",
                # 'Crop_Nat_Vege_Mos', 'Permanent_Wetlands', 'Croplands', 
