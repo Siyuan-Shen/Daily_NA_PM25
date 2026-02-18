@@ -113,16 +113,20 @@ cfg  = {
             "Settings": False, ## Turn on MoE architecture, and also turn on ResNet3D Settings. Only one of MoE or MoCE can be True.
             "num_experts": 4,
             "gating_hidden_size": 128,
-            "selected_channels": [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days","PBLH", "RH","V10M","U10M" ],
+            "selected_channels": ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
+                                 #"ocfire", "pm2p5fire", "mami", "tcfire",
+                                 "PBLH", "RH", "V10M", "U10M",], # "PS",  "PRECTOT", "T2M",],
             },
         
         'MoCE-architecture': { # Mixture of Channels Experts, the channels are decided here instead of the config.py
             'Settings': True, ## Turn on MoCE architecture, and also turn on ResNet. Only one of MoE or MoCE can be True.
             'num_experts': 4,
             'gating_hidden_size': 128,
-            'gate_selected_channels': [ "tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days","PBLH", "RH","V10M","U10M" ],
+            'gate_selected_channels': ["tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration","lat", "lon", "sin_days", "cos_days",
+                                "ocfire", "pm2p5fire", "mami", "tcfire",
+                                 "PBLH", "RH",  "V10M", "U10M", "PS","PRECTOT", "T2M", ],
             
-            'base_model_channels' : ["tSATAOD", "tSATPM25", 
+            'base_model_channels' : ["tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration", 
                 "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                 "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
@@ -140,14 +144,13 @@ cfg  = {
                 [  "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                     "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                     "lat", "lon", "sin_days", "cos_days", ],
-                ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                ["tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration","lat", "lon", "sin_days", "cos_days", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
                          "elevation", "Population", ],
-                [ "tSATAOD", "tSATPM25", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                [ "tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
                     "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
                         "ocfire", "pm2p5fire", "mami", "tcfire",],
             ],
             },   
-        
         },
 
 
@@ -184,3 +187,39 @@ cfg  = {
         }
     }
 }
+
+"""
+Four experts side channels:
+[  "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                    "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
+                    "lat", "lon", "sin_days", "cos_days", ],
+                ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                         "elevation", "Population", ],
+                [ "tSATAOD", "tSATPM25", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
+                        "ocfire", "pm2p5fire", "mami", "tcfire",],
+                        
+Six experts side channels:
+
+[  "tSATAOD", "tSATPM25",
+                     "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
+                    "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS",
+                     "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                    "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",
+                    "Urban_Builtup_Lands", 'Grasslands','Evergreen-Broadleaf-Forests',
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", ],
+                ["tSATPM25", "tSATAOD", "lat", "lon", "sin_days", "cos_days", "ocfire", "pm2p5fire", "mami", "tcfire",],
+                ["tSATAOD", "tSATPM25",
+                        "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                         "elevation", "Population", "lat", "lon", "sin_days", "cos_days",],
+                ["tSATAOD","PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS",
+                     "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                    "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",
+                    "Urban_Builtup_Lands",
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", "ocfire", "pm2p5fire", "mami", "tcfire", ],
+                ["tSATAOD","PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS",
+                     "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
+                    "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",
+                    "Urban_Builtup_Lands", 'Grasslands','Evergreen-Broadleaf-Forests',
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days", "ocfire", "pm2p5fire", "mami", "tcfire", ]
+"""

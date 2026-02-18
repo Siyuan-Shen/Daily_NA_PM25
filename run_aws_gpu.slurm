@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="MoCE 4 Experts Sweep"
+#SBATCH --job-name="3DCNN Ratio Calibration Temporal CV BenchMark"
 #SBATCH --partition=gpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -17,7 +17,7 @@ sleep $pause_time
 # If you're using containers with Slurm
 # Uncomment this line if needed:
 
-VERSION=v0.4.0
+VERSION=v1.0.0
 
 # Redirect W&B and tmp paths inside the container
 export WANDB_DIR=/s.siyuan/my-projects2/tmp/wandb_dir
