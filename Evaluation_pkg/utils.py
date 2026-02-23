@@ -42,6 +42,7 @@ Random_CV_Switch = Random_CV_Settings_cfg['Random_CrossValidation_Switch']
 Random_CV_Apply_wandb_sweep_Switch = Random_CV_Settings_cfg['Random_CV_Apply_wandb_sweep_Switch']
 wandb_sweep_count_Random_CV = Random_CV_Settings_cfg['wandb_sweep_count_Random_CV']
 Use_recorded_data_to_show_validation_results_Random_CV = Random_CV_Settings_cfg['Use_recorded_data_to_show_validation_results']
+Use_saved_models_to_reproduce_validation_results_Random_CV = Random_CV_Settings_cfg['Use_saved_models_to_reproduce_validation_results_Switch']
 
 Random_CV_Training_Settings_cfg = Random_CV_Settings_cfg['Training-Settings']
 Random_CV_folds = Random_CV_Training_Settings_cfg['Random_CV_folds']
@@ -66,6 +67,7 @@ Spatial_CrossValidation_Switch = Spatial_CV_Settings_cfg['Spatial_CrossValidatio
 Spatial_CV_Apply_wandb_sweep_Switch = Spatial_CV_Settings_cfg['Spatial_CV_Apply_wandb_sweep_Switch']
 wandb_sweep_count_Spatial_CV = Spatial_CV_Settings_cfg['wandb_sweep_count_Spatial_CV']
 Use_recorded_data_to_show_validation_results_Spatial_CV = Spatial_CV_Settings_cfg['Use_recorded_data_to_show_validation_results']
+Use_saved_models_to_reproduce_validation_results_Spatial_CV = Spatial_CV_Settings_cfg['Use_saved_models_to_reproduce_validation_results_Switch']
 
 Spatial_CV_Training_Settings_cfg = Spatial_CV_Settings_cfg['Training-Settings']
 Spatial_CV_folds = Spatial_CV_Training_Settings_cfg['Spatial_CV_folds']
@@ -95,6 +97,7 @@ Spatial_CV_SHAP_Analysis_plot_type = Spatial_CV_SHAP_Analysis_Settings_cfg['SHAP
 BLISCO_CV_Settings_cfg = cfg['BLISCO-CrossValidation']
 BLISCO_CrossValidation_Switch = BLISCO_CV_Settings_cfg['BLISCO_CV_Switch']
 Use_recorded_data_to_show_validation_results_BLISCO_CV = BLISCO_CV_Settings_cfg['Use_recorded_data_to_show_validation_results']
+Use_saved_models_to_reproduce_validation_results_BLISCO_CV = BLISCO_CV_Settings_cfg['Use_saved_models_to_reproduce_validation_results_Switch']
 
 BLISCO_CV_Training_Settings_cfg = BLISCO_CV_Settings_cfg['Training-Settings']
 BLISCO_CV_folds = BLISCO_CV_Training_Settings_cfg['BLISCO_CV_folds']
@@ -116,6 +119,7 @@ Test_Train_Buffers_Distributions_plot_switch = BLISCO_CV_Visualization_Settings_
 Temporal_CV_Settings_cfg = cfg['Temporal-CrossValidation']
 Temporal_CrossValidation_Switch = Temporal_CV_Settings_cfg['Temporal_CrossValidation_Switch']
 Use_recorded_data_to_show_validation_results_Temporal_CV = Temporal_CV_Settings_cfg['Use_recorded_data_to_show_validation_results']
+Use_saved_models_to_reproduce_validation_results_Temporal_CV = Temporal_CV_Settings_cfg['Use_saved_models_to_reproduce_validation_results_Switch']
 
 Temporal_CV_Training_Settings_cfg = Temporal_CV_Settings_cfg['Training-Settings']
 Temporal_CV_folds = Temporal_CV_Training_Settings_cfg['Temporal_CV_folds']
@@ -136,6 +140,7 @@ Temporal_CV_plot_enddates = Temporal_CV_Visualization_Settings_cfg['plot_enddate
 TBO_CV_Settings_cfg = cfg['Temporal-Buffer-Out-CrossValidation']
 TBO_CrossValidation_Switch = TBO_CV_Settings_cfg['Temporal_Buffer_Out_CrossValidation_Switch']
 Use_recorded_data_to_show_validation_results_TBO_CV = TBO_CV_Settings_cfg['Use_recorded_data_to_show_validation_results']
+Use_saved_models_to_reproduce_validation_results_TBO_CV = TBO_CV_Settings_cfg['Use_saved_models_to_reproduce_validation_results_Switch']
 
 TBO_CV_Training_Settings_cfg = TBO_CV_Settings_cfg['Training-Settings']
 TBO_CV_folds = TBO_CV_Training_Settings_cfg['Temporal_Buffer_Out_CV_folds']

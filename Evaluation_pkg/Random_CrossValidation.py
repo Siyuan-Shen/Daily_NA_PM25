@@ -245,16 +245,17 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                     
                     gc.collect()
                     if Apply_CNN_architecture:
-                        if world_size > 1:
-                            mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
-                                            Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
-                                            Random_CV_training_enddates[imodel],ifold),nprocs=world_size)
-                        else:
-                            CNN_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
-                                            Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
-                                            Random_CV_training_enddates[imodel],ifold)
+                        if not Use_saved_models_to_reproduce_validation_results_Random_CV:
+                            if world_size > 1:
+                                mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                    X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
+                                                Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
+                                                Random_CV_training_enddates[imodel],ifold),nprocs=world_size)
+                            else:
+                                CNN_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                    X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
+                                                Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
+                                                Random_CV_training_enddates[imodel],ifold)
 
                         index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                         X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:]
@@ -270,17 +271,17 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                                                         mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                     # 3D CNN Training
                     elif Apply_3D_CNN_architecture:
-
-                        if world_size > 1:
-                            mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
-                                                Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
-                                                Random_CV_training_enddates[imodel],ifold),nprocs=world_size)
-                        else:
-                            CNN3D_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
-                                                Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
-                                                Random_CV_training_enddates[imodel],ifold)
+                        if not Use_saved_models_to_reproduce_validation_results_Random_CV:
+                            if world_size > 1:
+                                mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                    X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
+                                                    Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
+                                                    Random_CV_training_enddates[imodel],ifold),nprocs=world_size)
+                            else:
+                                CNN3D_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                    X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
+                                                    Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
+                                                    Random_CV_training_enddates[imodel],ifold)
                         index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                         X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:,:]
                         X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:,:]
@@ -296,16 +297,17 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                     # Transformer Training
                     elif Apply_Transformer_architecture:
-                        if world_size > 1:
-                            mp.spawn(Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
-                                                Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
-                                                Random_CV_training_enddates[imodel],ifold),nprocs=world_size)
-                        else:
-                            Transformer_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
-                                                Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
-                                                Random_CV_training_enddates[imodel],ifold)
+                        if not Use_saved_models_to_reproduce_validation_results_Random_CV:
+                            if world_size > 1:
+                                mp.spawn(Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                    X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
+                                                    Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
+                                                    Random_CV_training_enddates[imodel],ifold),nprocs=world_size)
+                            else:
+                                Transformer_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
+                                                    X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
+                                                    Evaluation_type,typeName,Random_CV_training_begindates[imodel],\
+                                                    Random_CV_training_enddates[imodel],ifold)
                         index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                         X_train = X_train[:,:,index_of_main_stream_channels_of_initial]
                         X_test  = X_test[:,:,index_of_main_stream_channels_of_initial]
@@ -325,16 +327,17 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                         validation_output = np.squeeze(validation_output)
                         training_output = np.squeeze(training_output)
                     elif Apply_CNN_Transformer_architecture:
-                        if world_size > 1:
-                            mp.spawn(CNN_Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,CNN_Embedding_channel_names,Transformer_Embedding_channel_names,
-                                                X_train_CNN, X_test_CNN,X_train_Transformer, X_test_Transformer,
-                                                y_train, y_test,Transformer_trainingdatasets_mean, Transformer_trainingdatasets_std, width,height,
-                                                Evaluation_type,typeName,Random_CV_training_begindates[imodel],Random_CV_training_enddates[imodel],ifold),nprocs=world_size)
-                        else:
-                            CNN_Transformer_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,CNN_Embedding_channel_names,Transformer_Embedding_channel_names,
-                                                X_train_CNN, X_test_CNN,X_train_Transformer, X_test_Transformer,
-                                                y_train, y_test,Transformer_trainingdatasets_mean, Transformer_trainingdatasets_std, width,height,
-                                                Evaluation_type,typeName,Random_CV_training_begindates[imodel],Random_CV_training_enddates[imodel],ifold)
+                        if not Use_saved_models_to_reproduce_validation_results_Random_CV:
+                            if world_size > 1:
+                                mp.spawn(CNN_Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,CNN_Embedding_channel_names,Transformer_Embedding_channel_names,
+                                                    X_train_CNN, X_test_CNN,X_train_Transformer, X_test_Transformer,
+                                                    y_train, y_test,Transformer_trainingdatasets_mean, Transformer_trainingdatasets_std, width,height,
+                                                    Evaluation_type,typeName,Random_CV_training_begindates[imodel],Random_CV_training_enddates[imodel],ifold),nprocs=world_size)
+                            else:
+                                CNN_Transformer_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,CNN_Embedding_channel_names,Transformer_Embedding_channel_names,
+                                                    X_train_CNN, X_test_CNN,X_train_Transformer, X_test_Transformer,
+                                                    y_train, y_test,Transformer_trainingdatasets_mean, Transformer_trainingdatasets_std, width,height,
+                                                    Evaluation_type,typeName,Random_CV_training_begindates[imodel],Random_CV_training_enddates[imodel],ifold)
                         
                         try:
                             CNN_channels_to_exclude = temp_sweep_config.get("CNN_channel_to_exclude", [])
