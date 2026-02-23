@@ -3,9 +3,10 @@ import time
 Pathbegin_YEAR = 2018
 Pathend_YEAR = 2023
 AVD_OBS_version = 'AVD_d20250804' # 'AVD_d20240814' 'AVD_d20250804'
-AVD_GEO_version = 'vAOD20240322vGEO20241212'
+AVD_GEO_version = 'vAOD20251119vGEO20251120' # 'vAOD20240322vGEO20241212' # 
+GCHP_version = 'CombinedAOD_GL_v20251119'
 
-Use_AOD_nan_values_filtered_Obs = False ## True: use the AOD that is not filled to filter the obs, high quality geophysical a priori; False: use the filled AOD
+Use_AOD_nan_values_filtered_Obs = True ## True: use the AOD that is not filled to filter the obs, high quality geophysical a priori; False: use the filled AOD
 Include_NAPS = True ### True: include NAPS data; False: not include NAPS data
 NAPS_version = 'NAPS_20250807' # 'NAPS_20250807', 'NAPS-20240813'
 
@@ -109,6 +110,7 @@ cfg = {
         "Random_CrossValidation_Switch": False,
         "Random_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Random_CV": 100,
+        "Use_saved_models_to_reproduce_validation_results_Switch": False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
         "Use_recorded_data_to_show_validation_results": False,
 
         ##### Random Cross Validation Settings #####
@@ -138,18 +140,19 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        "Spatial_CrossValidation_Switch": False,
+        "Spatial_CrossValidation_Switch": True,
         "Spatial_CV_Apply_wandb_sweep_Switch": False,
         "wandb_sweep_count_Spatial_CV": 100,
+        "Use_saved_models_to_reproduce_validation_results_Switch": False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
         "Use_recorded_data_to_show_validation_results": False,
 
         ##### Spatial Cross Validation Settings #####
         "Training-Settings": {
             "Spatial_CV_folds": 10,
-            "Spatial_CV_training_begindates": [20190101,20200101,20210101,20220101,20230101],
-            "Spatial_CV_training_enddates": [20191231,20201231,20211231,20221231,20231231],
-            "Spatial_CV_validation_begindates": [20190101,20220101],
-            "Spatial_CV_validation_enddates": [20231231,20231231],
+            "Spatial_CV_training_begindates": [20230101],
+            "Spatial_CV_training_enddates": [20231231],
+            "Spatial_CV_validation_begindates": [20230101],
+            "Spatial_CV_validation_enddates": [20231231],
             "additional_validation_regions": [
                 "Canada", "Contiguous United States", "Midwestern United States", "Northeastern United States",
                 "Northern North America", "Northwestern United States", "Southern United States", "Southwestern United States"
@@ -158,8 +161,8 @@ cfg = {
 
         ##### Spatial Cross Visualization Settings ####
         "Visualization_Settings": {
-            "regression_plot_switch": True,
-            "plot_begindates": [20190101],
+            "regression_plot_switch": False,
+            "plot_begindates": [20230101],
             "plot_enddates": [20231231]
         },
         "Forced_Slope_Unity": {
@@ -180,6 +183,7 @@ cfg = {
     'BLISCO-CrossValidation' : {
         'BLISCO_CV_Switch': False,
         'Use_recorded_data_to_show_validation_results': False,
+        'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
         
         ##### BLISCO Cross Validation Settings #####
         'Training-Settings': {
@@ -207,7 +211,8 @@ cfg = {
 
         "Temporal_CrossValidation_Switch": False,
         "Use_recorded_data_to_show_validation_results": False,
-
+        "Use_saved_models_to_reproduce_validation_results_Switch": False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
+        
         ##### Temporal Cross Validation Settings #####
         "Training-Settings": {
             "Temporal_CV_folds": 10,
@@ -233,9 +238,10 @@ cfg = {
     #########################################################################################################################################################
     'Temporal-Buffer-Out-CrossValidation' : {
 
-        "Temporal_Buffer_Out_CrossValidation_Switch": True,
+        "Temporal_Buffer_Out_CrossValidation_Switch": False,
         "Use_recorded_data_to_show_validation_results": False,
-
+        "Use_saved_models_to_reproduce_validation_results_Switch": False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
+        
         ##### Temporal Cross Validation Settings #####
         "Training-Settings": {
             "Temporal_Buffer_Out_CV_folds": 10,
@@ -263,14 +269,14 @@ cfg = {
     #########################################################################################################################################################
     'Estimation-Settings' : {
         'Estimation_Switch': False,
-        'Train_model_Switch': True,
-        'Map_estimation_Switch': False,
+        'Train_model_Switch': False,
+        'Map_estimation_Switch': True,
         'Estimation_visualization_Switch': False,
 
         ###### Training Settings ######
         'Training_Settings': {
-            'Training_begin_dates': [20190101,20200101,20210101,20220101,20230101],
-            'Training_end_dates': [20191231,20201231,20211231,20221231,20231231],
+            'Training_begin_dates': [20230101],
+            'Training_end_dates': [20231231],
         },
         ###### Estimation Settings ######
         'Map_Estimation_Settings': {
@@ -312,8 +318,8 @@ cfg = {
 
     'Training-Settings' : {
         "identity": {
-            "version": "v1.0.0",
-            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_OneModelEachYear_RatioCalibration_BenchMark",
+            "version": "v1.1.0",
+            "description": f"_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_BenchMark",
             "author": "Siyuan Shen",
             "email": "s.siyuan@wustl.edu",
             "runningdate": "{}-{}-{}".format(time.strftime("%Y"), time.strftime("%m"), time.strftime("%d"))
@@ -337,8 +343,8 @@ cfg = {
             "channel_names": 
                
                 [
-                 "tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration", #"eta",
-                "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                 "tSATAOD", "tSATPM25", #"eta",
+                "GCHP_PM25", "GCHP_SO4", "GCHP_NH4", "GCHP_NIT", "GCHP_OM", "GCHP_SOA", "GCHP_DST", "GCHP_SSLT",#"GC_BC",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                 "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
                 "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
