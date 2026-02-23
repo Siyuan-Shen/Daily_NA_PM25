@@ -1,7 +1,7 @@
 from config import cfg
 import datetime
 import numpy as np
-from config import AVD_OBS_version,AVD_GEO_version,Use_AOD_nan_values_filtered_Obs
+from config import AVD_OBS_version,AVD_GEO_version,Use_AOD_nan_values_filtered_Obs,GCHP_version
 from Training_pkg.utils import MapData_fromRegionalComponentProject_Indir, MapData_Indir
 
 Estimation_Settings = cfg['Estimation-Settings']
@@ -49,11 +49,13 @@ MapData_Indir = MapData_Indir
 MapData_fromRegionalComponentProject_Indir = MapData_fromRegionalComponentProject_Indir
 AVD_version = AVD_OBS_version
 Geophysical_version = AVD_GEO_version
+GCHP_version = GCHP_version
 
 ############################################################################################
 # The indir of input mapdata.
 Geophysical_indir        = f'{MapData_Indir}Geophysical_Variables/'
 GEOS_Chem_indir          = f'{MapData_Indir}GEOS-Chem_input/'
+GCHP_indir               = f'{MapData_Indir}GCHP_input/{GCHP_version}/'
 Meteorology_indir        = f'{MapData_Indir}Meteorology_input/'
 GFAS_indir               = f'{MapData_Indir}GFAS_input/'
 Anthropogenic_Emissions_input_indir = f'{MapData_fromRegionalComponentProject_Indir}Anthropogenic_Emissions_input/'
@@ -87,6 +89,18 @@ def inputfiles_table(YYYY, MM, DD):
         'GC_DST'                : GEOS_Chem_indir + '{}/{}/DST_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'GC_SSLT'               : GEOS_Chem_indir + '{}/{}/SSLT_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
 
+        ############################################################################################################
+        # GCHP input variables
+        'GCHP_PM25'            : GCHP_indir + '{}/{}/GCPM25_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'GCHP_SO4'             : GCHP_indir + '{}/{}/SO4_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'GCHP_NH4'             : GCHP_indir + '{}/{}/NH4_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'GCHP_NIT'             : GCHP_indir + '{}/{}/NIT_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'GCHP_BC'              : GCHP_indir + '{}/{}/BC_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'GCHP_OM'              : GCHP_indir + '{}/{}/OM_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'GCHP_SOA'             : GCHP_indir + '{}/{}/SOA_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'GCHP_DST'             : GCHP_indir + '{}/{}/DST_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'GCHP_SSLT'            : GCHP_indir + '{}/{}/SSLT_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        
         ############################################################################################################
         # Meteorology input variables
         'USTAR'                 : Meteorology_indir + '{}/{}/USTAR_GEOSFP_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
@@ -213,9 +227,9 @@ def inputfiles_table(YYYY, MM, DD):
     else:
         inputfiles_dict.update({
             'eta'                   : Geophysical_indir + '{}/{}/{}/eta_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
-            'tSATAOD'               : Geophysical_indir + '{}/{}/{}/tSATAOD_fine0p01_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
-            'tSATPM25'              : Geophysical_indir + '{}/{}/{}/tSATPM25_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
-        
+            'tSATAOD'               : Geophysical_indir + '{}/Ratio_Calibrated/AOD/{}/{}/Ratio_Calibrated_AOD_map_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+            'tSATPM25'              : Geophysical_indir + '{}/Ratio_Calibrated/GeoPM25/{}/{}/Ratio_Calibrated_GeoPM25_map_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+            
         })
     return inputfiles_dict
 
