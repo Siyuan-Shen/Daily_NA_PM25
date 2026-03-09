@@ -114,8 +114,10 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
             outdir = outdir + 'sweep-{}/'.format(sweep.name)
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
-            outfile = outdir + '{}_{}_{}_{}_{}_{}x{}_{}-{}_{}Channel_sweep-{}.npy'.format(Model_structure_type, evaluation_type,file_target,typeName, species, width, height, begindate,enddate,nchannel,sweep_id)
-        outfile = outdir + '{}_{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}.npy'.format(Model_structure_type, evaluation_type,file_target,typeName, species, width, height, begindate,enddate,nchannel,description)
+            file_name = '{}_{}_{}_{}_{}_{}x{}_{}-{}_{}Channel_sweep-{}'.format(Model_structure_type, evaluation_type,file_target,typeName, species, width, height, begindate,enddate,nchannel,sweep_id)
+            
+        file_name = '{}_{}_{}_{}_{}_{}x{}_{}-{}_{}Channel{}'.format(Model_structure_type, evaluation_type,file_target,typeName, species, width, height, begindate,enddate,nchannel,description)
+        
     elif Apply_3D_CNN_architecture:
         if MoE_Settings:
             Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
@@ -129,8 +131,10 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
             outdir = outdir + 'sweep-{}/'.format(sweep.name)
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
-            outfile = outdir + '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel_sweep-{}.npy'.format(Model_structure_type, evaluation_type,file_target,typeName, species, depth,width, height, begindate,enddate,nchannel,sweep_id)
-        outfile = outdir + '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}.npy'.format(Model_structure_type, evaluation_type,file_target,typeName, species, depth,width, height, begindate,enddate,nchannel,description)
+            file_name = '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel_sweep-{}'.format(Model_structure_type, evaluation_type,file_target,typeName, species, depth,width, height, begindate,enddate,nchannel,sweep_id)
+            
+        file_name = '{}_{}_{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}'.format(Model_structure_type, evaluation_type,file_target,typeName, species, depth,width, height, begindate,enddate,nchannel,description)
+        
     elif Apply_Transformer_architecture:
         Model_structure_type = 'TransformerModel'
         if (Spatial_CrossValidation_Switch and Spatial_CV_Apply_wandb_sweep_Switch) or (Hyperparameters_Search_Validation_Switch and HSV_Apply_wandb_sweep_Switch):
@@ -139,8 +143,10 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
             outdir = outdir + 'sweep-{}/'.format(sweep.name)
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
-            outfile = outdir + '{}_{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel_sweep-{}.npy'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel, sweep_id)
-        outfile = outdir + '{}_{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}.npy'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel, description)
+            file_name = '{}_{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel_sweep-{}'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel,sweep_id)
+            
+        file_name = '{}_{}_{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}'.format(Model_structure_type, evaluation_type, file_target,typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,nchannel,description)
+        
     elif Apply_CNN_Transformer_architecture:
         Model_structure_type = 'CNNTransformerModel'
         if (Spatial_CrossValidation_Switch and Spatial_CV_Apply_wandb_sweep_Switch) or (Hyperparameters_Search_Validation_Switch and HSV_Apply_wandb_sweep_Switch):
@@ -149,8 +155,14 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
             outdir = outdir + 'sweep-{}/'.format(sweep.name)
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
-            outfile = outdir + '{}_{}_{}_{}_{}_{}x{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}CNNChannel_{}TransformerChannel_sweep-{}.npy'.format(Model_structure_type, evaluation_type, file_target,typeName, species, width,height, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,CNN_nchannel,Transformer_nchannel,sweep_id)
-        outfile = outdir + '{}_{}_{}_{}_{}_{}x{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}CNNChannel_{}TransformerChannel{}.npy'.format(Model_structure_type, evaluation_type, file_target,typeName, species, width,height, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,CNN_nchannel,Transformer_nchannel,description)
+            file_name = '{}_{}_{}_{}_{}_{}x{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}CNNChannel_{}TransformerChannel_sweep-{}'.format(Model_structure_type, evaluation_type, file_target,typeName, species, width,height, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,CNN_nchannel,Transformer_nchannel,sweep_id)
+            
+        file_name = '{}_{}_{}_{}_{}_{}x{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}CNNChannel_{}TransformerChannel{}'.format(Model_structure_type, evaluation_type, file_target,typeName, species, width,height, d_model, n_head, ffn_hidden, num_layers, max_len, begindate,enddate,CNN_nchannel,Transformer_nchannel,description)
+    if len(file_name) > 251:
+        ## cut the filename to make the file name shorter if it exceeds the limit
+        file_name = file_name[:251]
+    file_name = file_name + '.npy'
+    outfile = outdir + file_name
     return outfile
 
 def save_SHAPValues_data_recording(shap_values_values:np.array, shap_values_data:np.array,species, version, begindates,enddates, evaluation_type, typeName,nchannel,**args):

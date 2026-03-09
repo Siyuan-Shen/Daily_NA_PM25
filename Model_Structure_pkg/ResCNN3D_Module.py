@@ -1,4 +1,5 @@
 import torch
+import time
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Conv3d, BatchNorm3d, ReLU, MaxPool3d, AvgPool3d, Dropout3d
@@ -296,7 +297,6 @@ class GatingNetwork3D_Subset(nn.Module):
         h = self.actfunc(self.fc1(pooled))
         logits = self.fc2(h)                        # [B, num_experts]
         gates = F.softmax(logits, dim=-1)           # [B, num_experts]
-        print('gates[0,:]: ', gates[0,:])
         return gates, logits
     
 class ResCNN3D_MoE(nn.Module):
@@ -456,12 +456,19 @@ class ResCNN3D_MoCE(nn.Module):
         #    print(f'Expert {iexpert} indices: {self.experts_channels_index[iexpert]}')
         gates, logits = self.gating_network(x)      # only sees selected channels
         batch_size = x.size(0)
-
+        expert_times = []
         expert_preds = []
         for iexpert, expert in enumerate(self.experts):
+            #torch.cuda.synchronize()
+            #t0 = time.perf_counter()
             x_expert = x[:, self.experts_channels_index[iexpert], :, :, :]  # select channels for this expert
-            y = expert(x_expert)                           # experts only see selected channels
-            expert_preds.append(y.view(batch_size, 1))
+            y = expert(x_expert).view(batch_size, 1)                           # experts only see selected channels
+            #torch.cuda.synchronize()
+            #expert_times.append((time.perf_counter() - t0) * 1000)
+            expert_preds.append(y)
+        
+       # print(f"Expert times: {[f'{t:.1f}ms' for t in expert_times]}", flush=True)
+    
         expert_outputs = torch.cat(expert_preds, dim=1)  # [B, num_experts]
 
         y_moe = torch.sum(gates * expert_outputs, dim=1, keepdim=True)

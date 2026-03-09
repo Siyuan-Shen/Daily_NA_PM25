@@ -171,7 +171,11 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         del desired_trainingdatasets
                         gc.collect()
                         # Concatenate the training datasets and true input for the current model for training and tetsing purposes
-                        
+                        print('3...')
+                        cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                                                                                                                                            desired_normalized_trainingdatasets=normalized_TrainingDatasets,
+                                                                                                                                        desired_ground_observation_data=desired_ground_observation_data,
+                                                                                                                                        desired_geophysical_species_data=desired_geophysical_species_data)
                     elif Apply_Transformer_architecture:
                         # Get the initial true_input and training datasets for the current model (within the desired time range)
                         print('1...',' Start Date: ', Spatial_CV_training_begindates[imodel], ' End Date: ', Spatial_CV_training_enddates[imodel])
@@ -182,6 +186,11 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         normalized_TrainingDatasets  = Init_Transformer_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
                         del desired_trainingdatasets
                         gc.collect()
+                        print('3...')
+                        cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_Transformer_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                                                                                                                                            desired_normalized_trainingdatasets=normalized_TrainingDatasets,
+                                                                                                                                            desired_ground_observation_data=desired_ground_observation_data,
+                                                                                                                                            desired_geophysical_species_data=desired_geophysical_species_data)
                         
                     elif Apply_CNN_Transformer_architecture:
                         # Get the initial true_input and training datasets for the current model (within the desired time range)
@@ -193,9 +202,16 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         normalized_CNN_TrainingDatasets,normalized_Transformer_TrainingDatasets  = Init_CNN_Datasets.normalize_trainingdatasets(desired_CNN_trainingdatasets=desired_CNN_trainingdatasets, desired_Transformer_trainingdatasets=desired_Transformer_trainingdatasets)
                         del desired_CNN_trainingdatasets, desired_Transformer_trainingdatasets
                         gc.collect()
+                        print('3...')
+                        cctnd_CNN_trainingdatasets, cctnd_Transformer_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                                                                                                                                            desired_normalized_CNN_trainingdatasets=normalized_CNN_TrainingDatasets,
+                                                                                                                                            desired_normalized_Transformer_trainingdatasets=normalized_Transformer_TrainingDatasets,
+                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
+                                                                                                                                                desired_geophysical_species_data=desired_geophysical_species_data)
+                        
                                             
                     sites_index=np.arange(total_sites_number)
-
+                        
                     ### Start folds loop
                     for ifold, (training_selected_sites,testing_selected_sites) in enumerate(rkf.split(sites_index)):
                         print('training_selected_sites: ',training_selected_sites.shape)
@@ -204,27 +220,6 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
 
 
                         ### Concatenate the datasets
-                        if Apply_3D_CNN_architecture or Apply_CNN_architecture:
-                            print('3...')
-                            cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
-                                                                                                                                                desired_normalized_trainingdatasets=normalized_TrainingDatasets,
-                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
-                                                                                                                                                desired_geophysical_species_data=desired_geophysical_species_data)
-                        elif Apply_Transformer_architecture:
-                            # Concatenate the training datasets and true input for the current model for training and testing purposes
-                            print('3...')
-                            cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_Transformer_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
-                                                                                                                                                desired_normalized_trainingdatasets=normalized_TrainingDatasets,
-                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
-                                                                                                                                             desired_geophysical_species_data=desired_geophysical_species_data)
-                        elif Apply_CNN_Transformer_architecture:
-                            print('3...')
-                            cctnd_CNN_trainingdatasets, cctnd_Transformer_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
-                                                                                                                                                desired_normalized_CNN_trainingdatasets=normalized_CNN_TrainingDatasets,
-                                                                                                                                                desired_normalized_Transformer_trainingdatasets=normalized_Transformer_TrainingDatasets,
-                                                                                                                                                desired_ground_observation_data=desired_ground_observation_data,
-                                                                                                                                                desired_geophysical_species_data=desired_geophysical_species_data)
-                        
                         
                         print('4...')
                         ### Split the datesets based on the indices of training and testing indices
@@ -254,51 +249,66 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         print('cctnd_ground_observation_data[test_datasets_index]: ', cctnd_ground_observation_data[test_datasets_index])
                         print('cctnd_geophysical_species_data[test_datasets_index]: ', cctnd_geophysical_species_data[test_datasets_index])
 
-                        del cctnd_trainingdatasets, cctnd_true_input
-                        gc.collect()
+                        #del cctnd_trainingdatasets, cctnd_true_input
+                        #gc.collect()
 
                         print('test_datasets_index: ', test_datasets_index)
+                        # 1. 转为共享内存tensor
+                        X_train_shared = torch.from_numpy(X_train).share_memory_()
+                        y_train_shared = torch.from_numpy(y_train).share_memory_()
+                        X_test_shared  = torch.from_numpy(X_test).share_memory_()
+                        y_test_shared  = torch.from_numpy(y_test).share_memory_()
 
                         ## Start Training
                         ## 2D CNN Training
                         if Apply_CNN_architecture:
                             if not Use_saved_models_to_reproduce_validation_results_Spatial_CV:
                                 if world_size > 1:
-                                    mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                    X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
+                                    mp.spawn(CNN_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train_shared, y_train_shared,\
+                                                    X_test_shared, y_test_shared, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
                                                     Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                     Spatial_CV_training_enddates[imodel],ifold),nprocs=world_size)
                                 else:
-                                    CNN_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                    X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
+                                    CNN_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train_shared, y_train_shared,\
+                                                    X_test_shared, y_test_shared, TrainingDatasets_mean, TrainingDatasets_std,width,height, \
                                                     Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                     Spatial_CV_training_enddates[imodel],ifold)
                         
                             index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
-                            X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:]
-                            X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:]
+                            X_train_shared = X_train_shared[:,index_of_main_stream_channels_of_initial,:,:]
+                            X_test_shared  = X_test_shared[:,index_of_main_stream_channels_of_initial,:,:]
                             # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in 
                             # different time ranges. 
                             Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=Spatial_CV_training_begindates[imodel],
                                                                         enddates=Spatial_CV_training_enddates[imodel], version=version,species=species,
                                                                         nchannel=len(main_stream_channel_names),special_name=description,ifold=ifold,width=width,height=height)
-                            validation_output = cnn_predict(inputarray=X_test, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
+                            validation_output = cnn_predict(inputarray=X_test_shared, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
-                            training_output = cnn_predict(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
+                            training_output = cnn_predict(inputarray=X_train_shared, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
 
 
                         # 3D CNN Training
                         elif Apply_3D_CNN_architecture:
                             if not Use_saved_models_to_reproduce_validation_results_Spatial_CV:
+                                
                                 if world_size > 1:
-                                    mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                        X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
+                                    
+                                    # 在spatial_cross_validation里，mp.spawn之前加：
+                                    print(f"X_train dtype: {X_train_shared.dtype}")
+                                    print(f"X_train size in GB: {X_train_shared.nbytes / 1e9:.2f} GB")
+                                    print(f"X_train shape: {X_train_shared.shape}")
+                                    # 检查数据是否在内存里还是内存映射文件
+                                    # 改为：
+                                    print(f"X_train is_shared: {X_train_shared.is_shared()}")
+
+                                    mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train_shared, y_train_shared,\
+                                                        X_test_shared, y_test_shared, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                         Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                         Spatial_CV_training_enddates[imodel],ifold),nprocs=world_size)
                                 else:
-                                    CNN3D_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                        X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
+                                    CNN3D_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train_shared, y_train_shared,\
+                                                        X_test_shared, y_test_shared, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                         Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                         Spatial_CV_training_enddates[imodel],ifold)
                                 
@@ -309,35 +319,41 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                 channels_to_exclude = []
                             
                             index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
-                            X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:,:]
-                            X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:,:]
+                            X_train_shared = X_train_shared[:,index_of_main_stream_channels_of_initial,:,:,:]
+                            X_test_shared  = X_test_shared[:,index_of_main_stream_channels_of_initial,:,:,:]
                             # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in 
                             # different time ranges. 
+                            time_start_load_model = time.perf_counter()
                             Daily_Model = load_daily_datesbased_model(evaluation_type=Evaluation_type, typeName=typeName, begindates=Spatial_CV_training_begindates[imodel],
                                                                         enddates=Spatial_CV_training_enddates[imodel], version=version,species=species,
                                                                         nchannel=len(main_stream_channel_names),special_name=description,ifold=ifold,width=width,height=height,depth=depth)
+                            time_end_load_model = time.perf_counter()
+                            print(f"Time taken to load the model: {time_end_load_model - time_start_load_model:.2f} seconds")
                             
-                            validation_output = cnn_predict_3D(inputarray=X_test, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
+                            time_start_prediction = time.perf_counter()
+                            validation_output = cnn_predict_3D(inputarray=X_test_shared, model=Daily_Model, batchsize=2580, initial_channel_names=total_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
-                            training_output = cnn_predict_3D(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
+                            training_output = cnn_predict_3D(inputarray=X_train_shared, model=Daily_Model, batchsize=2580, initial_channel_names=total_channel_names,
                                                                mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
+                            time_end_prediction = time.perf_counter()
+                            print(f"Time taken for prediction: {time_end_prediction - time_start_prediction:.2f} seconds")
                         # Transformer Training
                         elif Apply_Transformer_architecture:
                             if not Use_saved_models_to_reproduce_validation_results_Spatial_CV:
                                 if world_size > 1:
-                                    mp.spawn(Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                        X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
+                                    mp.spawn(Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train_shared, y_train_shared,\
+                                                        X_test_shared, y_test_shared, TrainingDatasets_mean, TrainingDatasets_std, \
                                                         Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                         Spatial_CV_training_enddates[imodel],ifold),nprocs=world_size)
                                 else:
-                                    Transformer_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
-                                                        X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std, \
+                                    Transformer_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train_shared, y_train_shared,\
+                                                        X_test_shared, y_test_shared, TrainingDatasets_mean, TrainingDatasets_std, \
                                                         Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
                                                         Spatial_CV_training_enddates[imodel],ifold)
                             
                             index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
-                            X_train = X_train[:,:,index_of_main_stream_channels_of_initial]
-                            X_test  = X_test[:,:,index_of_main_stream_channels_of_initial]
+                            X_train_shared = X_train_shared[:,:,index_of_main_stream_channels_of_initial]
+                            X_test_shared  = X_test_shared[:,:,index_of_main_stream_channels_of_initial]
 
                             # Since in hyperparameter searching we do not apply multiple tests, we only see the final testing accuracy, so no loop here in
                             # different time ranges.
@@ -346,9 +362,9 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                                                         nchannel=len(main_stream_channel_names),special_name=description,ifold=ifold,d_model=d_model,
                                                                         n_head=n_head,ffn_hidden=ffn_hidden,
                                                                         num_layers=num_layers,max_len=max_len+spin_up_len)
-                            validation_output = transformer_predict(inputarray=X_test, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
+                            validation_output = transformer_predict(inputarray=X_test_shared, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
-                            training_output = transformer_predict(inputarray=X_train, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
+                            training_output = transformer_predict(inputarray=X_train_shared, model=Daily_Model, batchsize=3000, initial_channel_names=total_channel_names,
                                                             mainstream_channel_names=main_stream_channel_names, sidestream_channel_names=side_stream_channel_names)
                             
                             validation_output = np.squeeze(validation_output)

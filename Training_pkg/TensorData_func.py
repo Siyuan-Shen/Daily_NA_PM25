@@ -89,10 +89,20 @@ class Dataset(torch.utils.data.Dataset):  # 'Characterizes a dataset for PyTorch
             The number of sites. For example, for overall observation it is 10870.
         '''
         super(Dataset, self).__init__()
-
-
-        self.traindatasets = torch.Tensor(traindata) #torch.squeeze(torch.Tensor(traindata))
-        self.truedatasets = torch.Tensor(truedata) #torch.squeeze(torch.Tensor(trued
+        # 强制复制到RAM，避免memmap的磁盘I/O
+        # 如果已经是shared tensor，直接用，不再复制
+        if isinstance(traindata, torch.Tensor):
+            self.traindatasets = traindata  # 零拷贝
+            self.truedatasets  = truedata
+        else:
+            # 原来的numpy路径
+            self.traindatasets = torch.from_numpy(
+                traindata if traindata.dtype == np.float32
+                else traindata.astype(np.float32))
+            self.truedatasets = torch.from_numpy(
+                truedata if truedata.dtype == np.float32
+                else truedata.astype(np.float32))
+            
         print(self.truedatasets.shape)
         print(self.traindatasets.shape)
         self.transforms = transform  # 转为tensor形式

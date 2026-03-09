@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="3DCNN Ratio Calibration Temporal CV BenchMark"
+#SBATCH --job-name="3DCNN GCHP no-fillings Spatial CV _BenchMark_TwoModels_batchsize_512_lr_0d0003"
 #SBATCH --partition=gpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -17,7 +17,7 @@ sleep $pause_time
 # If you're using containers with Slurm
 # Uncomment this line if needed:
 
-VERSION=v1.0.0
+VERSION=v1.1.0
 
 # Redirect W&B and tmp paths inside the container
 export WANDB_DIR=/s.siyuan/my-projects2/tmp/wandb_dir
@@ -52,21 +52,31 @@ cd $SNAPSHOT_DIR
 
 # sed -i '/section_start/,/section_end/{/key/s/:.*/: value/}'
 
+
+
 Buffer_size=[80]
 sed -i "/'BLISCO-CrossValidation'/,/'Temporal-CrossValidation'/{/'BLISCO_CV_buffer_radius_km'/s/:.*/: ${Buffer_size},/}" config.py
 
 Temporal_Buffer_size=[0]
 sed -i "/'Temporal-Buffer-Out-CrossValidation'/,'Estimation-Settings'/{/'Temporal_Buffer_days'/s/:.*/: ${Temporal_Buffer_size},/}" config.py
 
+Training_begin_dates=[20190101,20200101,20210101,20220101,20230101]
+Training_end_dates=[20191231,20201231,20211231,20221231,20231231]
+sed -i "/'Random-CrossValidation'/,/'Spatial-CrossValidation'/{/'Random_CV_training_begindates'/s/:.*/: ${Training_begin_dates},/}" config.py
+sed -i "/'Random-CrossValidation'/,/'Spatial-CrossValidation'/{/'Random_CV_training_enddates'/s/:.*/: ${Training_end_dates},/}" config.py
+sed -i "/'Spatial-CrossValidation'/,/'BLISCO-CrossValidation'/{/'Spatial_CV_training_begindates'/s/:.*/: ${Training_begin_dates},/}" config.py
+sed -i "/'Spatial-CrossValidation'/,/'BLISCO-CrossValidation'/{/'Spatial_CV_training_enddates'/s/:.*/: ${Training_end_dates},/}" config.py
+sed -i "/'Temporal-CrossValidation'/,/'Temporal-Buffer-Out-CrossValidation'/{/'Temporal_CV_training_begindates'/s/:.*/: ${Training_begin_dates},/}" config.py
+sed -i "/'Temporal-CrossValidation'/,/'Temporal-Buffer-Out-CrossValidation'/{/'Temporal_CV_training_enddates'/s/:.*/: ${Training_end_dates},/}" config.py
 
-Estimation_trained_begin_dates=[20150101,20230101]
-Estimation_trained_end_dates=[20151231,20231231]
+Estimation_trained_begin_dates=[20230101]
+Estimation_trained_end_dates=[20231231]
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Training_begin_dates'/s/:.*/: ${Estimation_trained_begin_dates},/}" config.py
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Training_end_dates'/s/:.*/: ${Estimation_trained_end_dates},/}" config.py
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_trained_begin_dates'/s/:.*/: ${Estimation_trained_begin_dates},/}" config.py
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_trained_end_dates'/s/:.*/: ${Estimation_trained_end_dates},/}" config.py
-Estimation_begindates=[[20150101],[20230101]]
-Estimation_enddates=[[20151231],[20231231]]
+Estimation_begindates=[[20230101]]
+Estimation_enddates=[[20231231]]
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_begindates'/s/:.*/: ${Estimation_begindates},/}" config.py
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_enddates'/s/:.*/: ${Estimation_enddates},/}" config.py
 

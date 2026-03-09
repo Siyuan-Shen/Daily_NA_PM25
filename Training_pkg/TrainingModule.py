@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import wandb
 import os 
+import time
 import numpy as np
 from torch.utils.data import DataLoader,TensorDataset
 from Training_pkg.utils import *
@@ -9,6 +10,7 @@ from Training_pkg.Statistic_func import linear_regression
 from Training_pkg.TensorData_func import Dataset,Dataset_Val,CNN_Transformer_Dataset,CNN_Transformer_Dataset_Val
 from Training_pkg.Loss_func import SelfDesigned_LossFunction
 from Training_pkg.iostream import save_daily_datesbased_model
+from torch.distributed.algorithms.ddp_comm_hooks import default as comm_hooks
 import torch.nn.functional as F
 from Model_Structure_pkg.Transformer_Model.model.transformer import Transformer
 from Model_Structure_pkg.CNN_Transformer_Model.model.CNN_transformer import CNN_Transformer
@@ -17,11 +19,13 @@ from Model_Structure_pkg.ResCNN3D_Module import initial_3dcnn_net
 from Model_Structure_pkg.utils import *
 import torch.multiprocessing as mp
 from torch.utils.data.distributed import DistributedSampler
+from torch.amp import autocast, GradScaler
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 import torch.distributed as dist
 from wandb_config import *
 from datetime import timedelta
+from torch.profiler import profile, record_function, ProfilerActivity
 
 
 def ddp_setup(rank, world_size):
@@ -129,6 +133,9 @@ def CNN_Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep
         GeoSpecies_index = Transformer_total_channel_names.index('tSATPM25')
     else:
         GeoSpecies_index = 0
+        
+
+    
     for epoch in range(TOTAL_EPOCHS):
         correct = 0
         counts = 0
@@ -157,6 +164,8 @@ def CNN_Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep
             loss = criterion(outputs, filled_labels, Transformer_images[:,:,GeoSpecies_index],input_mean_Transformer[GeoSpecies_index],input_std_Transformer[GeoSpecies_index],mask=mask)
             loss.backward()
             optimizer.step()
+            
+            
             torch.cuda.empty_cache()
             temp_losses.append(loss.item())
 
@@ -452,7 +461,19 @@ def Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id,
 
 def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,init_total_channel_names,X_train, y_train,X_test,y_test,input_mean, input_std,width,height,depth,
               evaluation_type,typeName,begindates,enddates,ifold=0):
-
+    import sys
+    import os
+    # 在函数最开头显式设置，确保子进程也有
+    # CNN3D_train函数最开头：
+    os.environ['TORCH_LOGS'] = 'recompiles'  # ← 第一行，其他所有代码之前
+    print(f"[Rank {rank}] ENV: {os.environ.get('TORCHINDUCTOR_CACHE_DIR', 'NOT SET')}", flush=True)
+    cache_dir = '/s.siyuan/my-projects2/torch_compile_cache'
+    os.makedirs(cache_dir, exist_ok=True)
+    os.environ['TORCHINDUCTOR_CACHE_DIR'] = cache_dir
+    os.environ['TORCH_COMPILE_CACHE_DIR'] = cache_dir
+    print(f"[Rank {rank}] Set TORCHINDUCTOR_CACHE_DIR and TORCH_COMPILE_CACHE_DIR to: {cache_dir}", flush=True)
+    
+    
     print('fold {} is starting...'.format(ifold))
     print('world_size: {}'.format(world_size))
     try:
@@ -504,30 +525,42 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
     print('y_train shape: ',y_train.shape)
     print('X_test shape: ',X_test.shape)
     print('y_test shape: ',y_test.shape)
-
+    scaler = GradScaler('cuda')
+    
     if rank != 0:
         os.environ['WANDB_MODE'] = 'disabled'
-    
+    torch.set_float32_matmul_precision('high')
     if world_size <= 1:
+        torch.manual_seed(21)
         Daily_Model = initial_3dcnn_net(main_stream_channel=main_stream_channel_names,wandb_config=wandb_config)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         Daily_Model.to(device)
-        torch.manual_seed(21)
+        torch._inductor.config.fx_graph_cache = True
+        Daily_Model = torch.compile(Daily_Model) # Optional: Compile the model for potential speedup (PyTorch 2.0+)
+        
         train_loader = DataLoader(Dataset(X_train, y_train), BATCH_SIZE, shuffle=True)
         validation_loader = DataLoader(Dataset(X_test, y_test), 2000, shuffle=True)
     elif world_size > 1:
+        torch.manual_seed(21)
         ddp_setup(rank, world_size)
         Daily_Model = initial_3dcnn_net(main_stream_channel=main_stream_channel_names,wandb_config=wandb_config)
         device = rank
         Daily_Model.to(device)
-        torch.manual_seed(21)
+        torch._inductor.config.fx_graph_cache = True
+        Daily_Model = torch.compile(Daily_Model,mode='reduce-overhead') # Optional: Compile the model for potential speedup (PyTorch 2.0+)
         Daily_Model = DDP(Daily_Model, device_ids=[device])
+        Daily_Model.register_comm_hook(state=None, hook=comm_hooks.fp16_compress_hook)  # Register the allreduce hook for gradient synchronization
         train_dataset = Dataset(X_train, y_train)
         validation_dataset = Dataset(X_test, y_test)
-        train_loader = DataLoader(train_dataset, BATCH_SIZE, shuffle=False,sampler=DistributedSampler(train_dataset))
-        validation_loader = DataLoader(validation_dataset, 2000, shuffle=False,sampler=DistributedSampler(validation_dataset))
+        train_loader = DataLoader(train_dataset, BATCH_SIZE, shuffle=False,sampler=DistributedSampler(train_dataset, drop_last=True),
+                                  num_workers=0,        
+                                  pin_memory=True,      # faster CPU→GPU transfer
+                                  drop_last=True,  # ← 丢弃最后一个不完整batch，避免重新编译
+                                  )
+        validation_loader = DataLoader(validation_dataset, BATCH_SIZE, shuffle=False,sampler=DistributedSampler(validation_dataset, drop_last=True),num_workers=0,pin_memory=True,
+                                       drop_last=True)  # must use the same batch size for validation to avoid re-compilation in DDP
     
-
+    
     print('*' * 25, type(train_loader), '*' * 25)
     losses = []
     valid_losses = []
@@ -543,101 +576,322 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
     else:
         GeoSpecies_index = 0
 
-        
+    # Before epoch loop:
+    
+    total_epoch_time = 0
+    
+    center_width = int((width-1)/2)
+    center_height = int((height-1)/2)
+    '''
+    # 在epoch循环之前加这段诊断代码，只运行一次
+    print("=== 数据管道诊断 ===")
+    # 测试1：纯数据加载速度（不做任何GPU操作）
+    t0 = time.perf_counter()
+    batch_count = 0
+    for images, labels in train_loader:
+        batch_count += 1
+        if batch_count == 50:
+            break
+    load_only_time = (time.perf_counter() - t0) / 50
+    print(f"纯数据加载时间（无GPU）: {load_only_time*1000:.1f}ms/batch")
 
-    for epoch in range(TOTAL_EPOCHS):
-        correct = 0
-        counts = 0
-        temp_losses = []
-        if world_size > 1:
-            train_loader.sampler.set_epoch(epoch)
-        for i, (images, labels) in enumerate(train_loader):
-            ## Example: Check for NaN values in input images
-            
-            Daily_Model.train()
-            images = images.to(device)
-            labels = torch.squeeze(labels.type(torch.FloatTensor))
-            labels = labels.to(device)
-            optimizer.zero_grad()
+    # 测试2：数据加载 + GPU传输
+    t0 = time.perf_counter()
+    batch_count = 0
+    for images, labels in train_loader:
+        images = images.to(device, non_blocking=True)
+        labels = labels.to(device, non_blocking=True)
+        torch.cuda.synchronize()
+        batch_count += 1
+        if batch_count == 50:
+            break
+    load_transfer_time = (time.perf_counter() - t0) / 50
+    print(f"数据加载+GPU传输时间: {load_transfer_time*1000:.1f}ms/batch")
+
+    # 测试3：完整forward+backward
+    t0 = time.perf_counter()
+    batch_count = 0
+    for images, labels in train_loader:
+        images = images.to(device, non_blocking=True)
+        labels = labels.to(device, dtype=torch.float32, non_blocking=True)
+        labels = torch.squeeze(labels)
+        with autocast('cuda'):
             outputs = Daily_Model(images)
             outputs = torch.squeeze(outputs)
-            loss = criterion(outputs, labels, images[:,GeoSpecies_index,-1,int((width-1)/2),int((height-1)/2)],input_mean[GeoSpecies_index,-1,int((width-1)/2),int((height-1)/2)],input_std[GeoSpecies_index,-1,int((width-1)/2),int((height-1)/2)])
-            loss.backward()  ## backward
-            optimizer.step()
-            temp_losses.append(loss.item())
-
-            # Calculate R2
-            y_hat = outputs.cpu().detach().numpy()
-            y_true = labels.cpu().detach().numpy()
-            R2 = linear_regression(y_hat, y_true)
-            R2 = np.round(R2, 4)
-            correct += R2
-            counts  += 1
-            if (i + 1) % 10 == 0 and rank == 0 :
-                print('Epoch : %d/%d, Iter : %d/%d,  Loss: %.4f' % (epoch + 1, TOTAL_EPOCHS,
-                                                                i + 1, len(X_train) // BATCH_SIZE,
-                                                                loss.item()))
-        losses.append(np.mean(temp_losses))
-        valid_correct = 0
-        valid_counts  = 0
+            loss = criterion(outputs, labels,
+                        images[:,GeoSpecies_index,-1,center_width,center_height],
+                        input_mean[GeoSpecies_index,-1,center_width,center_height],
+                        input_std[GeoSpecies_index,-1,center_width,center_height])
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+        optimizer.zero_grad(set_to_none=True)
+        torch.cuda.synchronize()
+        batch_count += 1
+        if batch_count == 50:
+            break
+    full_time = (time.perf_counter() - t0) / 50
+    print(f"完整训练步骤时间: {full_time*1000:.1f}ms/batch")
+    print(f"=== GPU计算时间占比: {(full_time - load_transfer_time)/full_time*100:.1f}% ===")
+    print(f"=== 数据瓶颈占比:   {load_transfer_time/full_time*100:.1f}% ===")
+        
+    # 测试4: 单独计时forward，loss计算，backward
+    t0 = time.perf_counter()
+    for i, (images, labels) in enumerate(train_loader):
+        images = images.to(device, non_blocking=True)
+        labels = labels.to(device, dtype=torch.float32, non_blocking=True)
+        labels = torch.squeeze(labels)
+        torch.cuda.synchronize()
+        t_start = time.perf_counter()
+        
+        # 单独计时forward
+        with autocast('cuda'):
+            outputs = Daily_Model(images)
+            outputs = torch.squeeze(outputs)
+        torch.cuda.synchronize()
+        t_forward = time.perf_counter()
+        
+        # 单独计时loss
+        with autocast('cuda'):
+            loss = criterion(outputs, labels,
+                            images[:,GeoSpecies_index,-1,center_width,center_height],
+                            input_mean[GeoSpecies_index,-1,center_width,center_height],
+                            input_std[GeoSpecies_index,-1,center_width,center_height])
+        torch.cuda.synchronize()
+        t_loss = time.perf_counter()
+        
+        # 单独计时backward
+        # 用no_sync()禁用DDP梯度同步，只测纯backward计算
+        with Daily_Model.no_sync():  # 如果使用DDP，避免在每个batch都进行梯度同步
+            scaler.scale(loss).backward(retain_graph=True) 
+        torch.cuda.synchronize()
+        t_backward = time.perf_counter()
+        
+        # 正常 backward(含 DDP AllReduce同步)
+        scaler.scale(loss).backward()
+        torch.cuda.synchronize()
+        t_backward_sync = time.perf_counter()
+        
+        if rank == 0:
+            print(f"Batch {i}: "
+            f"forward={1000*(t_forward-t_start):.1f}ms, "
+            f"loss={1000*(t_loss-t_forward):.1f}ms, "
+            f"backward={1000*(t_backward-t_loss):.1f}ms, "
+            f"backward_sync={1000*(t_backward_sync-t_backward):.1f}ms")
+    '''
+    for epoch in range(TOTAL_EPOCHS):
+        total_samples_processed = 0
         temp_losses = []
-        scheduler.step()
-        total_valid_y_hat = []
-        total_valid_y_true = []
-        for i, (valid_images, valid_labels) in enumerate(validation_loader):
-            Daily_Model.eval()
-            valid_images = valid_images.to(device)
-            valid_labels = valid_labels.to(device)
-            valid_output = Daily_Model(valid_images)
-            valid_output = torch.squeeze(valid_output)
-            valid_loss   = criterion(valid_output, valid_labels, valid_images[:,GeoSpecies_index,-1,int((width-1)/2),int((height-1)/2)],input_mean[GeoSpecies_index,-1,int((width-1)/2),int((height-1)/2)],input_std[GeoSpecies_index,-1,int((width-1)/2),int((height-1)/2)])
-            temp_losses.append(valid_loss.item())
-            test_y_hat   = valid_output.cpu().detach().numpy()
-            test_y_true  = valid_labels.cpu().detach().numpy()
-            Valid_R2 = linear_regression(test_y_hat, test_y_true)
-            Valid_R2 = np.round(Valid_R2, 4)
-            valid_correct += Valid_R2
-            valid_counts  += 1
-            total_valid_y_hat.append(test_y_hat)
-            total_valid_y_true.append(test_y_true)
-            if rank == 0:  # Only print from the main process
-                print('Epoch : %d/%d, Iter : %d/%d,  Validate Loss: %.4f, Validate R2: %.4f' % (epoch + 1, TOTAL_EPOCHS,
-                                                                i + 1, len(X_train) // BATCH_SIZE,
-                                                                valid_loss.item(), Valid_R2))
-        valid_losses.append(np.mean(temp_losses))
-        accuracy = correct / counts
-        test_accuracy = np.round(linear_regression(np.concatenate(total_valid_y_hat), np.concatenate(total_valid_y_true)), 4)
-        print('Epoch: ',epoch, ', Training Loss: ', loss.item(),', Training accuracy:',accuracy, ', \nTesting Loss:', valid_loss.item(),', Testing accuracy:', test_accuracy)
-        if rank == 0 and ifold == 0:  # Log only from the main process
-            wandb.log({
-                'epoch': epoch,
-                'learning_rates': optimizer.param_groups[0]['lr'],
-                'train_loss': losses[-1],
-                'valid_loss': valid_losses[-1],
-                'train_accuracy': accuracy,
-                'valid_accuracy': test_accuracy
-            })
+        # Accumulate outputs for epoch-level R2 instead of per-batch
+        running_sum_yhat  = 0.0
+        running_sum_ytrue = 0.0
+        running_sum_yhat2 = 0.0
+        running_sum_ytrue2 = 0.0
+        running_sum_cross = 0.0
+        running_count     = 0
+        if world_size > 1:
+            train_loader.sampler.set_epoch(epoch)
+        Daily_Model.train()
+        '''
+        if rank == 0 and epoch == 0:
+            with profile(
+                activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+                record_shapes=True,
+                with_stack=False
+            ) as prof:
+                for i, (images, labels) in enumerate(train_loader):
+                    images = images.to(device, non_blocking=True)
+                    labels = labels.to(device, dtype=torch.float32, non_blocking=True)
+                    labels = torch.squeeze(labels)
+                    with record_function("forward"):
+                        with autocast('cuda'):
+                            outputs = Daily_Model(images)
+                            outputs = torch.squeeze(outputs)
+                            loss = criterion(outputs, labels,
+                                            images[:,GeoSpecies_index,-1,center_width,center_height],
+                                            input_mean[GeoSpecies_index,-1,center_width,center_height],
+                                            input_std[GeoSpecies_index,-1,center_width,center_height])
+                    with record_function("backward"):
+                        scaler.scale(loss).backward()
+                    scaler.step(optimizer)
+                    scaler.update()
+                    optimizer.zero_grad(set_to_none=True)
+                    if i == 10:  # 只profile前10个batch
+                        break
+            
+            # 打印最耗时的操作
+            print("=== Profiler Results (Top 15) ===")
+            print(prof.key_averages().table(
+                sort_by="cuda_time_total", 
+                row_limit=15),
+                flush=True)
+        '''
+        print(f"Epoch {epoch+1}/{TOTAL_EPOCHS} started. Processing batches...")
+        epoch_start = time.perf_counter()
+        for i, (images, labels) in enumerate(train_loader):
+            batch_start = time.perf_counter()
+            ## Example: Check for NaN values in input images
+            images = images.to(device, non_blocking=True) 
+            labels = labels.to(device,dtype=torch.float32, non_blocking=True)  # Ensure labels are float for regression
+            labels = torch.squeeze(labels)  # Remove extra dimensions if necessary
+            
+            if epoch == 0 and i == 0 and rank == 0:
+                t0 = time.perf_counter()
+        
+            optimizer.zero_grad(set_to_none=True)  # More efficient zeroing of gradients
+            with autocast('cuda'):
+                outputs = Daily_Model(images)
+                outputs = torch.squeeze(outputs)
+                loss = criterion(outputs, labels, images[:,GeoSpecies_index,-1,center_width,center_height],input_mean[GeoSpecies_index,-1,center_width,center_height],input_std[GeoSpecies_index,-1,center_width,center_height])
+            scaler.scale(loss).backward()  ## backward
+            scaler.step(optimizer)
+            scaler.update()
+            # 计时结束，只执行一次
+            if epoch == 0 and i == 0 and rank == 0:
+                torch.cuda.synchronize()  # 只在这一个batch用
+                print(f"First batch time: {time.perf_counter()-t0:.1f}s at fold {ifold}", flush=True)
+                # <2s  → cache命中
+                # >60s → 正在编译
+    
+            #outputs = Daily_Model(images)
+            #outputs = torch.squeeze(outputs)
+            #loss = criterion(outputs, labels, images[:,GeoSpecies_index,-1,int((width-1)/2),int((height-1)/2)],input_mean[GeoSpecies_index,-1,int((width-1)/2),int((height-1)/2)],input_std[GeoSpecies_index,-1,int((width-1)/2),int((height-1)/2)])
+            #loss.backward()
+            #optimizer.step()
+            
+            temp_losses.append(loss.item())
+            
+            # Inside training loop, after optimizer.step():
+            batch_time = time.perf_counter() - batch_start
+            samples_per_sec = len(images) / batch_time
+            total_samples_processed += len(images)
+            
+            with torch.no_grad():
+                n      = outputs.numel()
+                running_sum_yhat  += outputs.sum().item()    # .item() is just a scalar — fast
+                running_sum_ytrue += labels.sum().item()
+                running_sum_yhat2 += (outputs**2).sum().item()
+                running_sum_ytrue2+= (labels**2).sum().item()
+                running_sum_cross += (outputs * labels).sum().item()
+                running_count     += n
 
-        train_acc.append(accuracy)
+            if (i + 1) % 10 == 0 and rank == 0 :
+                print('Epoch : %d/%d, Iter : %d/%d,  Loss: %.4f, Throughput: %.1f samples/sec' % (epoch + 1, TOTAL_EPOCHS,
+                                                                i + 1, len(X_train)// world_size // BATCH_SIZE,
+                                                                loss.item(), samples_per_sec))
+        # After each epoch:
+        epoch_time = time.perf_counter() - epoch_start
+        total_epoch_time += epoch_time
+        # Compute R2 from accumulated statistics — no large tensor transfer needed
+        mean_yhat  = running_sum_yhat  / running_count
+        mean_ytrue = running_sum_ytrue / running_count
+        ss_res = (running_sum_yhat2 - 2*mean_ytrue*running_sum_yhat + running_count*mean_ytrue**2)  
+        # simplification — just use pearson r formula:
+        numerator   = running_sum_cross - running_count * mean_yhat * mean_ytrue
+        denom_yhat  = (running_sum_yhat2  - running_count * mean_yhat**2)  ** 0.5
+        denom_ytrue = (running_sum_ytrue2 - running_count * mean_ytrue**2) ** 0.5
+        train_accuracy = np.round((numerator / (denom_yhat * denom_ytrue + 1e-8)) ** 2, 4)
+
+        if rank == 0:
+            print(f"Epoch {epoch} took {epoch_time:.1f}s | "
+                f"Avg throughput: {total_samples_processed/epoch_time:.1f} samples/sec | "
+                f"Avg Each Epoch time {total_epoch_time/(epoch+1):.1f}s")
+        losses.append(np.mean(temp_losses))
+        scheduler.step()
+        
+
+        temp_losses = []
+        val_running_sum_yhat  = 0.0
+        val_running_sum_ytrue = 0.0
+        val_running_sum_yhat2 = 0.0
+        val_running_sum_ytrue2= 0.0
+        val_running_sum_cross = 0.0
+        val_running_count     = 0
+        Daily_Model.eval()
+        time_valid_start = time.perf_counter()
+        for i, (valid_images, valid_labels) in enumerate(validation_loader):
+            valid_images = valid_images.to(device, non_blocking=True)
+            valid_labels = valid_labels.to(device, dtype=torch.float32, non_blocking=True)
+            with torch.no_grad(), autocast('cuda'):
+                valid_output = Daily_Model(valid_images)
+                valid_output = torch.squeeze(valid_output)
+                valid_loss   = criterion(valid_output, valid_labels, valid_images[:,GeoSpecies_index,-1,center_width,center_height],input_mean[GeoSpecies_index,-1,center_width,center_height],input_std[GeoSpecies_index,-1,center_width,center_height])
+            temp_losses.append(valid_loss.item())
+            with torch.no_grad():
+                n = valid_output.numel()
+                val_running_sum_yhat  += valid_output.sum().item()
+                val_running_sum_ytrue += valid_labels.sum().item()
+                val_running_sum_yhat2 += (valid_output**2).sum().item()
+                val_running_sum_ytrue2+= (valid_labels**2).sum().item()
+                val_running_sum_cross += (valid_output * valid_labels).sum().item()
+                val_running_count     += n
+        valid_losses.append(np.mean(temp_losses))
+        # Compute val R2 from scalars
+        mean_yhat  = val_running_sum_yhat  / val_running_count
+        mean_ytrue = val_running_sum_ytrue / val_running_count
+        numerator   = val_running_sum_cross - val_running_count * mean_yhat * mean_ytrue
+        denom_yhat  = (val_running_sum_yhat2  - val_running_count * mean_yhat**2)  ** 0.5
+        denom_ytrue = (val_running_sum_ytrue2 - val_running_count * mean_ytrue**2) ** 0.5
+        test_accuracy = np.round((numerator / (denom_yhat * denom_ytrue + 1e-8)) ** 2, 4)
+        time_valid_end = time.perf_counter()
+        if rank == 0:
+            print(f'Epoch {epoch+1}/{TOTAL_EPOCHS} | '
+                  f'Training Time: {epoch_time:.1f}s | '
+                  f'Validation Time: {time_valid_end - time_valid_start:.1f}s | '
+                  f'Train Loss: {losses[-1]:.4f} | Train R2: {train_accuracy:.4f} | '
+                  f'Val Loss: {valid_losses[-1]:.4f} | Val R2: {test_accuracy:.4f} | '
+                  f'LR: {optimizer.param_groups[0]["lr"]:.6f}'
+                  )
+            
+            if ifold == 0:  # Log only from the main process
+                wandb.log({
+                    'epoch': epoch,
+                    'learning_rates': optimizer.param_groups[0]['lr'],
+                    'train_loss': losses[-1],
+                    'valid_loss': valid_losses[-1],
+                    'train_accuracy': train_accuracy,
+                    'valid_accuracy': test_accuracy,
+                    'throughput_samples_per_sec': total_samples_processed/epoch_time,
+                    'epoch_time_sec': epoch_time,
+                    'validation_time_sec': time_valid_end - time_valid_start,
+                })
+
+        train_acc.append(train_accuracy)
         test_acc.append(test_accuracy)
         print('Epoch: ',epoch,'\nLearning Rate:',optimizer.param_groups[0]['lr'])
     raw_model = Daily_Model.module if world_size > 1 else Daily_Model  # Get the underlying model if using DDP
 
-    
+    if rank == 0:
+        print(f"Training finished, starting barrier...", flush=True)
     if world_size > 1:
+        time_barrier_start = time.perf_counter()
         dist.barrier()  # ← very important
+        time_barrier_end = time.perf_counter()
+        if rank == 0:
+            print(f"Barrier passed, time waited: {time_barrier_end - time_barrier_start:.1f}s, saving model...", flush=True)
         # synchronize all ranks before any one finishes
 
     if rank == 0:
+        print(f"Barrier passed, saving model...", flush=True)
+        time_save_start = time.perf_counter()
         save_daily_datesbased_model(model=raw_model,evaluation_type=evaluation_type,typeName=typeName,
                                                 begindates=begindates,enddates=enddates,
                                                 version=version,species=species,nchannel=len(main_stream_channel_names),width=width,height=height,depth=depth,
                                                 special_name=description,ifold=ifold)
+        time_save_end = time.perf_counter()
+        print(f"Model saved, time taken: {time_save_end - time_save_start:.1f}s, finishing wandb...", flush=True)
+        
     if rank == 0 and ifold == 0:
+        time_wandb_start = time.perf_counter()
         wandb.finish()  # only finalize logging after all training done
-
+        time_wandb_end = time.perf_counter()
+        print(f"wandb finished, time taken: {time_wandb_end - time_wandb_start:.1f}s", flush=True)
     if world_size > 1:
+        print(f"[Rank {rank}] destroying process group...", flush=True)
+        time_destroy_start = time.perf_counter()
         destroy_process_group()
+        time_destroy_end = time.perf_counter()
+        print(f"[Rank {rank}] process group destroyed, time taken: {time_destroy_end - time_destroy_start:.1f}s", flush=True)
 
     
 
@@ -702,10 +956,10 @@ def CNN_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_conta
         device = rank
         Daily_Model.to(device)
         torch.manual_seed(21 + rank)
-        Daily_Model = DDP(Daily_Model, device_ids=[device])
+        Daily_Model = DDP(Daily_Model, device_ids=[device],output_device=device,find_unused_parameters=False,static_graph=True,gradient_as_bucket_view=True,)
         train_dataset = Dataset(X_train, y_train)
         validation_dataset = Dataset(X_test, y_test)
-        train_loader = DataLoader(train_dataset, BATCH_SIZE, shuffle=False,sampler=DistributedSampler(train_dataset))
+        train_loader = DataLoader(train_dataset, BATCH_SIZE, shuffle=False,sampler=DistributedSampler(train_dataset, drop_last=True))
         validation_loader = DataLoader(validation_dataset, 2000, shuffle=False,sampler=DistributedSampler(validation_dataset))
     
     print('*' * 25, type(train_loader), '*' * 25)
@@ -840,19 +1094,23 @@ def cnn_predict_3D(inputarray, model, batchsize,initial_channel_names,mainstream
         numpy.ndarray: The predicted PM2.5 concentrations.
     """
     model.eval()
-    final_output = []
-    final_output = np.array(final_output)
-    predictinput = DataLoader(Dataset_Val(inputarray), batch_size= batchsize)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    all_outputs = []
+    predictinput = DataLoader(Dataset_Val(inputarray), batch_size= batchsize,num_workers=0, # 和训练时一样，避免序列化开销
+        pin_memory=True,
+)
+    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = next(model.parameters()).device  # 直接从模型获取device，不强制转移
     model.to(device)
     
     with torch.no_grad():
         for i, image in enumerate(predictinput):
-            image = image.to(device)
+            image = image.to(device, non_blocking=True)
             output = model(image).cpu().detach().numpy()
-            final_output = np.append(final_output,output)
+            with torch.amp.autocast('cuda'):        # AMP加速推理
+                output = model(image)
+            all_outputs.append(output.detach().cpu())  # 保持tensor，不转numpy
     
-    return final_output
+    return torch.cat(all_outputs, dim=0).numpy().flatten()
 
 def cnn_predict(inputarray, model, batchsize,initial_channel_names,mainstream_channel_names,sidestream_channel_names):
 

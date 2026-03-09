@@ -1579,9 +1579,14 @@ class CNN3DInputDatasets():
 
         ## We already calculated the mean and std of the training datasets based on the whole training datasets.
         ## Now we need to normalize the desired training datasets based on the mean and std matrix.
-        desired_normalized_trainingdatasets = copy.deepcopy(desired_trainingdatasets)
+        desired_normalized_trainingdatasets = {}
         for isite in self.ground_observation_data.keys():
-            desired_normalized_trainingdatasets[str(isite)]['data'] = (desired_normalized_trainingdatasets[str(isite)]['data'] - self.TrainingDatasets_mean) / (self.TrainingDatasets_std  + 1e-6)
+            site = str(isite)
+            data = desired_trainingdatasets[site]['data']
+            desired_normalized_trainingdatasets[site] = {
+                'data': (data - self.TrainingDatasets_mean) / (self.TrainingDatasets_std + 1e-6),
+                'dates': desired_trainingdatasets[site]['dates']
+            }
         return desired_normalized_trainingdatasets
     
     def concatenate_trainingdatasets(self,desired_true_input, desired_normalized_trainingdatasets,desired_ground_observation_data, desired_geophysical_species_data):
