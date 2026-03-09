@@ -107,6 +107,12 @@ Adam_beta0 = Adam_cfg['beta0']
 Adam_beta1 = Adam_cfg['beta1']
 Adam_eps = Adam_cfg['eps']
 
+AdamW_cfg= optimizer_cfg['AdamW']
+AdamW_Settings = AdamW_cfg['Settings']
+AdamW_beta0 = AdamW_cfg['beta0']
+AdamW_beta1 = AdamW_cfg['beta1']
+AdamW_eps = AdamW_cfg['eps']
+AdamW_weight_decay = AdamW_cfg['weight_decay']
 ## Learning Rate
 learning_rate_cfg = Training_Settings['learning_rate']
 
@@ -314,4 +320,6 @@ def lr_strategy_lookup_table(optimizer):
 def optimizer_lookup(model_parameters,learning_rate):
     if Adam_Settings:
         return torch.optim.Adam(params=model_parameters,betas=(Adam_beta0, Adam_beta1),eps=Adam_eps, lr=learning_rate)
+    elif AdamW_Settings:
+        return torch.optim.AdamW(params=model_parameters, lr=learning_rate, fused=True, weight_decay=AdamW_weight_decay, betas=(AdamW_beta0, AdamW_beta1), eps=AdamW_eps)
 

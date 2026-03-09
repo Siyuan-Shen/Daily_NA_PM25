@@ -167,7 +167,11 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                     del desired_trainingdatasets
                     gc.collect()
                     # Concatenate the training datasets and true input for the current model for training and tetsing purposes
-                    
+                    print('3...')
+                    cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                                                                                                                                        desired_normalized_trainingdatasets=normalized_TrainingDatasets,
+                                                                                                                                        desired_ground_observation_data=desired_ground_observation_data,
+                                                                                                                                        desired_geophysical_species_data=desired_geophysical_species_data)
                 elif Apply_Transformer_architecture:
                     # Get the initial true_input and training datasets for the current model (within the desired time range)
                     print('1...',' Start Date: ', Random_CV_training_begindates[imodel], ' End Date: ', Random_CV_training_enddates[imodel])
@@ -178,6 +182,12 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                     normalized_TrainingDatasets  = Init_Transformer_Datasets.normalize_trainingdatasets(desired_trainingdatasets=desired_trainingdatasets)
                     del desired_trainingdatasets
                     gc.collect()
+                    # Concatenate the training datasets and true input for the current model for training and testing purposes
+                    print('3...')
+                    cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_Transformer_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
+                                                                                                                                        desired_normalized_trainingdatasets=normalized_TrainingDatasets,
+                                                                                                                                        desired_ground_observation_data=desired_ground_observation_data,
+                                                                                                                                        desired_geophysical_species_data=desired_geophysical_species_data)
                     
                 elif Apply_CNN_Transformer_architecture:
                     # Get the initial true_input and training datasets for the current model (within the desired time range)
@@ -189,22 +199,6 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                     normalized_CNN_TrainingDatasets,normalized_Transformer_TrainingDatasets  = Init_CNN_Datasets.normalize_trainingdatasets(desired_CNN_trainingdatasets=desired_CNN_trainingdatasets, desired_Transformer_trainingdatasets=desired_Transformer_trainingdatasets)
                     del desired_CNN_trainingdatasets, desired_Transformer_trainingdatasets
                     gc.collect()
-                                        
-                ### Concatenate the datasets
-                if Apply_3D_CNN_architecture or Apply_CNN_architecture:
-                    print('3...')
-                    cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
-                                                                                                                                        desired_normalized_trainingdatasets=normalized_TrainingDatasets,
-                                                                                                                                        desired_ground_observation_data=desired_ground_observation_data,
-                                                                                                                                        desired_geophysical_species_data=desired_geophysical_species_data)
-                elif Apply_Transformer_architecture:
-                    # Concatenate the training datasets and true input for the current model for training and testing purposes
-                    print('3...')
-                    cctnd_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_Transformer_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
-                                                                                                                                        desired_normalized_trainingdatasets=normalized_TrainingDatasets,
-                                                                                                                                        desired_ground_observation_data=desired_ground_observation_data,
-                                                                                                                                        desired_geophysical_species_data=desired_geophysical_species_data)
-                if Apply_CNN_Transformer_architecture:
                     print('3...')
                     cctnd_CNN_trainingdatasets, cctnd_Transformer_trainingdatasets, cctnd_true_input,cctnd_ground_observation_data,cctnd_geophysical_species_data, cctnd_sites_index, cctnd_dates = Init_CNN_Datasets.concatenate_trainingdatasets(desired_true_input=desired_true_input, 
                                                                                                                                         desired_normalized_CNN_trainingdatasets=normalized_CNN_TrainingDatasets,
@@ -212,6 +206,8 @@ def random_cross_validation(total_channel_names, main_stream_channel_names,
                                                                                                                                         desired_ground_observation_data=desired_ground_observation_data,
                                                                                                                                         desired_geophysical_species_data=desired_geophysical_species_data)
                 
+                                        
+               
                 total_data_points = len(cctnd_true_input)
                 print('Total data points for training and testing: ', total_data_points)
                 total_data_index = np.arange(total_data_points)

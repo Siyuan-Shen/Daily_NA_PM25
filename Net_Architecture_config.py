@@ -102,7 +102,7 @@ cfg  = {
                 "Blocks": "BasicBlock", ## for 3D CNN, MoE, and MoCE architectures (both base and side models)
                 ## blocks_num, output_channels, pooling_kernel_size are used in ResNet3D, MoE, and MoCE base model
                 "blocks_num": [1, 1, 1, 1],
-                "output_channels": [128, 256, 512, 1024],
+                "output_channels": [64,64,128,256], # [128, 256, 512, 1024],# 
                 "pooling_layer_switch": True,
                 "pooling_kernel_size": (1,3,3),
                 "pooling_layer_type_3D": "MaxPooling3d",
@@ -122,11 +122,12 @@ cfg  = {
             'Settings': True, ## Turn on MoCE architecture, and also turn on ResNet. Only one of MoE or MoCE can be True.
             'num_experts': 4,
             'gating_hidden_size': 128,
-            'gate_selected_channels': ["tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration","lat", "lon", "sin_days", "cos_days",
+            'gate_selected_channels': ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
                                 "ocfire", "pm2p5fire", "mami", "tcfire",
                                  "PBLH", "RH",  "V10M", "U10M", "PS","PRECTOT", "T2M", ],
             
-            'base_model_channels' : ["tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration", 
+            'base_model_channels' : ["tSATAOD", "tSATPM25", 
+                #"scsg_GCHP_PM25", "scsg_GCHP_SO4", "scsg_GCHP_NH4", "scsg_GCHP_NIT", "scsg_GCHP_POA", "scsg_GCHP_SOA", "scsg_GCHP_DST", "scsg_GCHP_SSLT",
                 "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                 "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
@@ -135,18 +136,19 @@ cfg  = {
                "elevation", "Population", "lat", "lon", "sin_days", "cos_days",],
             
             "side_blocks_num": [1, 1, 1, 1],
-            "side_output_channels": [128, 256, 512, 1024],
+            "side_output_channels": [64,64,128,256], # [128, 256, 512, 1024], #
             "side_pooling_kernel_switch": True,
             "side_pooling_layer_type_3D": "MaxPooling3d",
             "side_pooling_kernel_size": (1,3,3),
             ## Define the selected channels for each expert (length should be equal to num_experts)
             'side_experts_channels_list': [ # len = num_experts - 1
-                [  "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                [  #"scsg_GCHP_PM25", "scsg_GCHP_SO4", "scsg_GCHP_NH4", "scsg_GCHP_NIT", "scsg_GCHP_POA", "scsg_GCHP_SOA", "scsg_GCHP_DST", "scsg_GCHP_SSLT",#"GC_BC",
+                  "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
                     "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                     "lat", "lon", "sin_days", "cos_days", ],
-                ["tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration","lat", "lon", "sin_days", "cos_days", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
                          "elevation", "Population", ],
-                [ "tSATAOD_Ratio_Calibration", "tSATPM25_Ratio_Calibration", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                [ "tSATAOD", "tSATPM25", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
                     "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
                         "ocfire", "pm2p5fire", "mami", "tcfire",],
             ],
@@ -210,7 +212,7 @@ Six experts side channels:
                     "elevation", "Population", "lat", "lon", "sin_days", "cos_days", ],
                 ["tSATPM25", "tSATAOD", "lat", "lon", "sin_days", "cos_days", "ocfire", "pm2p5fire", "mami", "tcfire",],
                 ["tSATAOD", "tSATPM25",
-                        "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                        "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests', 
                          "elevation", "Population", "lat", "lon", "sin_days", "cos_days",],
                 ["tSATAOD","PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS",
                      "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",

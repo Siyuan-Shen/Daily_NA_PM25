@@ -13,9 +13,13 @@ def linear_regression(x, y):
     y = np.array(y)
     
     # Filter out NaN values
-    mask = ~np.isnan(x) & ~np.isnan(y)
-    x = x[mask]
-    y = y[mask]
+    try:
+        mask = ~np.isnan(x) & ~np.isnan(y)
+        x = x[mask]
+        y = y[mask]
+    except Exception as e:
+        print("Error in filtering NaN values: ", e)
+        return -999.0
     
     # Check if there are enough data points after filtering
     if len(x) == 0 or len(y) == 0:
