@@ -1,3 +1,14 @@
+import os
+cache_dir = '/s.siyuan/my-projects2/torch_compile_cache'
+os.makedirs(cache_dir, exist_ok=True)
+
+os.environ['TORCH_COMPILE_CACHE_DIR'] = cache_dir
+os.environ['TORCHINDUCTOR_CACHE_DIR'] = cache_dir  # ← PyTorch 2.x用这个
+
+os.environ['MASTER_ADDR'] = 'localhost'
+os.environ['MASTER_PORT'] = '12355'  # Pick an unused port
+os.environ['PYTHONUNBUFFERED'] = '1'
+
 import toml
 import pprint
 import wandb
@@ -27,9 +38,6 @@ if __name__ == "__main__":
 
     pprint.pprint(cfg)
     import os
-
-    os.environ['MASTER_ADDR'] = 'localhost'
-    os.environ['MASTER_PORT'] = '12355'  # Pick an unused port
 
     start_time = time.time()
 

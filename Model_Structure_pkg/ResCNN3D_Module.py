@@ -456,7 +456,8 @@ class ResCNN3D_MoCE(nn.Module):
         #    print(f'Expert {iexpert} indices: {self.experts_channels_index[iexpert]}')
         gates, logits = self.gating_network(x)      # only sees selected channels
         batch_size = x.size(0)
-        expert_times = []
+        #expert_times = []
+        
         expert_preds = []
         for iexpert, expert in enumerate(self.experts):
             #torch.cuda.synchronize()
@@ -467,9 +468,31 @@ class ResCNN3D_MoCE(nn.Module):
             #expert_times.append((time.perf_counter() - t0) * 1000)
             expert_preds.append(y)
         
-       # print(f"Expert times: {[f'{t:.1f}ms' for t in expert_times]}", flush=True)
+        #print(f"Expert times: {[f'{t:.1f}ms' for t in expert_times]}", flush=True)
     
         expert_outputs = torch.cat(expert_preds, dim=1)  # [B, num_experts]
 
+
+        # 先准备好所有expert的输入\
+        """
+        expert_inputs = [
+            x[:, self.experts_channels_index[i], :, :, :]
+            for i in range(len(self.experts))
+        ]
+        
+        # 用fork并行启动所有expert
+        futures = [
+            torch.jit.fork(expert, expert_inputs[i])
+            for i, expert in enumerate(self.experts)
+        ]
+        
+        # 等待所有expert完成并收集结果
+        expert_preds = [
+            torch.jit.wait(f).view(batch_size, 1)
+            for f in futures
+        ]
+        
+        expert_outputs = torch.cat(expert_preds, dim=1)
+        """
         y_moe = torch.sum(gates * expert_outputs, dim=1, keepdim=True)
         return y_moe

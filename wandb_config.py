@@ -114,6 +114,17 @@ def init_get_sweep_config():
 
 ### This is for the sweep for MoCE channel pool selection.
 MOCE_CHANNEL_POOL =[
+    [  "scsg_GCHP_PM25", "scsg_GCHP_SO4", "scsg_GCHP_NH4", "scsg_GCHP_NIT", "scsg_GCHP_POA", "scsg_GCHP_SOA", "scsg_GCHP_DST", "scsg_GCHP_SSLT",
+                
+                    "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
+                    "lat", "lon", "sin_days", "cos_days", ],
+                ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                         "elevation", "Population", ],
+                [ "tSATAOD", "tSATPM25", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
+                    "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
+                        "ocfire", "pm2p5fire", "mami", "tcfire",],
+]
+""" 
                     [  "tSATAOD", "tSATPM25",
                      "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
                     "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS",
@@ -137,7 +148,7 @@ MOCE_CHANNEL_POOL =[
                     "elevation", "Population", "lat", "lon", "sin_days", "cos_days", "ocfire", "pm2p5fire", "mami", "tcfire", ]
             ] ### Put the comments outside, otherwise the length will be real length + 1
                             
-""" 
+
                     [  "tSATAOD", "tSATPM25", #"eta",
                      "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
                     "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
@@ -243,13 +254,13 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [ 0.0001, 0.0003, 0.0005, 0.0008, 0.001]
+                    'values': [ 0.0001, 0.0003, 0.0006]
                 },
                 'batch_size': {
-                    'values': [32, 64, 128, 256, 512]
+                    'values': [ 256, 512,1024]
                 },
                 'epoch':{
-                    'values': [51, 71, 91, 111, 131, 151]
+                    'values': [51, 71]
                 },
                 'pooling_layer_switch': {
                     'values': [True]
@@ -270,7 +281,7 @@ def wandb_sweep_config():
                 },
                  
                 'ResCNN3D_blocks_num': {
-                    'values': [[1,1,1,1],[1,2,2,1],[3,3,3,3],[2,2,2,2]]
+                    'values': [[1,1,1,1]]
                 },
 
                 'ResCNN3D_output_channels': {
@@ -329,7 +340,7 @@ def wandb_sweep_config():
             }
         if MoCE_Settings:
             sweep_configuration['parameters']['MoCE_num_experts'] = {
-                'values': [6]
+                'values': [4]
             }
             sweep_configuration['parameters']['MoCE_gating_hidden_size'] = {
                 'values': [128]
@@ -353,19 +364,14 @@ def wandb_sweep_config():
             }
             sweep_configuration['parameters']['MoCE_base_model_channels'] = {
                 'values': [[ "tSATAOD", "tSATPM25", #"eta",
-                             "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                             #"GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
+                             "scsg_GCHP_PM25", "scsg_GCHP_SO4", "scsg_GCHP_NH4", "scsg_GCHP_NIT", "scsg_GCHP_POA", "scsg_GCHP_SOA", "scsg_GCHP_DST", "scsg_GCHP_SSLT",
                              "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
                              "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
                              "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
                              "Urban_Builtup_Lands", 
                              "elevation", "Population", "lat", "lon", "sin_days", "cos_days", ],
-                        [ "tSATAOD", "tSATPM25", #"eta",
-                        "GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",#"GC_BC",
-                        "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
-                        "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
-                        "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",#"NMVOC_anthro_emi",
-                        "Urban_Builtup_Lands", 'Grasslands','Evergreen-Broadleaf-Forests',
-                        "elevation", "Population", "lat", "lon", "sin_days", "cos_days", ]]
+                        ]
             }
             
             sweep_configuration['parameters']['MoCE_side_blocks_num'] = {
@@ -388,7 +394,6 @@ def wandb_sweep_config():
                 'values': [list(c) for c in combo_indices]  # e.g. [0, 4, 7]
             }
 
-            
     if Apply_Transformer_architecture:
         sweep_configuration = {
             'name': 'HSV_Transformer_Sweep_Normalized_Speices',
