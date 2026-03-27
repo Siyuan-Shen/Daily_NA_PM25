@@ -1,11 +1,6 @@
 import torch
-import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
-
-transform = transforms.Compose([
-    transforms.ToTensor(), 
-])
 
 class CNN_Transformer_Dataset(torch.utils.data.Dataset):  # 'Characterizes a dataset for PyTorch'
     '''
@@ -34,7 +29,6 @@ class CNN_Transformer_Dataset(torch.utils.data.Dataset):  # 'Characterizes a dat
         print(self.truedatasets.shape)
         print(self.Transformer_traindatasets.shape)
         print(self.CNN_traindatasets.shape)
-        self.transforms = transform  # 转为tensor形式
         self.CNN_shape = self.CNN_traindatasets.shape
         self.Transformer_shape = self.Transformer_traindatasets.shape
     def __getitem__(self, index):  # 'Generates one sample of data'
@@ -57,7 +51,6 @@ class CNN_Transformer_Dataset_Val(torch.utils.data.Dataset):  # 'Characterizes a
             self.Transformer_traindatasets = torch.Tensor(Transformer_traindata) #torch.squeeze(torch.Tensor(traindata))
             print(self.Transformer_traindatasets.shape)
             print(self.CNN_traindatasets.shape)
-            self.transforms = transform  # 转为tensor形式
             self.CNN_shape = self.CNN_traindatasets.shape
             self.Transformer_shape = self.Transformer_traindatasets.shape
     def __getitem__(self, index):  # 'Generates one sample of data'
@@ -105,7 +98,6 @@ class Dataset(torch.utils.data.Dataset):  # 'Characterizes a dataset for PyTorch
             
         print(self.truedatasets.shape)
         print(self.traindatasets.shape)
-        self.transforms = transform  # 转为tensor形式
         self.shape = self.traindatasets.shape
     def __getitem__(self, index):  # 'Generates one sample of data'
         # Select sample
@@ -125,7 +117,6 @@ class Dataset_Val(torch.utils.data.Dataset):  # 'Characterizes a dataset for PyT
             super(Dataset_Val, self).__init__()
             self.traindatasets = torch.Tensor(traindata) #torch.squeeze(torch.Tensor(traindata))
             print(self.traindatasets.shape)
-            self.transforms = transform  # 转为tensor形式
             self.shape = self.traindatasets.shape
     def __getitem__(self, index):  # 'Generates one sample of data'
             # Select sample
