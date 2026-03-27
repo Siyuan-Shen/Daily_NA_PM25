@@ -535,7 +535,8 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         Daily_Model = initial_3dcnn_net(main_stream_channel=main_stream_channel_names,wandb_config=wandb_config)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         Daily_Model.to(device)
-        torch._inductor.config.fx_graph_cache = True
+        if hasattr(torch._inductor, 'config'):
+            torch._inductor.config.fx_graph_cache = True
         Daily_Model = torch.compile(Daily_Model) # Optional: Compile the model for potential speedup (PyTorch 2.0+)
         
         train_loader = DataLoader(Dataset(X_train, y_train), BATCH_SIZE, shuffle=True)
@@ -546,7 +547,8 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         Daily_Model = initial_3dcnn_net(main_stream_channel=main_stream_channel_names,wandb_config=wandb_config)
         device = rank
         Daily_Model.to(device)
-        torch._inductor.config.fx_graph_cache = True
+        if hasattr(torch._inductor, 'config'):
+            torch._inductor.config.fx_graph_cache = True
         Daily_Model = torch.compile(Daily_Model,mode='reduce-overhead') # Optional: Compile the model for potential speedup (PyTorch 2.0+)
         Daily_Model = DDP(Daily_Model, device_ids=[device])
         Daily_Model.register_comm_hook(state=None, hook=comm_hooks.fp16_compress_hook)  # Register the allreduce hook for gradient synchronization

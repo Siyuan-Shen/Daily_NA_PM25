@@ -69,7 +69,7 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
         
-        model = torch.load(model_infile)
+        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
     elif Apply_3D_CNN_architecture:
         if MoE_Settings:
             Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
@@ -82,25 +82,25 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
         
-        model = torch.load(model_infile)
+        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
 
     elif Apply_Transformer_architecture:
         Model_structure_type = 'TransformerModel'
         model_infile = indir + '{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindates,enddates,nchannel,special_name, ifold)
-        
+
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
-        
-        model = torch.load(model_infile)
-    
+
+        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+
     elif Apply_CNN_Transformer_architecture:
         Model_structure_type = 'CNNTransformerModel'
         model_infile = indir + f'{Model_structure_type}_{typeName}_{species}_{width}x{height}_{d_model}dmodel_{n_head}heads_{ffn_hidden}ffnHidden_{num_layers}numlayers_{max_len}lens_{begindates}-{enddates}_{CNN_nchannel}CNNChannels_{Transformer_nchannel}TransformerChannels_No{ifold}.pt'
 
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
-        
-        model = torch.load(model_infile)
+
+        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
 
     return model
 

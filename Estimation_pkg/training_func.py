@@ -82,7 +82,7 @@ def Train_Model_forEstimation(total_channel_names, main_stream_channel_names,
         if Apply_CNN_architecture or Apply_3D_CNN_architecture:
             # Get the initial true_input and training datasets for the current model (within the desired time range)
             print('1...',' Start Date: ', Estimation_trained_begin_dates[imodel], ' End Date: ', Estimation_trained_end_dates[imodel])
-            desired_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data = Init_CNN_Datasets.get_desired_range_inputdatasets(start_date=Estimation_begindates[imodel],
+            desired_trainingdatasets, desired_true_input,  desired_ground_observation_data, desired_geophysical_species_data = Init_CNN_Datasets.get_desired_range_inputdatasets(start_date=Estimation_trained_begin_dates[imodel],
                                                                                             end_date=Estimation_trained_end_dates[imodel]) # initial datasets
             # Normalize the training datasets
             print('2...', 'Desired Training Datasets: ', desired_trainingdatasets.keys())

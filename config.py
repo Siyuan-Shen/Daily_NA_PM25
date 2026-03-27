@@ -6,7 +6,7 @@ AVD_OBS_version = 'AVD_d20250804' # 'AVD_d20240814' 'AVD_d20250804'
 AVD_GEO_version = 'vAOD20240322vGEO20241212' # 'vAOD20251119vGEO20251120' # 'vAOD20240322vGEO20241212' # 
 GCHP_version = 'CombinedAOD_GL_v20251119'
 
-Use_AOD_nan_values_filtered_Obs = True ## True: use the AOD that is not filled to filter the obs, high quality geophysical a priori; False: use the filled AOD
+Use_AOD_nan_values_filtered_Obs = False ## True: use the AOD that is not filled to filter the obs, high quality geophysical a priori; False: use the filled AOD
 Include_NAPS = True ### True: include NAPS data; False: not include NAPS data
 NAPS_version = 'NAPS_20250807' # 'NAPS_20250807', 'NAPS-20240813'
 
@@ -140,7 +140,7 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        'Spatial_CrossValidation_Switch': True,
+        'Spatial_CrossValidation_Switch': False,
         'Spatial_CV_Apply_wandb_sweep_Switch': False,
         'wandb_sweep_count_Spatial_CV': 100,
         'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
@@ -171,7 +171,7 @@ cfg = {
 
         ##### SHAP Analysis Settings ####
         'SHAP_Analysis_Settings': {
-            'SHAP_Analysis_switch': False, ### Not controlled by Spatial_CrossValidation_Switch
+            'SHAP_Analysis_switch': True, ### Not controlled by Spatial_CrossValidation_Switch
             'SHAP_Analysis_Calculation_Switch': True,
             'SHAP_Analysis_visualization_Switch': True,
             'SHAP_Analysis_background_number': 2000,
@@ -181,7 +181,7 @@ cfg = {
     },
     #########################################################################################################################################################
     'BLISCO-CrossValidation' : {
-        'BLISCO_CV_Switch': False,
+        'BLISCO_CV_Switch': True,
         'Use_recorded_data_to_show_validation_results': False,
         'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
         
@@ -319,7 +319,7 @@ cfg = {
     'Training-Settings' : {
         'identity': {
             'version': 'v1.1.0',
-            'description': f'_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_BenchMark', # A brief description of the model version, typically including the key settings such as the data version, training settings, and model architecture.
+            'description': f'_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_BenchMark_scsg_GCHP_270dayfilling', # A brief description of the model version, typically including the key settings such as the data version, training settings, and model architecture.
             'author': 'Siyuan Shen',
             'email': 's.siyuan@wustl.edu',
             'runningdate': '{}-{}-{}'.format(time.strftime('%Y'), time.strftime('%m'), time.strftime('%d'))

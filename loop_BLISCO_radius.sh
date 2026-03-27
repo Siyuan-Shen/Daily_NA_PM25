@@ -5,7 +5,7 @@ start_radius=0
 end_radius=110
 radius_bin=20
 
-radii=(0 1 3 5 10 20 30 40 50 70 100)
+radii=(10)
 # Job script file
 job_script="run_aws_gpu.slurm"
 count=0
@@ -22,7 +22,7 @@ for radius in "${radii[@]}"; do
 
     # Use sed to replace variables in the script
     sed -i "s/^Buffer_size=.*/Buffer_size=${Buffer_size}/" $modified_script
-    sed -i "s/^#SBATCH --job-name=.*/#SBATCH --job-name=\"V0.4.0 BLISCO ${radius}\"/" $modified_script
+    sed -i "s/^#SBATCH --job-name=.*/#SBATCH --job-name=\"V1.1.0 BLISCO ${radius}\"/" $modified_script
 
     # Update the pause_time calculation
     sed -i "s/^pause_time=\$((RANDOM % .*/pause_time=\$((RANDOM % 50 + (${count}) * 120))/" $modified_script

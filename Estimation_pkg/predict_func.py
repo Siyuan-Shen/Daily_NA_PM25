@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.distributed as dist
 import time
+from torch.amp import autocast
 from Estimation_pkg.utils import *
 from Estimation_pkg.data_func import get_extent_index, get_landtype
 from Estimation_pkg.iostream import *
@@ -151,13 +152,24 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
         raise e
     print(f"Rank {rank} process started.")
 
+    cache_dir = '/s.siyuan/my-projects2/torch_compile_cache'
+    os.makedirs(cache_dir, exist_ok=True)
+    os.environ['TORCHINDUCTOR_CACHE_DIR'] = cache_dir
+    os.environ['TORCH_COMPILE_CACHE_DIR'] = cache_dir
+    torch.set_float32_matmul_precision('high')
+    torch._inductor.config.fx_graph_cache = True
+
     if world_size <= 1:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
+        # dynamic=True handles variable batch sizes (last batch per row differs from 2000)
+        # without triggering recompilation for each new shape
+        model = torch.compile(model, dynamic=True)
     elif world_size > 1:
         ddp_setup(rank, world_size)
         device = rank
         model.to(device)
+        model = torch.compile(model, dynamic=True)
         model = DDP(model, device_ids=[device])
     
     AllDates, int_AllDates = create_date_range(predict_begindate, predict_endate)
@@ -194,9 +206,20 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
                 if len(land_index[0]) == 0:
                     None
                 else:
-                    temp_input = np.zeros((len(land_index[0]), nchannel, depth, width, width), dtype=np.float32)
-                    for iy in range(len(land_index[0])):
-                        temp_input[iy,:,:,:,:] = temp_map_data[:,:,int(lat_index[ix] - half_width):int(lat_index[ix] + half_width + 1), int(lon_index[land_index[0][iy]] - half_height):int(lon_index[land_index[0][iy]] + half_height + 1)]
+                    # Vectorized patch extraction — no Python loop over pixels
+                    lat_start = int(lat_index[ix] - half_width)
+                    lat_end   = int(lat_index[ix] + half_width + 1)
+                    lon_coords  = lon_index[land_index[0]]                            # (N,)
+                    lon_offsets = np.arange(-half_height, half_height + 1)            # (width,)
+                    lon_indices = lon_coords[:, None] + lon_offsets[None, :]          # (N, width)
+                    # lat_slice: (nchannel, depth, width, NLON)
+                    # indexed by lon_indices (N, width) → (nchannel, depth, width, N, width)
+                    # transpose → (N, nchannel, depth, width, width)
+                    lat_slice  = temp_map_data[:, :, lat_start:lat_end, :]
+                    temp_input = np.ascontiguousarray(
+                        np.transpose(lat_slice[:, :, :, lon_indices], (3, 0, 1, 2, 4)),
+                        dtype=np.float32
+                    )
                 
                     temp_input -= train_mean
                     temp_input /= train_std
@@ -215,12 +238,13 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
                     
                     for i, image in enumerate(predict_loader):
                         # Your original prediction logic goes here...
-                        image = image.to(device)
-                        temp_output = model(image).cpu().detach().numpy()
+                        image = image.to(device, non_blocking=True)
+                        with autocast('cuda'):
+                            temp_output = model(image).cpu().detach().numpy()
                         final_output = np.append(final_output, temp_output)
 
                     output[ix,land_index[0]] = final_output
-            
+
             if world_size > 1:
                 out_t = torch.from_numpy(output).to(device)
                 dist.all_reduce(out_t, op=dist.ReduceOp.MAX)

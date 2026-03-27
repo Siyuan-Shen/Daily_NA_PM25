@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="3DCNN GCHP no-fillings Spatial CV _BenchMark_TwoModels_batchsize_512_lr_0d0003"
+#SBATCH --job-name="3DCNN GCHP fillings Random CV _BenchMark_scsg_GCHP_270dayfilling  "
 #SBATCH --partition=gpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -58,7 +58,7 @@ Buffer_size=[80]
 sed -i "/'BLISCO-CrossValidation'/,/'Temporal-CrossValidation'/{/'BLISCO_CV_buffer_radius_km'/s/:.*/: ${Buffer_size},/}" config.py
 
 Temporal_Buffer_size=[0]
-sed -i "/'Temporal-Buffer-Out-CrossValidation'/,'Estimation-Settings'/{/'Temporal_Buffer_days'/s/:.*/: ${Temporal_Buffer_size},/}" config.py
+sed -i "/'Temporal-Buffer-Out-CrossValidation'/,/'Estimation-Settings'/{/'Temporal_Buffer_days'/s/:.*/: ${Temporal_Buffer_size},/}" config.py
 
 Training_begin_dates=[20190101,20200101,20210101,20220101,20230101]
 Training_end_dates=[20191231,20201231,20211231,20221231,20231231]
