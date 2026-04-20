@@ -1,7 +1,7 @@
 from config import cfg
 import datetime
 import numpy as np
-from config import AVD_OBS_version,AVD_GEO_version,Use_AOD_nan_values_filtered_Obs,GCHP_version
+from config import AVD_OBS_version,AVD_GEO_version,Use_AOD_nan_values_filtered_Obs,GCHP_version,SCSG_GCHP_version
 from Training_pkg.utils import MapData_fromRegionalComponentProject_Indir, MapData_Indir
 
 Estimation_Settings = cfg['Estimation-Settings']
@@ -50,12 +50,14 @@ MapData_fromRegionalComponentProject_Indir = MapData_fromRegionalComponentProjec
 AVD_version = AVD_OBS_version
 Geophysical_version = AVD_GEO_version
 GCHP_version = GCHP_version
-
+SCSG_GCHP_version = SCSG_GCHP_version
 ############################################################################################
 # The indir of input mapdata.
 Geophysical_indir        = f'{MapData_Indir}Geophysical_Variables/'
 GEOS_Chem_indir          = f'{MapData_Indir}GEOS-Chem_input/'
 GCHP_indir               = f'{MapData_Indir}GCHP_input/{GCHP_version}/'
+SCSG_GCHP_indir              = f'{MapData_Indir}GCHP_input/{SCSG_GCHP_version}/ugm3_fine_resolution/'
+
 Meteorology_indir        = f'{MapData_Indir}Meteorology_input/'
 GFAS_indir               = f'{MapData_Indir}GFAS_input/'
 Anthropogenic_Emissions_input_indir = f'{MapData_fromRegionalComponentProject_Indir}Anthropogenic_Emissions_input/'
@@ -100,6 +102,18 @@ def inputfiles_table(YYYY, MM, DD):
         'GCHP_SOA'             : GCHP_indir + '{}/{}/SOA_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'GCHP_DST'             : GCHP_indir + '{}/{}/DST_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'GCHP_SSLT'            : GCHP_indir + '{}/{}/SSLT_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        ############################################################################################################
+        # Aaron's Stretch GCHP data
+        
+        'scsg_GCHP_PM25'            : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_PM25_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'scsg_GCHP_SO4'             : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_SO4_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'scsg_GCHP_NH4'             : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_NH4_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'scsg_GCHP_NIT'             : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_NIT_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'scsg_GCHP_BC'              : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_BC_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'scsg_GCHP_POA'              : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_POA_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'scsg_GCHP_SOA'             : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_SOA_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'scsg_GCHP_DST'             : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_Dust_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'scsg_GCHP_SSLT'            : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_SALA_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         
         ############################################################################################################
         # Meteorology input variables

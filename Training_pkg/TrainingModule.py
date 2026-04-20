@@ -460,7 +460,8 @@ def Transformer_train(rank, world_size, temp_sweep_config, sweep_mode, sweep_id,
     return
 
 def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,init_total_channel_names,X_train, y_train,X_test,y_test,input_mean, input_std,width,height,depth,
-              evaluation_type,typeName,begindates,enddates,ifold=0):
+              evaluation_type,typeName,begindates,enddates,ifold=0,
+              true_y_mean=None, true_y_std=None):
     import sys
     import os
     # 在函数最开头显式设置，确保子进程也有
@@ -569,10 +570,16 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
     train_acc = []
     test_acc  = []
 
-    criterion = SelfDesigned_LossFunction(losstype=Regression_loss_type)
+    try:
+        nonneg_lambda = wandb_config.get("NonNegMSE_lambda", NonNegMSE_lambda)
+    except AttributeError:
+        nonneg_lambda = NonNegMSE_lambda
+    criterion = SelfDesigned_LossFunction(losstype=Regression_loss_type,
+                                          true_y_mean=true_y_mean, true_y_std=true_y_std,
+                                          nonneg_lambda=nonneg_lambda)
     optimizer = optimizer_lookup(model_parameters=Daily_Model.parameters(), learning_rate=learning_rate)
     scheduler = lr_strategy_lookup_table(optimizer=optimizer)
-    
+
     if 'tSATPM25' in total_channel_names:
         GeoSpecies_index = total_channel_names.index('tSATPM25')
     else:
@@ -1107,7 +1114,6 @@ def cnn_predict_3D(inputarray, model, batchsize,initial_channel_names,mainstream
     with torch.no_grad():
         for i, image in enumerate(predictinput):
             image = image.to(device, non_blocking=True)
-            output = model(image).cpu().detach().numpy()
             with torch.amp.autocast('cuda'):        # AMP加速推理
                 output = model(image)
             all_outputs.append(output.detach().cpu())  # 保持tensor，不转numpy

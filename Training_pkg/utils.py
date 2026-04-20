@@ -75,6 +75,7 @@ normalize_bias = learning_objective_cfg['normalize_bias']
 normalize_species = learning_objective_cfg['normalize_species']
 absolute_species = learning_objective_cfg['absolute_species']
 log_species = learning_objective_cfg['log_species']
+softplus_output = learning_objective_cfg['softplus_output']
 
 # hyperparameters
 hyperparameters_cfg = Training_Settings['hyper-parameters']
@@ -94,6 +95,9 @@ GeoMSE_loss_function_cfg = loss_function_cfg['GeoMSE']
 GeoMSE_Lamba1_Penalty1 = GeoMSE_loss_function_cfg['GeoMSE_Lamba1_Penalty1']
 GeoMSE_Lamba1_Penalty2 = GeoMSE_loss_function_cfg['GeoMSE_Lamba1_Penalty2']
 GeoMSE_Gamma = GeoMSE_loss_function_cfg['GeoMSE_Gamma']
+
+NonNegMSE_loss_function_cfg = loss_function_cfg['NonNegMSE']
+NonNegMSE_lambda = NonNegMSE_loss_function_cfg['NonNegMSE_lambda']
 
 MultiHead_Loss_function_cfg = loss_function_cfg['MultiHead_Loss']
 ResNet_MultiHeadNet_regression_loss_coefficient = MultiHead_Loss_function_cfg['ResNet_MultiHeadNet_regression_loss_coefficient']

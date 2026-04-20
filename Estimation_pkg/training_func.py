@@ -116,7 +116,8 @@ def Train_Model_forEstimation(total_channel_names, main_stream_channel_names,
                                                                                                                                 desired_ground_observation_data=desired_ground_observation_data,
                                                                                                                                 desired_geophysical_species_data=desired_geophysical_species_data)            
         
-        X_test, y_test = cctnd_trainingdatasets[0:100,:], cctnd_true_input[0:100] ## Just to get the shape of the input data for the model to feed into the function. No need to get the validation datasets for estimation.
+        n_val = config_batchsize * world_size  ## Ensure at least one full batch per GPU after DistributedSampler split. No need to get the validation datasets for estimation.
+        X_test, y_test = cctnd_trainingdatasets[0:n_val,:], cctnd_true_input[0:n_val]
 
         if Apply_CNN_architecture:
             if world_size > 1:
@@ -135,12 +136,14 @@ def Train_Model_forEstimation(total_channel_names, main_stream_channel_names,
                 mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,cctnd_trainingdatasets, cctnd_true_input,\
                                     X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                     Evaluation_type,typeName,Estimation_trained_begin_dates[imodel],\
-                                    Estimation_trained_end_dates[imodel],0),nprocs=world_size)
+                                    Estimation_trained_end_dates[imodel],0,
+                                    true_input_mean, true_input_std),nprocs=world_size)
             else:
                 CNN3D_train(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,cctnd_trainingdatasets, cctnd_true_input,\
                                     X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                     Evaluation_type,typeName,Estimation_trained_begin_dates[imodel],\
-                                    Estimation_trained_end_dates[imodel],0)
+                                    Estimation_trained_end_dates[imodel],0,
+                                    true_input_mean, true_input_std)
         elif Apply_Transformer_architecture:
             if world_size > 1:
                 mp.spawn(Transformer_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,cctnd_trainingdatasets, cctnd_true_input,\

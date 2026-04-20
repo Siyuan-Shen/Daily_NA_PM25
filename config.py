@@ -5,7 +5,7 @@ Pathend_YEAR = 2023
 AVD_OBS_version = 'AVD_d20250804' # 'AVD_d20240814' 'AVD_d20250804'
 AVD_GEO_version = 'vAOD20240322vGEO20241212' # 'vAOD20251119vGEO20251120' # 'vAOD20240322vGEO20241212' # 
 GCHP_version = 'CombinedAOD_GL_v20251119'
-
+SCSG_GCHP_version = 'GCHP.v13.2.1/stretchNA.output.noDOW.base'
 Use_AOD_nan_values_filtered_Obs = False ## True: use the AOD that is not filled to filter the obs, high quality geophysical a priori; False: use the filled AOD
 Include_NAPS = True ### True: include NAPS data; False: not include NAPS data
 NAPS_version = 'NAPS_20250807' # 'NAPS_20250807', 'NAPS-20240813'
@@ -171,7 +171,7 @@ cfg = {
 
         ##### SHAP Analysis Settings ####
         'SHAP_Analysis_Settings': {
-            'SHAP_Analysis_switch': True, ### Not controlled by Spatial_CrossValidation_Switch
+            'SHAP_Analysis_switch': False, ### Not controlled by Spatial_CrossValidation_Switch
             'SHAP_Analysis_Calculation_Switch': True,
             'SHAP_Analysis_visualization_Switch': True,
             'SHAP_Analysis_background_number': 2000,
@@ -181,7 +181,7 @@ cfg = {
     },
     #########################################################################################################################################################
     'BLISCO-CrossValidation' : {
-        'BLISCO_CV_Switch': True,
+        'BLISCO_CV_Switch': False,
         'Use_recorded_data_to_show_validation_results': False,
         'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
         
@@ -227,7 +227,7 @@ cfg = {
         },
         ##### Temporal Cross Visualization Settings ####
         'Visualization_Settings': {
-            'regression_plot_switch': True,
+            'regression_plot_switch': False,
             'plot_begindates': [20190101],
             'plot_enddates': [20231231]
         },
@@ -258,7 +258,7 @@ cfg = {
         },
         ##### Temporal Cross Visualization Settings ####
         'Visualization_Settings': {
-            'regression_plot_switch': True,
+            'regression_plot_switch': False,
             'plot_begindates': [20190101],
             'plot_enddates': [20231231]
         },
@@ -268,23 +268,23 @@ cfg = {
     },
     #########################################################################################################################################################
     'Estimation-Settings' : {
-        'Estimation_Switch': False,
+        'Estimation_Switch': True,
         'Train_model_Switch': False,
         'Map_estimation_Switch': True,
         'Estimation_visualization_Switch': False,
 
         ###### Training Settings ######
         'Training_Settings': {
-            'Training_begin_dates': [20230101],
-            'Training_end_dates': [20231231],
+            'Training_begin_dates': [20190101],
+            'Training_end_dates': [20191231],
         },
         ###### Estimation Settings ######
         'Map_Estimation_Settings': {
             'Eatimation_Daily_Switch': True,
-            'Estimation_trained_begin_dates': [201570101,20230101],
-            'Estimation_trained_end_dates': [202151231,20231231],
-            'Estimation_begindates': [[20150101],[20230101]],
-            'Estimation_enddates': [[20151231],[20231231]],
+            'Estimation_trained_begin_dates': [20190101],
+            'Estimation_trained_end_dates': [20191231],
+            'Estimation_begindates': [[20190101]],
+            'Estimation_enddates': [[20190131]],
             'Extent': [10.055,69.945,-169.945,-40.055],
             'Estimation_Area': 'NorthAmerica',
 
@@ -319,7 +319,7 @@ cfg = {
     'Training-Settings' : {
         'identity': {
             'version': 'v1.1.0',
-            'description': f'_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_BenchMark_scsg_GCHP_270dayfilling', # A brief description of the model version, typically including the key settings such as the data version, training settings, and model architecture.
+            'description': f'_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_BenchMark_scsg_GCHP_270dayfilling_NonNegMSE_5d0', # A brief description of the model version, typically including the key settings such as the data version, training settings, and model architecture.
             'author': 'Siyuan Shen',
             'email': 's.siyuan@wustl.edu',
             'runningdate': '{}-{}-{}'.format(time.strftime('%Y'), time.strftime('%m'), time.strftime('%d'))
@@ -332,6 +332,7 @@ cfg = {
             'normalize_species': True,
             'absolute_species': False,
             'log_species': False,
+            'softplus_output': False,   # Apply softplus post-processing to eliminate negative PM2.5
         },
         'hyper-parameters': {
             'epoch': 71, # 2DCNN: 131; 3DCNN:71; Transformer:111
@@ -359,7 +360,6 @@ cfg = {
             ## This is for the CNN part of the CNN-Transformer architecture. tSATPM25 must be included.
             'CNN_Embedding_channel_names': [
                     'tSATAOD', 'tSATPM25', #'eta',
-
                      'GC_PM25', 'GC_SO4', 'GC_NH4', 'GC_NIT', 'GC_OM', 'GC_SOA', 'GC_DST', 'GC_SSLT',
                      'PBLH', 'RH', 'PRECTOT', 'T2M', 'V10M', 'U10M', 'PS', 
                      'NH3_anthro_emi', 'SO2_anthro_emi', 'NO_anthro_emi', 'OC_anthro_emi',
@@ -379,12 +379,19 @@ cfg = {
         },
 
         'Loss-Functions': {
-            'Regression_loss_type': 'MSE',
+            'Regression_loss_type': 'NonNegMSE',
             'Classification_loss_type': 'CrossEntropyLoss',
             'GeoMSE': {
                 'GeoMSE_Lamba1_Penalty1': 10.0,
                 'GeoMSE_Lamba1_Penalty2': 8.0,
                 'GeoMSE_Gamma': 2.5
+            },
+            'NonNegMSE': {
+                # Penalty weight for negative PM2.5 predictions.
+                # loss = MSE + lambda * mean(relu(-(pred * true_std + true_mean)))
+                # Start small (0.05) to avoid hurting R2; increase if negatives persist.
+                # Set to 0.0 to disable (equivalent to plain MSE).
+                'NonNegMSE_lambda': 5.0
             },
             'MultiHead_Loss': {
                 'ResNet_MultiHeadNet_regression_loss_coefficient': 1,

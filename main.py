@@ -43,7 +43,10 @@ if __name__ == "__main__":
 
 
     def Hyperparameters_Search_Training_Testing_Validation_main(total_channel_names, main_stream_channel_names, side_channel_names,sweep_id=None, entity=None, project=None, width=None, height=None, depth=None):
-        
+        try:
+            torch._dynamo.reset()  # Reset compile state between sweep runs to avoid CUDA graph TLS assertion errors
+        except AssertionError:
+            pass  # CUDA graph TLS not initialized yet (no compilation in prior run) — nothing to reset
         Hyperparameters_Search_Training_Testing_Validation(total_channel_names=total_channel_names,main_stream_channel_names=main_stream_channel_names,
                                                                 side_stream_channel_names=side_channel_names,sweep_id=sweep_id
                                                                 ) 

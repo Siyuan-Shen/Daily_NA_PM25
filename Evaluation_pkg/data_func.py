@@ -8,8 +8,8 @@ def find_masked_latlon(mask_map,mask_lat,mask_lon,test_lat,test_lon):
     masked_array_index = np.where(masked_obs_array == 1)
     return masked_array_index[0]
 
-def Get_final_output(Validation_Prediction, validation_geophysical_species,bias,normalize_bias,normalize_species,absolute_species,log_species,mean,std  ):
-    """This function is used to convert the model estimation to absolute PM species concentration and to compare with the 
+def Get_final_output(Validation_Prediction, validation_geophysical_species,bias,normalize_bias,normalize_species,absolute_species,log_species,mean,std, softplus_output=False  ):
+    """This function is used to convert the model estimation to absolute PM species concentration and to compare with the
     observed PM species.
 
     Args:
@@ -35,6 +35,8 @@ def Get_final_output(Validation_Prediction, validation_geophysical_species,bias,
         final_data = Validation_Prediction
     elif log_species == True:
         final_data = np.exp(Validation_Prediction) - 1
+    if softplus_output:
+        final_data = np.logaddexp(0, final_data)
     return final_data
 
 
