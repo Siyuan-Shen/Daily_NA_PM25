@@ -254,13 +254,13 @@ def wandb_sweep_config():
             },
             'parameters': {
                 'learning_rate0': {
-                    'values': [ 0.0001, 0.0003, 0.0006]
+                    'values': [0.0003]
                 },
                 'batch_size': {
-                    'values': [ 256, 512,1024]
+                    'values': [ 256]
                 },
                 'epoch':{
-                    'values': [51, 71]
+                    'values': [ 71]
                 },
                 'pooling_layer_switch': {
                     'values': [True]
@@ -315,6 +315,9 @@ def wandb_sweep_config():
                                [],#['Barren'], ['Closed-Shrublands'], ['Crop_Nat_Vege_Mos'], ['Croplands'], ['Deciduous-Broadleaf-Forests'], ['Deciduous-Needleleaf-Forests'], ['Evergreen-Broadleaf-Forests'], ['Evergreen-Needleleaf-Forests'], ['Grasslands'], ['Mixed-Forests'], ['Open-Shrublands'], ['Permanent-Snow-Ice'], ['Permanent_Wetlands'], ['Savannas'],  ['Urban_Builtup_Lands'], ['Woody-Savannas'],
                                 #['major_roads'], ['minor_roads'], ['motorway'], ['primary'], ['secondary'], ['trunk'], ['unclassified'], ['residential'],
                                ]},
+                'NonNegMSE_lambda': {
+                    'values': [0.0, 0.01, 0.03, 0.05, 0.1, 0.2,0.5,1.0,3.0,5.0,10.0,20.0,50.0,100.0]
+                },
             }
         }
         if MoE_Settings:

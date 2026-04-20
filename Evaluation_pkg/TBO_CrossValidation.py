@@ -282,12 +282,14 @@ def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_c
                             mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                 X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                 Evaluation_type,typeName,TBO_CV_training_begindates[imodel],\
-                                                TBO_CV_training_enddates[imodel],ifold),nprocs=world_size)
+                                                TBO_CV_training_enddates[imodel],ifold,
+                                                true_input_mean, true_input_std),nprocs=world_size)
                         else:
                             CNN3D_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                 X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                 Evaluation_type,typeName,TBO_CV_training_begindates[imodel],\
-                                                TBO_CV_training_enddates[imodel],ifold)
+                                                TBO_CV_training_enddates[imodel],ifold,
+                                                true_input_mean, true_input_std)
                     index_of_main_stream_channels_of_initial = [total_channel_names.index(channel) for channel in main_stream_channel_names]
                     X_train = X_train[:,index_of_main_stream_channels_of_initial,:,:,:]
                     X_test  = X_test[:,index_of_main_stream_channels_of_initial,:,:,:]
@@ -371,10 +373,10 @@ def Temporal_Buffer_Out_CrossValidation(buffer_days,TBO_CV_max_test_days,total_c
                 # Get the final output for the validation datasets
                 final_output = Get_final_output(Validation_Prediction=validation_output, validation_geophysical_species=cctnd_geophysical_species_data[test_datasets_index],
                                                 bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
-                                                log_species=False, mean=true_input_mean, std=true_input_std)
+                                                log_species=False, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
                 training_final_output = Get_final_output(Validation_Prediction=training_output, validation_geophysical_species=cctnd_geophysical_species_data[train_datasets_index],
                                                 bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
-                                                log_species=False, mean=true_input_mean, std=true_input_std)
+                                                log_species=False, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
                 # Calculate the statistics for the validation datasets
 
 

@@ -1,4 +1,5 @@
-import os 
+import os
+from concurrent.futures import ThreadPoolExecutor as _TPE
 from Estimation_pkg.utils import inputfiles_table
 from Estimation_pkg.data_func import get_extent_index
 
@@ -65,19 +66,19 @@ def load_Estimation_Map(outdir, file_target,typeName,Area,YYYY,MM,DD,nchannel, *
     return mapdata
 
 
-def load_map_data(channel_names, YYYY, MM,DD):
-    inputfiles = inputfiles_table(YYYY=YYYY,MM=MM,DD=DD)
+def load_map_data(channel_names, YYYY, MM, DD, rank):
+    inputfiles = inputfiles_table(YYYY=YYYY, MM=MM, DD=DD)
     lat_infile = LATLON_indir + 'NA_SATLAT_0p01.npy'
-    lon_infile = LATLON_indir + 'NA_SATLON_0p01.npy'
+    lon_infile  = LATLON_indir + 'NA_SATLON_0p01.npy'
     SATLAT = np.load(lat_infile)
     SATLON = np.load(lon_infile)
-    output = np.zeros((len(channel_names), len(SATLAT), len(SATLON)))
+    output = np.zeros((len(channel_names), len(SATLAT), len(SATLON)), dtype=np.float32)
     loading_time_start = time.time()
-    for i in range(len(channel_names)):
-        infile = inputfiles[channel_names[i]]
-        tempdata = np.load(infile)
-        print('{} has been loaded!'.format(channel_names[i]))
-        output[i,:,:] = tempdata
-    loading_time_end = time.time()
-    print('Loading time cost: ', loading_time_end - loading_time_start, 's')
+    def _load(i):
+        if rank == 0:
+            print('Loading channel: {}, file: {}'.format(channel_names[i], inputfiles[channel_names[i]]))
+        output[i] = np.load(inputfiles[channel_names[i]])
+    with _TPE(max_workers=min(len(channel_names), 16)) as ex:
+        list(ex.map(_load, range(len(channel_names))))
+    print(f'Loading time cost: {time.time() - loading_time_start:.1f}s')
     return output

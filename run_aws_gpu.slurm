@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="3DCNN GCHP fillings Random CV _BenchMark_scsg_GCHP_270dayfilling  "
+#SBATCH --job-name="3DCNN GCHP fillings Spatial CV normalized  _BenchMark_scsg_GCHP_270dayfilling_5d0 "
 #SBATCH --partition=gpuqueue 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -80,6 +80,9 @@ Estimation_enddates=[[20231231]]
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_begindates'/s/:.*/: ${Estimation_begindates},/}" config.py
 sed -i "/'Estimation-Settings'/,/'Training-Settings'/{/'Estimation_enddates'/s/:.*/: ${Estimation_enddates},/}" config.py
 
+echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
+echo "SLURM_JOB_GPUS=$SLURM_JOB_GPUS"
+echo "SLURM_GPUS_ON_NODE=$SLURM_GPUS_ON_NODE"
 nvidia-smi
 
 MM=/s.siyuan/shared/tools/bin/micromamba

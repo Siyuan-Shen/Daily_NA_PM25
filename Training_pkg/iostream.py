@@ -5,6 +5,22 @@ from Training_pkg.utils import *
 
 import time
 
+def _get_saveable_model(model):
+    """Unwrap DDP and torch.compile wrappers before saving.
+
+    torch.compile stores CUDA-graph state that is bound to thread-local
+    storage (TLS).  Saving the compiled wrapper and reloading it in a
+    different execution context (e.g. a subsequent wandb sweep run) causes
+    an AssertionError inside cudagraph_trees.  Saving the original module
+    avoids this entirely and has no effect on models that were never
+    compiled or wrapped in DDP.
+    """
+    if hasattr(model, 'module'):      # unwrap DDP
+        model = model.module
+    if hasattr(model, '_orig_mod'):   # unwrap torch.compile
+        model = model._orig_mod
+    return model
+
 def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,enddates, version, species, nchannel, special_name, ifold, **args):
     '''
     Evaluation type is not only applied to the evaluation, also the estimation model. 
@@ -28,7 +44,7 @@ def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,endd
     if Apply_CNN_architecture:
         Model_structure_type = 'CNNModel'
         model_outfile = outdir +  '{}_{}_{}_{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, width,height, begindates,enddates,nchannel,special_name, ifold)
-        torch.save(model, model_outfile)
+        torch.save(_get_saveable_model(model), model_outfile)
     elif Apply_3D_CNN_architecture:
         if MoE_Settings:
             Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
@@ -37,16 +53,16 @@ def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,endd
         else:
             Model_structure_type = 'CNN3DModel'
         model_outfile = outdir +  '{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
-        torch.save(model, model_outfile)
+        torch.save(_get_saveable_model(model), model_outfile)
     
     elif Apply_Transformer_architecture:
         Model_structure_type = 'TransformerModel'
         model_outfile = outdir +  '{}_{}_{}_{}dmodel_{}heads_{}ffnHidden_{}numlayers_{}lens_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, d_model, n_head, ffn_hidden, num_layers, max_len, begindates,enddates,nchannel,special_name, ifold)
-        torch.save(model, model_outfile)
+        torch.save(_get_saveable_model(model), model_outfile)
     elif Apply_CNN_Transformer_architecture:
         Model_structure_type = 'CNNTransformerModel'
         model_outfile = outdir + f'{Model_structure_type}_{evaluation_type}_{typeName}_{species}_{width}x{height}_{d_model}dmodel_{n_head}heads_{ffn_hidden}ffnHidden_{num_layers}numlayers_{max_len}lens_{begindates}-{enddates}_{CNN_nchannel}CNNChannels_{Transformer_nchannel}TransformerChannels_No{ifold}.pt'
-        torch.save(model, model_outfile)
+        torch.save(_get_saveable_model(model), model_outfile)
     return
 
 def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, version, species, nchannel, special_name, ifold,**args):

@@ -306,12 +306,14 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                             mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                   X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                 Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
-                                                HSV_Spatial_splitting_enddates[imodel],0),nprocs=world_size)
+                                                HSV_Spatial_splitting_enddates[imodel],0,
+                                                true_input_mean, true_input_std),nprocs=world_size)
                         else:
                             CNN3D_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train, y_train,\
                                                   X_test, y_test, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                 Evaluation_type,typeName,HSV_Spatial_splitting_begindates[imodel],\
-                                                HSV_Spatial_splitting_enddates[imodel],0)
+                                                HSV_Spatial_splitting_enddates[imodel],0,
+                                                true_input_mean, true_input_std)
                         try:
                             channels_to_exclude = temp_sweep_config.get("channel_to_exclude", [])
                         except AttributeError:
@@ -421,10 +423,10 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     # Get the final output for the validation datasets
                     final_output = Get_final_output(Validation_Prediction=validation_output, validation_geophysical_species=cctnd_geophysical_species_data[test_datasets_index],
                                                     bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
-                                                    log_species=False, mean=true_input_mean, std=true_input_std)
+                                                    log_species=False, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
                     training_final_output = Get_final_output(Validation_Prediction=training_output, validation_geophysical_species=cctnd_geophysical_species_data[train_datasets_index],
                                                     bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
-                                                    log_species=False, mean=true_input_mean, std=true_input_std)
+                                                    log_species=False, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
                     
                     print('final_output.shape: ', final_output.shape)
                     print('training_final_output.shape: ', training_final_output.shape)

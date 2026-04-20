@@ -305,12 +305,14 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                                     mp.spawn(CNN3D_train,args=(world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train_shared, y_train_shared,\
                                                         X_test_shared, y_test_shared, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                         Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
-                                                        Spatial_CV_training_enddates[imodel],ifold),nprocs=world_size)
+                                                        Spatial_CV_training_enddates[imodel],ifold,
+                                                        true_input_mean, true_input_std),nprocs=world_size)
                                 else:
                                     CNN3D_train(0,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_container,total_channel_names,X_train_shared, y_train_shared,\
                                                         X_test_shared, y_test_shared, TrainingDatasets_mean, TrainingDatasets_std,width,height,depth, \
                                                         Evaluation_type,typeName,Spatial_CV_training_begindates[imodel],\
-                                                        Spatial_CV_training_enddates[imodel],ifold)
+                                                        Spatial_CV_training_enddates[imodel],ifold,
+                                                        true_input_mean, true_input_std)
                                 
                             ## This exclusion is for output prediction after training
                             try:
@@ -416,10 +418,10 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                         # Get the final output for the validation datasets
                         final_output = Get_final_output(Validation_Prediction=validation_output, validation_geophysical_species=cctnd_geophysical_species_data[test_datasets_index],
                                                         bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
-                                                        log_species=False, mean=true_input_mean, std=true_input_std)
+                                                        log_species=False, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
                         training_final_output = Get_final_output(Validation_Prediction=training_output, validation_geophysical_species=cctnd_geophysical_species_data[train_datasets_index],
                                                         bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
-                                                        log_species=False, mean=true_input_mean, std=true_input_std)
+                                                        log_species=False, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
                         # Calculate the statistics for the validation datasets
 
 
