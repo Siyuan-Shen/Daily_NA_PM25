@@ -247,18 +247,7 @@ def inputfiles_table(YYYY, MM, DD):
         })
     return inputfiles_dict
 
-def judge_leap_year(year):
-    year = int(year)
-    if year % 4 == 0:
-        if year % 100 == 0:
-            if year % 400 == 0:
-                return True
-            else:
-                return False
-        else:
-            return True
-    else:
-        return False
+ 
 def getGrg_YYYY_MM_DD(date):
     MONTHs = ['01','02','03','04','05','06','07','08','09','10','11','12']
     DAYs   = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31']

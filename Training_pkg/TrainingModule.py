@@ -468,7 +468,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
     # CNN3D_train函数最开头：
     os.environ['TORCH_LOGS'] = 'recompiles'  # ← 第一行，其他所有代码之前
     print(f"[Rank {rank}] ENV: {os.environ.get('TORCHINDUCTOR_CACHE_DIR', 'NOT SET')}", flush=True)
-    cache_dir = '/s.siyuan/my-projects2/torch_compile_cache'
+    cache_dir = '/my-projects2/torch_compile_cache'
     os.makedirs(cache_dir, exist_ok=True)
     os.environ['TORCHINDUCTOR_CACHE_DIR'] = cache_dir
     os.environ['TORCH_COMPILE_CACHE_DIR'] = cache_dir

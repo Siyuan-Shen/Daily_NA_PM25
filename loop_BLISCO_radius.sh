@@ -5,9 +5,9 @@ start_radius=0
 end_radius=110
 radius_bin=20
 
-radii=(10)
+radii=(0) #  1 3 5 20 30 50 100)
 # Job script file
-job_script="run_aws_gpu.slurm"
+job_script="run_gpu.bsub"
 count=0
 # Loop through the years
 #for (( radius=$start_radius; radius<=$end_radius; radius+=$radius_bin )); do
@@ -17,22 +17,22 @@ for radius in "${radii[@]}"; do
     Buffer_size="[$radius]"
 
     # Create a temporary modified script
-    modified_script="modified_job_script_${Buffer_size}.slurm"
+    modified_script="modified_job_script_${Buffer_size}.bsub"
     cp $job_script $modified_script
 
     # Use sed to replace variables in the script
     sed -i "s/^Buffer_size=.*/Buffer_size=${Buffer_size}/" $modified_script
-    sed -i "s/^#SBATCH --job-name=.*/#SBATCH --job-name=\"V1.1.0 BLISCO ${radius}\"/" $modified_script
+    sed -i "s/^#BSUB -J.*/#BSUB -J\"V1.1.0 BLISCO ${radius}\"/" $modified_script
 
     # Update the pause_time calculation
     sed -i "s/^pause_time=\$((RANDOM % .*/pause_time=\$((RANDOM % 50 + (${count}) * 120))/" $modified_script
 
     # Submit the modified script using sbatch
     echo "Submitting job for radius $radius..."
-    sbatch < $modified_script
+    bsub < $modified_script
 
     # Optional: Clean up temporary script after submission
-    rm $modified_script
+    # rm $modified_script
 
     # pause for 3 second before the next submission
     sleep 3

@@ -21,6 +21,7 @@ def _get_saveable_model(model):
         model = model._orig_mod
     return model
 
+
 def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,enddates, version, species, nchannel, special_name, ifold, **args):
     '''
     Evaluation type is not only applied to the evaluation, also the estimation model. 
