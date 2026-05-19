@@ -1,5 +1,5 @@
 import os
-cache_dir = '/s.siyuan/my-projects2/torch_compile_cache'
+cache_dir = '/my-projects2/torch_compile_cache'
 os.makedirs(cache_dir, exist_ok=True)
 
 os.environ['TORCH_COMPILE_CACHE_DIR'] = cache_dir

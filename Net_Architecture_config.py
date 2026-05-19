@@ -119,7 +119,7 @@ cfg  = {
             },
         
         'MoCE-architecture': { # Mixture of Channels Experts, the channels are decided here instead of the config.py
-            'Settings': True, ## Turn on MoCE architecture, and also turn on ResNet. Only one of MoE or MoCE can be True.
+            'Settings': False, ## Turn on MoCE architecture, and also turn on ResNet. Only one of MoE or MoCE can be True.
             'num_experts': 4,
             'gating_hidden_size': 128,
             'gate_selected_channels': ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",

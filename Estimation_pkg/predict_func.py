@@ -144,7 +144,7 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
         raise e
     print(f"Rank {rank} process started.")
 
-    cache_dir = '/s.siyuan/my-projects2/torch_compile_cache'
+    cache_dir = '/my-projects2/torch_compile_cache'
     os.makedirs(cache_dir, exist_ok=True)
     os.environ['TORCHINDUCTOR_CACHE_DIR'] = cache_dir
     os.environ['TORCH_COMPILE_CACHE_DIR'] = cache_dir
