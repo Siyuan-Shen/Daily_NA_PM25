@@ -579,7 +579,34 @@ def spatial_cross_validation(total_channel_names, main_stream_channel_names,
                     test_begindate=test_begindate,test_enddate=test_enddate,
                     Daily_statistics_recording=Daily_statistics_recording,
                     Monthly_statistics_recording=Monthly_statistics_recording,
-                    Annual_statistics_recording=Annual_statistics_recording,)       
+                    Annual_statistics_recording=Annual_statistics_recording,)
+
+        for region_name in Spatial_CV_validation_addtional_regions:
+            region_site_mask = get_sites_in_region(region_name, sites_lat_array, sites_lon_array)
+            region_site_indices = np.where(region_site_mask)[0]
+            test_mask = np.isin(sites_recording, region_site_indices)
+            train_mask = np.isin(training_sites_recording, region_site_indices)
+            if test_mask.sum() == 0:
+                print('No test sites found for region {}, skipping...'.format(region_name))
+                continue
+            Daily_statistics_recording_region, Monthly_statistics_recording_region, Annual_statistics_recording_region = calculate_statistics(
+                test_begindates=test_begindate, test_enddates=test_enddate,
+                final_data_recording=final_data_recording[test_mask],
+                obs_data_recording=obs_data_recording[test_mask],
+                geo_data_recording=geo_data_recording[test_mask],
+                sites_recording=sites_recording[test_mask],
+                dates_recording=dates_recording[test_mask],
+                training_final_data_recording=training_final_data_recording[train_mask],
+                training_obs_data_recording=training_obs_data_recording[train_mask],
+                training_sites_recording=training_sites_recording[train_mask],
+                training_dates_recording=training_dates_recording[train_mask],
+                Statistics_list=Statistics_list,)
+            output_csv(outfile=csvfile_outfile, status='a', Area=region_name,
+                       test_begindate=test_begindate, test_enddate=test_enddate,
+                       Daily_statistics_recording=Daily_statistics_recording_region,
+                       Monthly_statistics_recording=Monthly_statistics_recording_region,
+                       Annual_statistics_recording=Annual_statistics_recording_region,)
+
     #calculate the correlation coefficient
     correlation_coefficient = np.corrcoef(obs_data_recording, geo_data_recording)[0, 1]
     print(f'Correlation Coefficient between Ground-based PM2.5 and Geophysical PM2.5: {correlation_coefficient:.4f}')

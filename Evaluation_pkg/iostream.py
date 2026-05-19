@@ -8,6 +8,7 @@ import pprint
 
 from Model_Structure_pkg.utils import *
 from Training_pkg.utils import *
+from Training_pkg.utils import NA_Mask_indir
 from Evaluation_pkg.utils import csv_outdir,model_outdir,data_recording_outdir, HSV_Apply_wandb_sweep_Switch,Hyperparameters_Search_Validation_Switch,Spatial_CrossValidation_Switch,Spatial_CV_Apply_wandb_sweep_Switch
 
 def save_configuration_output(cfg,net_architecture_cfg,outdir,evaluation_type,typeName, nchannel, **args):
@@ -234,8 +235,8 @@ def output_csv(outfile:str,status:str,Area,test_begindate,test_enddate,Daily_sta
     MONTH = ['Annual','01','02','03','04','05','06','07','08','09','10','11','12']
     with open(outfile,status) as csvfile:
         writer = csv.writer(csvfile)
-        # first write the head
-        writer.writerow(['Time Range', 'Area', 'Evaluation Type', 
+        if status == 'w':
+            writer.writerow(['Time Range', 'Area', 'Evaluation Type',
                          'Test R2 - Mean', 'Test geo R2 - Mean','Train R2 - Mean',
                          'Test RMSE - Mean','Test NRMSE - Mean','Test slope - Mean',  
                          'Test R2 - Max', 'Test geo R2 - Max','Train R2 - Max', 
@@ -662,29 +663,25 @@ def load_data_recording(species, version, begindates,enddates, evaluation_type, 
     return final_data_recording, obs_data_recording, geo_data_recording, sites_recording, dates_recording, training_final_data_recording, training_obs_data_recording, training_sites_recording, training_dates_recording, sites_lat_array, sites_lon_array
 
 def load_NA_Mask_data(region_name):
-    NA_Mask_indir = NA_Mask_indir
-    try:
-        dataset = nc.Dataset(NA_Mask_indir+'Cropped_PROVMASK-{}.nc'.format(region_name))
-        mask_map = dataset.variables['provmask'][:]
-        lat = dataset.variables['lat'][:]
-        lon = dataset.variables['lon'][:]
-    except:
-        print('Not in PROV')
-    try:
-        dataset = nc.Dataset(NA_Mask_indir+'Cropped_REGIONMASK-{}.nc'.format(region_name))
-        mask_map = dataset.variables['regionmask'][:]
-        lat = dataset.variables['lat'][:]
-        lon = dataset.variables['lon'][:]
-    except:
-        print('Not in Region')
-    try:
-        dataset = nc.Dataset(NA_Mask_indir+'Cropped_STATEMASK-{}.nc'.format(region_name))
-        mask_map = dataset.variables['statemask'][:]
-        lat = dataset.variables['lat'][:]
-        lon = dataset.variables['lon'][:]
-    except:
-        print('Not in STATE')
-    return mask_map, lat, lon
+    for prefix, varname in [('Cropped_PROVMASK', 'provmask'), ('Cropped_REGIONMASK', 'regionmask'), ('Cropped_STATEMASK', 'statemask')]:
+        try:
+            dataset = nc.Dataset(NA_Mask_indir + '{}-{}.nc'.format(prefix, region_name))
+            mask_map = dataset.variables[varname][:]
+            lat = dataset.variables['lat'][:]
+            lon = dataset.variables['lon'][:]
+            return mask_map, lat, lon
+        except:
+            continue
+    raise ValueError('Could not find mask file for region: {}'.format(region_name))
+
+def get_sites_in_region(region_name, sites_lat, sites_lon):
+    mask_map, lat_grid, lon_grid = load_NA_Mask_data(region_name)
+    site_in_region = np.zeros(len(sites_lat), dtype=bool)
+    for i in range(len(sites_lat)):
+        ilat = np.argmin(np.abs(lat_grid - sites_lat[i]))
+        ilon = np.argmin(np.abs(lon_grid - sites_lon[i]))
+        site_in_region[i] = mask_map[ilat, ilon] > 0
+    return site_in_region
 
 
 def save_BLISCO_sites_indices(valid_site_lat,valid_site_lon,BLISCO_index,
