@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 import torch.distributed as dist
 import time
 from torch.amp import autocast
+from config import ROOT_DIR
 from Estimation_pkg.utils import *
 from Estimation_pkg.data_func import get_extent_index, get_landtype
 from Estimation_pkg.iostream import *
@@ -144,7 +145,7 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
         raise e
     print(f"Rank {rank} process started.")
 
-    cache_dir = '/my-projects2/torch_compile_cache'
+    cache_dir = os.path.join(ROOT_DIR, 'torch_compile_cache')
     os.makedirs(cache_dir, exist_ok=True)
     os.environ['TORCHINDUCTOR_CACHE_DIR'] = cache_dir
     os.environ['TORCH_COMPILE_CACHE_DIR'] = cache_dir
@@ -253,13 +254,18 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
                 # Shift in-place (no extra allocation): [0..depth-2] ← [1..depth-1], load slot depth-1
                 # Left-shift is safe in-place: source slots are always ahead of destination in memory
                 cached_map_data[:, :depth-1, :, :] = cached_map_data[:, 1:, :, :]
-                cached_map_data[:, depth-1, :, :] = load_map_data(total_channel_names, YYYY, MM, DD, rank)
+                if ResNet3D_centered_window:
+                    next_date = get_next_date_YYYY_MM_DD(date, 1)
+                    nYYYY, nMM, nDD = getGrg_YYYY_MM_DD(next_date)
+                    cached_map_data[:, depth-1, :, :] = load_map_data(total_channel_names, nYYYY, nMM, nDD, rank)
+                else:
+                    cached_map_data[:, depth-1, :, :] = load_map_data(total_channel_names, YYYY, MM, DD, rank)
                 temp_map_data = cached_map_data
             else:
                 # Non-consecutive date or first date — load all days fresh
                 temp_map_data = np.zeros((len(total_channel_names), depth, len(SATLAT), len(SATLON)), dtype=np.float32)
                 def _load_day(iday):
-                    temp_date = get_previous_date_YYYY_MM_DD(date, iday)
+                    temp_date = get_previous_date_YYYY_MM_DD(date, iday if not ResNet3D_centered_window else iday - 1)
                     iYYYY, iMM, iDD = getGrg_YYYY_MM_DD(temp_date)
                     return depth - iday - 1, load_map_data(total_channel_names, iYYYY, iMM, iDD, rank)
                 with _TPE(max_workers=depth) as ex:
@@ -302,7 +308,7 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
 
                     temp_input -= train_mean
                     temp_input /= train_std
-                    center_values = temp_input[:, :, depth-1, half_width, half_height]
+                    center_values = temp_input[:, :, depth//2, half_width, half_height]
                     # 3. Broadcast center_vals to full patch shape: (N, nchannel, depth, width, width)
                     center_full = np.broadcast_to(center_values[:, :, None, None, None],temp_input.shape)
                     nan_index = np.where(np.isnan(temp_input))

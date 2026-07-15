@@ -1268,13 +1268,15 @@ class CNNInputDatasets():
 
 
 class CNN3DInputDatasets():
-    def __init__(self,species,total_channel_names,bias,normalize_bias,normalize_species,absolute_species,datapoints_threshold):
+    def __init__(self,species,total_channel_names,bias,normalize_bias,normalize_species,absolute_species,log_species,datapoints_threshold,centered_window=False):
         self.datapoints_threshold = datapoints_threshold
         self.species = species
         self.bias = bias
         self.normalize_bias = normalize_bias
         self.normalize_species = normalize_species
         self.absolute_species = absolute_species
+        self.log_species = log_species
+        self.centered_window = centered_window
         self.total_channel_names = total_channel_names
 
 
@@ -1400,7 +1402,14 @@ class CNN3DInputDatasets():
             mean = 0
             std = 1
             return true_input, mean, std
-        
+
+        elif self.log_species:
+            PM_data = copy.deepcopy(self.ground_observation_data)
+            for isite in PM_data.keys():
+                PM_data[str(isite)]['PM25'] = np.log1p(PM_data[str(isite)]['PM25'].clip(min=0.0))
+            true_input = PM_data
+            return true_input, 0.0, 1.0
+
         elif self.normalize_species:
             PM_data = copy.deepcopy(self.ground_observation_data)
             for index,isite in enumerate(PM_data.keys()):
@@ -1411,7 +1420,7 @@ class CNN3DInputDatasets():
             if normalize_type == 'Gaussian':
                 PM_mean = np.mean(total_PM_data)
                 PM_std = np.std(total_PM_data)
-            elif normalize_type == 'MinMax':    
+            elif normalize_type == 'MinMax':
                 PM_mean = np.min(total_PM_data)
                 PM_std = np.max(total_PM_data) - np.min(total_PM_data)
             elif normalize_type == 'Robust':
@@ -1421,6 +1430,7 @@ class CNN3DInputDatasets():
                 PM_data[str(isite)]['PM25'] = (PM_data[str(isite)]['PM25'] - PM_mean) / PM_std
             true_input = PM_data
             return true_input, PM_mean, PM_std
+
 
     def _get_lat_lon_arrays(self):
         lat_array = np.zeros(self.total_sites_number,dtype=np.float32)
@@ -1444,12 +1454,15 @@ class CNN3DInputDatasets():
         #print('sites: {}, length of data[site][\'dates\']'.format(site),(len(data[site]['dates'])))
         temp_3D_data = np.zeros((len(data[site]['dates']),len(self.total_channel_names), self.depth, self.height, self.width), dtype=np.float32)
         for i, index in enumerate(indices):
-            temp_3D_data[i,:,:,:,:] = data[site]['data'][(index+1-self.depth):index+1,:,:,:].swapaxes(0,1)
+            if self.centered_window:
+                temp_3D_data[i,:,:,:,:] = data[site]['data'][index-1:index+2,:,:,:].swapaxes(0,1)
+            else:
+                temp_3D_data[i,:,:,:,:] = data[site]['data'][(index+1-self.depth):index+1,:,:,:].swapaxes(0,1)
         data[site]['data'] = temp_3D_data
         return data
     def _load_aggregate_3DTrainingDatasets(self, Training_Channels, sites_number):
         for i, channel_name in enumerate(Training_Channels):
-            infile = CNN3D_Training_infiles.format(channel_name)
+            infile = (CNN3D_CenteredWindow_Training_infiles if self.centered_window else CNN3D_Training_infiles).format(channel_name)
             if os.path.exists(infile):
                 temp_data = np.load(infile, allow_pickle=True).item()
             else:

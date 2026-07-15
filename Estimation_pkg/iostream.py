@@ -23,11 +23,11 @@ def get_Estimation_recording_filename(outdir, file_target,typeName,Area,YYYY,MM,
         recording_filename = outdir + f'{file_target}_{Model_structure_type}_{typeName}_{Area}_{YYYY}{MM}{DD}_{width}x{height}_{nchannel}Channel{description}.npy'
     elif Apply_3D_CNN_architecture:
         if MoE_Settings:
-            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+            Model_structure_type = '3DCNN_MoE_{}Experts_CenteredWindow_Model'.format(MoE_num_experts) if ResNet3D_centered_window else '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
         elif MoCE_Settings:
-            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+            Model_structure_type = '3DCNN_MoCE_{}Experts_CenteredWindow_Model'.format(MoCE_num_experts) if ResNet3D_centered_window else '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = 'CNN3DModel'
+            Model_structure_type = 'CNN3DModel_CenteredWindow' if ResNet3D_centered_window else 'CNN3DModel'
         outdir = outdir + f'{species}/{version}/{file_target}/{YYYY}/{MM}/'
         if not os.path.isdir(outdir):
             os.makedirs(outdir)

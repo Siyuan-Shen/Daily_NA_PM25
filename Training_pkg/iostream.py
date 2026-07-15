@@ -48,11 +48,11 @@ def save_daily_datesbased_model(model,evaluation_type, typeName, begindates,endd
         torch.save(_get_saveable_model(model), model_outfile)
     elif Apply_3D_CNN_architecture:
         if MoE_Settings:
-            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+            Model_structure_type = '3DCNN_MoE_{}Experts_CenteredWindow_Model'.format(MoE_num_experts) if ResNet3D_centered_window else '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
         elif MoCE_Settings:
-            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+            Model_structure_type = '3DCNN_MoCE_{}Experts_CenteredWindow_Model'.format(MoCE_num_experts) if ResNet3D_centered_window else '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = 'CNN3DModel'
+            Model_structure_type = 'CNN3DModel_CenteredWindow' if ResNet3D_centered_window else 'CNN3DModel'
         model_outfile = outdir +  '{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
         torch.save(_get_saveable_model(model), model_outfile)
     
@@ -86,20 +86,20 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
         
-        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'), weights_only=False)
     elif Apply_3D_CNN_architecture:
         if MoE_Settings:
-            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+            Model_structure_type = '3DCNN_MoE_{}Experts_CenteredWindow_Model'.format(MoE_num_experts) if ResNet3D_centered_window else '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
         elif MoCE_Settings:
-            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+            Model_structure_type = '3DCNN_MoCE_{}Experts_CenteredWindow_Model'.format(MoCE_num_experts) if ResNet3D_centered_window else '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = 'CNN3DModel'
+            Model_structure_type = 'CNN3DModel_CenteredWindow' if ResNet3D_centered_window else 'CNN3DModel'
         model_infile = indir + '{}_{}_{}_{}x{}x{}_{}-{}_{}Channel{}_No{}.pt'.format(Model_structure_type, typeName, species, depth, width,height, begindates,enddates,nchannel,special_name, ifold)
         
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
         
-        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'), weights_only=False)
 
     elif Apply_Transformer_architecture:
         Model_structure_type = 'TransformerModel'
@@ -108,7 +108,7 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
 
-        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'), weights_only=False)
 
     elif Apply_CNN_Transformer_architecture:
         Model_structure_type = 'CNNTransformerModel'
@@ -117,7 +117,7 @@ def load_daily_datesbased_model(evaluation_type, typeName, begindates,enddates, 
         if not os.path.isfile(model_infile):
             raise ValueError('The {} file does not exist!'.format(model_infile))
 
-        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        model = torch.load(model_infile, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'), weights_only=False)
 
     return model
 

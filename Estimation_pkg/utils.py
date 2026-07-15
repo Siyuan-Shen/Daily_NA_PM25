@@ -1,6 +1,10 @@
 from config import cfg
 import datetime
 import numpy as np
+import calendar
+
+def judge_leap_year(year):
+    return calendar.isleap(int(year))
 from config import AVD_OBS_version,AVD_GEO_version,Use_AOD_nan_values_filtered_Obs,GCHP_version,SCSG_GCHP_version
 from Training_pkg.utils import MapData_fromRegionalComponentProject_Indir, MapData_Indir
 
@@ -260,6 +264,11 @@ def get_previous_date_YYYY_MM_DD(date,nday):
     YYYY, MM, DD = getGrg_YYYY_MM_DD(date)
     previous_date = datetime.datetime(int(YYYY), int(MM), int(DD)) - datetime.timedelta(days=nday)
     return int(previous_date.strftime('%Y%m%d'))
+
+def get_next_date_YYYY_MM_DD(date, nday):
+    YYYY, MM, DD = getGrg_YYYY_MM_DD(date)
+    next_date = datetime.datetime(int(YYYY), int(MM), int(DD)) + datetime.timedelta(days=nday)
+    return int(next_date.strftime('%Y%m%d'))
 
 def Grg2Jul(gdate):
     """

@@ -43,11 +43,11 @@ def save_configuration_output(cfg,net_architecture_cfg,outdir,evaluation_type,ty
         
     elif Apply_3D_CNN_architecture:
         if MoE_Settings:
-            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+            Model_structure_type = '3DCNN_MoE_{}Experts_CenteredWindow_Model'.format(MoE_num_experts) if ResNet3D_centered_window else '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
         elif MoCE_Settings:
-            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+            Model_structure_type = '3DCNN_MoCE_{}Experts_CenteredWindow_Model'.format(MoCE_num_experts) if ResNet3D_centered_window else '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = 'CNN3DModel'
+            Model_structure_type = 'CNN3DModel_CenteredWindow' if ResNet3D_centered_window else 'CNN3DModel'
         cfg_outfile = outdir + 'cfg_{}_{}_{}_{}_{}_{}x{}x{}Channel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, depth,width, height,nchannel,description)
         net_architecture_cfg_outfile = outdir + 'net_architecture_cfg_{}_{}_{}_{}_{}_{}x{}x{}Channel{}.py'.format(Model_structure_type, evaluation_type,typeName, species, depth,width, height,nchannel,description)
         with open("config_saved.py", "w") as f:
@@ -121,11 +121,11 @@ def get_data_recording_filenname(outdir,evaluation_type, file_target,typeName,be
         
     elif Apply_3D_CNN_architecture:
         if MoE_Settings:
-            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
+            Model_structure_type = '3DCNN_MoE_{}Experts_CenteredWindow_Model'.format(MoE_num_experts) if ResNet3D_centered_window else '3DCNN_MoE_{}Experts_Model'.format(MoE_num_experts)
         elif MoCE_Settings:
-            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
+            Model_structure_type = '3DCNN_MoCE_{}Experts_CenteredWindow_Model'.format(MoCE_num_experts) if ResNet3D_centered_window else '3DCNN_MoCE_{}Experts_Model'.format(MoCE_num_experts)
         else:
-            Model_structure_type = 'CNN3DModel'
+            Model_structure_type = 'CNN3DModel_CenteredWindow' if ResNet3D_centered_window else 'CNN3DModel'
         if (Spatial_CrossValidation_Switch and Spatial_CV_Apply_wandb_sweep_Switch) or (Hyperparameters_Search_Validation_Switch and HSV_Apply_wandb_sweep_Switch):
             api = wandb.Api()
             sweep = api.sweep(f"/{entity}/{project}/{sweep_id}")

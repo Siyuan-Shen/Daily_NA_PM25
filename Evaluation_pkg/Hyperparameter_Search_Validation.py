@@ -48,7 +48,7 @@ from multiprocessing import Manager
 
 def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_stream_channel_names,side_stream_channel_names,sweep_id=None):
     
-    typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species, log_species=False, species=species)
+    typeName = Get_typeName(bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species, log_species=log_species, species=species)
     world_size = torch.cuda.device_count()
 
        
@@ -102,15 +102,15 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
         sites_lat, sites_lon = Init_CNN_Datasets.sites_lat, Init_CNN_Datasets.sites_lon
     elif Apply_3D_CNN_architecture:
         if MoE_Settings:
-            Model_structure_type = '3DCNN_MoE_{}Experts_Model'.format(temp_sweep_config['MoE_num_experts'])
+            Model_structure_type = '3DCNN_MoE_{}Experts_CenteredWindow_Model'.format(temp_sweep_config['MoE_num_experts']) if ResNet3D_centered_window else '3DCNN_MoE_{}Experts_Model'.format(temp_sweep_config['MoE_num_experts'])
         elif MoCE_Settings:
-            Model_structure_type = '3DCNN_MoCE_{}Experts_Model'.format(temp_sweep_config['MoCE_num_experts'])
+            Model_structure_type = '3DCNN_MoCE_{}Experts_CenteredWindow_Model'.format(temp_sweep_config['MoCE_num_experts']) if ResNet3D_centered_window else '3DCNN_MoCE_{}Experts_Model'.format(temp_sweep_config['MoCE_num_experts'])
         else:
-            Model_structure_type = 'CNN3DModel'
+            Model_structure_type = 'CNN3DModel_CenteredWindow' if ResNet3D_centered_window else 'CNN3DModel'
             
         print('Init_3DCNN_Datasets starting...')
         start_time = time.time()
-        Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,datapoints_threshold=observation_datapoints_threshold)
+        Init_CNN_Datasets = CNN3DInputDatasets(species=species, total_channel_names=total_channel_names,bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species, log_species=log_species, datapoints_threshold=observation_datapoints_threshold, centered_window=ResNet3D_centered_window)
         print('Init_3DCNN_Datasets finished, time elapsed: ', time.time() - start_time)
 
         total_sites_number = Init_CNN_Datasets.total_sites_number
@@ -423,10 +423,10 @@ def Hyperparameters_Search_Training_Testing_Validation(total_channel_names,main_
                     # Get the final output for the validation datasets
                     final_output = Get_final_output(Validation_Prediction=validation_output, validation_geophysical_species=cctnd_geophysical_species_data[test_datasets_index],
                                                     bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
-                                                    log_species=False, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
+                                                    log_species=log_species, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
                     training_final_output = Get_final_output(Validation_Prediction=training_output, validation_geophysical_species=cctnd_geophysical_species_data[train_datasets_index],
                                                     bias=bias, normalize_bias=normalize_bias, normalize_species=normalize_species, absolute_species=absolute_species,
-                                                    log_species=False, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
+                                                    log_species=log_species, mean=true_input_mean, std=true_input_std, softplus_output=softplus_output)
                     
                     print('final_output.shape: ', final_output.shape)
                     print('training_final_output.shape: ', training_final_output.shape)

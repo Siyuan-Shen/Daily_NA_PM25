@@ -26,6 +26,7 @@ training_dir_cfg = cfg['Pathway']['TrainingDataset']
 
 CNN_Training_infiles = training_dir_cfg['CNN_Training_infiles']
 CNN3D_Training_infiles = training_dir_cfg['CNN3D_Training_infiles']
+CNN3D_CenteredWindow_Training_infiles = training_dir_cfg['CNN3D_CenteredWindow_Training_infiles']
 Transformer_Training_infiles = training_dir_cfg['Transformer_Training_infiles']
 CNN_Transformer_Training_infiles = training_dir_cfg['CNN_Transformer_Training_infiles']
 ################################################################################

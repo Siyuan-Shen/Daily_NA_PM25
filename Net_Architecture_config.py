@@ -106,7 +106,8 @@ cfg  = {
                 "pooling_layer_switch": True,
                 "pooling_kernel_size": (1,3,3),
                 "pooling_layer_type_3D": "MaxPooling3d",
-                "Depth": 3
+                "Depth": 3,
+                "CenteredWindow": True, ## If True, the 3D CNN model will use a centered window approach for the input data. If False, it will use a standard 3D CNN approach.
             },
             
         "MoE-architecture": {
@@ -119,7 +120,7 @@ cfg  = {
             },
         
         'MoCE-architecture': { # Mixture of Channels Experts, the channels are decided here instead of the config.py
-            'Settings': False, ## Turn on MoCE architecture, and also turn on ResNet. Only one of MoE or MoCE can be True.
+            'Settings': True, ## Turn on MoCE architecture, and also turn on ResNet. Only one of MoE or MoCE can be True.
             'num_experts': 4,
             'gating_hidden_size': 128,
             'gate_selected_channels': ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",

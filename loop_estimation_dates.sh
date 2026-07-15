@@ -6,29 +6,62 @@
 # ================================
 
 Est_trained_begin_list=(
-    "[20220101]"  # 2022 Jul missing
-    "[20220101]"  # 2022 Nov missing
+   # "[20190101]"  
+   # "[20190101]" 
+   # "[20200101]"  
+   # "[20200101]" 
+   # "[20210101]"  
+   #  "[20210101]" 
+   "[20220101]"  
+   # "[20220101]" 
+   "[20230101]"  
+   # "[20230101]" 
+    
 )
 
 Est_trained_end_list=(
-    "[20221231]"  # 2022 Jul missing
-    "[20221231]"  # 2022 Nov missing
+    # "[20191231]"  
+    # "[20191231]" 
+    # "[20201231]"  
+    # "[20201231]"
+    # "[20211231]" 
+    # "[20211231]"
+    "[20221231]"
+    # "[20221231]"
+    "[20231231]"
+    # "[20231231]"  
 )
 
 Est_begindates_list=(
-    "[[20220701]]"  # 2022 Jul 1-12
-    "[[20221101]]"  # 2022 Nov 1-19
+       # "[[20190101]]"  
+       #  "[[20190701]]"  
+       # "[[20200101]]"  
+       #  "[[20200701]]"  
+       # "[[20210101]]"  
+       #  "[[20210701]]"  
+       "[[20220101]]"  
+       # "[[20220701]]"
+       "[[20230101]]"
+       # "[[20230701]]"
 )
 
 Est_enddates_list=(
-    "[[20220712]]"  # 2022 Jul 1-12
-    "[[20221119]]"  # 2022 Nov 1-19
+    # "[[20190630]]"  
+    # "[[20191231]]"
+    # "[[20200630]]"
+    # "[[20201231]]"
+    # "[[20210630]]"
+    # "[[20211231]]"
+    "[[20220630]]"
+    # "[[20221231]]"
+    "[[20230630]]"
+    # "[[20231231]]"
 )
 
 # ================================
 # Script settings
 # ================================
-job_script="run_aws_gpu.slurm"
+job_script="run_gpu.bsub"
 count=0
 
 # Safety: check all arrays same length
@@ -57,7 +90,7 @@ for i in "${!Est_trained_begin_list[@]}"; do
     echo "======================================================="
 
     # Create a temporary modified script
-    modified_script="modified_job_script_${i}.slurm"
+    modified_script="modified_job_script_${i}.bsub"
     cp "$job_script" "$modified_script"
 
     # Replace the four variables in the slurm script
@@ -72,15 +105,15 @@ for i in "${!Est_trained_begin_list[@]}"; do
     sed -i "s/^Estimation_enddates=.*/Estimation_enddates=${Estimation_enddates}/" "$modified_script"
 
     # Optional: update job name to encode index or dates
-    sed -i "s/^#SBATCH --job-name=.*/#SBATCH --job-name=\"DailyEst_${i}\"/" "$modified_script"
+    sed -i "s/^#BSUB -J=.*/#BSUB -J \"DailyEst_${i}\"/" "$modified_script"
 
     # Optional: update pause_time like your example (if that line exists)
     # Original pattern: pause_time=$((RANDOM % ...))
     sed -i "s/^pause_time=\$((RANDOM % .*/pause_time=\$((RANDOM % 50 + (${count}) * 120))/" "$modified_script"
 
-    # Submit the modified script using sbatch
+    # Submit the modified script using bsub
     echo "Submitting job index $i ..."
-    sbatch < "$modified_script"
+    bsub < "$modified_script"
 
     # Clean up temporary script after submission
     rm "$modified_script"

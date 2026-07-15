@@ -1,12 +1,14 @@
 import os
-cache_dir = '/my-projects2/torch_compile_cache'
+from config import ROOT_DIR
+cache_dir = f'{ROOT_DIR}/torch_compile_cache'
 os.makedirs(cache_dir, exist_ok=True)
 
 os.environ['TORCH_COMPILE_CACHE_DIR'] = cache_dir
 os.environ['TORCHINDUCTOR_CACHE_DIR'] = cache_dir  # ← PyTorch 2.x用这个
 
 os.environ['MASTER_ADDR'] = 'localhost'
-os.environ['MASTER_PORT'] = '12355'  # Pick an unused port
+_slurm_job_id = os.environ.get('SLURM_JOB_ID')
+os.environ['MASTER_PORT'] = str(49152 + int(_slurm_job_id) % 16383) if _slurm_job_id else '12355'
 os.environ['PYTHONUNBUFFERED'] = '1'
 
 import toml
@@ -34,7 +36,6 @@ from Net_Architecture_config import cfg as net_architecture_cfg
 
     
 if __name__ == "__main__":
-    wandb.login(key='f256dceb0a92527f2588e098c831713ce3428bda')
 
     pprint.pprint(cfg)
     import os
