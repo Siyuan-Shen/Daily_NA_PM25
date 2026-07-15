@@ -1,10 +1,10 @@
 #!/bin/bash
 #BSUB -q general
-#BSUB -R "rusage[mem=400GB] span[hosts=1] select[gpuhost && port8543=1]"
+#BSUB -R "rusage[mem=450GB] span[hosts=1] select[gpuhost && port8543=1 && hname!='compute1-exec-207.ris.wustl.edu']"
 #BSUB -G compute-rvmartin
 #BSUB -gpu "num=2:j_exclusive=no"
-#BSUB -a 'docker(syword/python3-pytorch:2025.06)'
-#BSUB -J "PM25 3D Sweep 2GPU"
+#BSUB -a 'docker(syword/python3-pytorch:2026.06)'
+#BSUB -J "PM25 3D MSE Benchmark 2GPU"
 #BSUB -g /s.siyuan/Test
 #BSUB -N
 #BSUB -u s.siyuan@wustl.edu
@@ -13,7 +13,7 @@
 
 /bin/true
 
-VERSION=v1.1.0
+VERSION=v1.2.0
 
 # Redirect W&B and tmp paths inside the container
 export WANDB_DIR=/my-projects2/tmp/wandb_dir

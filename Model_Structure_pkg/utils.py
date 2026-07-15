@@ -79,6 +79,7 @@ ResCNN3D_output_channels = CNN3D_architeture_cfg['ResNet3D']['output_channels']
 pooling_layer_switch = CNN3D_architeture_cfg['ResNet3D']['pooling_layer_switch']
 pooling_layer_type_3D = CNN3D_architeture_cfg['ResNet3D']['pooling_layer_type_3D']
 ResNet3D_depth = CNN3D_architeture_cfg['ResNet3D']['Depth']
+ResNet3D_centered_window = CNN3D_architeture_cfg['ResNet3D'].get('CenteredWindow', False)
 
 MoE_Settings = CNN3D_architeture_cfg['MoE-architecture']['Settings']
 MoE_num_experts = CNN3D_architeture_cfg['MoE-architecture']['num_experts']

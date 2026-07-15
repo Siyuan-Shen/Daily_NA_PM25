@@ -26,12 +26,18 @@ import torch.distributed as dist
 from wandb_config import *
 from datetime import timedelta
 from torch.profiler import profile, record_function, ProfilerActivity
-
+from config import ROOT_DIR
 
 def ddp_setup(rank, world_size):
     """
     Initialize the distributed environment.
     """
+    if 'MASTER_ADDR' not in os.environ:
+        os.environ['MASTER_ADDR'] = 'localhost'
+    if 'MASTER_PORT' not in os.environ:
+        slurm_job_id = os.environ.get('SLURM_JOB_ID')
+        port = 49152 + (int(slurm_job_id) % 16383) if slurm_job_id else 12355
+        os.environ['MASTER_PORT'] = str(port)
     torch.cuda.set_device(rank)
     init_process_group(backend='nccl', rank=rank, world_size=world_size,timeout=timedelta(hours=2))
 
@@ -467,8 +473,9 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
     # 在函数最开头显式设置，确保子进程也有
     # CNN3D_train函数最开头：
     os.environ['TORCH_LOGS'] = 'recompiles'  # ← 第一行，其他所有代码之前
+    os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
     print(f"[Rank {rank}] ENV: {os.environ.get('TORCHINDUCTOR_CACHE_DIR', 'NOT SET')}", flush=True)
-    cache_dir = '/my-projects2/torch_compile_cache'
+    cache_dir = f'{ROOT_DIR}/torch_compile_cache'
     os.makedirs(cache_dir, exist_ok=True)
     os.environ['TORCHINDUCTOR_CACHE_DIR'] = cache_dir
     os.environ['TORCH_COMPILE_CACHE_DIR'] = cache_dir
@@ -550,7 +557,7 @@ def CNN3D_train(rank,world_size,temp_sweep_config,sweep_mode,sweep_id,run_id_con
         Daily_Model.to(device)
         if hasattr(torch._inductor, 'config'):
             torch._inductor.config.fx_graph_cache = True
-        Daily_Model = torch.compile(Daily_Model,mode='reduce-overhead') # Optional: Compile the model for potential speedup (PyTorch 2.0+)
+        Daily_Model = torch.compile(Daily_Model,mode='default') # Optional: Compile the model for potential speedup (PyTorch 2.0+)
         Daily_Model = DDP(Daily_Model, device_ids=[device])
         Daily_Model.register_comm_hook(state=None, hook=comm_hooks.fp16_compress_hook)  # Register the allreduce hook for gradient synchronization
         train_dataset = Dataset(X_train, y_train)

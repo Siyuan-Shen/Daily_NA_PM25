@@ -28,14 +28,18 @@ else:
     geophysical_data_insertion = 'Filled_AOD'
     training_data_insertion = 'Filled_AOD'
 
+Compute1_root_dir = '/my-projects2'
+Compute2_root_dir = '/home/s.siyuan/my-projects2'
+ROOT_DIR = Compute2_root_dir
+MYPROJECT_ROOT_DIR = Compute2_root_dir.replace('my-projects2','my-projects')
 cfg = {
     'Pathway' : {
 
         #### Ground Observation Data, Geophysical Species Data, and Geophysical Biases Data ####
         'learning_objective': {
-            'ground_observation_data_dir'      : f'/my-projects2/Projects/Daily_PM25_DL_2024/data/GroundBased_Observations/{AVD_OBS_version}/{observation_data_NAPS_insertion}/',
-            'geophysical_species_data_dir'     : f'/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/',
-            'geophysical_biases_data_dir'      : f'/my-projects2/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/',
+            'ground_observation_data_dir'      : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/GroundBased_Observations/{AVD_OBS_version}/{observation_data_NAPS_insertion}/',
+            'geophysical_species_data_dir'     : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/',
+            'geophysical_biases_data_dir'      : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/Geophysical_PM25_Bias_Datasets/{AVD_OBS_version}/{geophysical_data_NAPS_insertion}/{AVD_GEO_version}/{geophysical_data_insertion}/{Pathbegin_YEAR}-{Pathend_YEAR}/',
             'ground_observation_data_infile'   : f'daily_PM25_data{observation_data_insertion}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
             'geophysical_species_data_infile'  : 'geophysical_PM25_datasets.npy',
             'geophysical_biases_data_infile'   : 'geophysical_bias_datasets.npy',
@@ -45,32 +49,33 @@ cfg = {
         
         #### Training Datasets infiles
         'TrainingDataset': {
-            'CNN_Training_infiles'          : f'/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_5x5_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
-            'CNN3D_Training_infiles'        : f'/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x5x5_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
-            'Transformer_Training_infiles'  : f'/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/Transformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
-            'CNN_Transformer_Training_infiles': f'/my-projects2/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DTransformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
+            'CNN_Training_infiles'          : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_5x5_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
+            'CNN3D_Training_infiles'        : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x5x5_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
+            'CNN3D_CenteredWindow_Training_infiles' : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/3DCNN_centerwindow/{Pathbegin_YEAR}-{Pathend_YEAR}/CNN_training_datasets_{{}}_3x5x5_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
+            'Transformer_Training_infiles'  : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/Transformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
+            'CNN_Transformer_Training_infiles': f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/Training_Datasets/{AVD_OBS_version}/{training_data_NAPS_insertion}/{AVD_GEO_version}/{training_data_insertion}/2DTransformer/{Pathbegin_YEAR}-{Pathend_YEAR}/Transformer_training_datasets_{{}}_{Pathbegin_YEAR}0101-{Pathend_YEAR}1231.npy',
         },
 
         #### Validation Datasets outdirs
         'Results': {
-            'csv_outdir'               : '/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
-            'model_outdir'             : '/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
-            'data_recording_outdir'    : '/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
-            'figure_outdir'            : '/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
+            'csv_outdir'               : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
+            'model_outdir'             : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
+            'data_recording_outdir'    : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
+            'figure_outdir'            : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
         },
         
         #### Map Data indir
         'MapData_indir' : {
-            'MapData_Indir' : '/my-projects2/Projects/Daily_PM25_DL_2024/data/Input_Variables_MapData/',
-            'MapData_fromRegionalComponentProject_Indir' : '/my-projects/Projects/PM25_Speices_DL_2023/data/input_variables_map/'
+            'MapData_Indir' : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/Input_Variables_MapData/',
+            'MapData_fromRegionalComponentProject_Indir' : f'{MYPROJECT_ROOT_DIR}/Projects/PM25_Speices_DL_2023/data/input_variables_map/'
         },
         #### Other Data indir
         'Data_indir' : {
-            'NA_Mask_indir'            : '/my-projects/mask/NA_Masks/Cropped_NA_Masks/', ## Use in Evaluation/iostream.py, North America region masks
-            'mask_indir'               : '/my-projects/mask/Land_Ocean_Mask/', ## Use in Estimation_pkg/data_func.py, land ocean mask
-            'LATLON_indir'             : '/my-projects2/Projects/Daily_PM25_DL_2024/data/',
+            'NA_Mask_indir'            : f'{MYPROJECT_ROOT_DIR}/mask/NA_Masks/Cropped_NA_Masks/', ## Use in Evaluation/iostream.py, North America region masks
+            'mask_indir'               : f'{MYPROJECT_ROOT_DIR}/mask/Land_Ocean_Mask/', ## Use in Estimation_pkg/data_func.py, land ocean mask
+            'LATLON_indir'             : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/data/',
         },
-        'Config_outdir'   : '/my-projects2/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
+        'Config_outdir'   : f'{ROOT_DIR}/Projects/Daily_PM25_DL_2024/code/Training_Validation_Estimation/',
         ####
     },
 
@@ -107,7 +112,7 @@ cfg = {
 
     'Random-CrossValidation' : {
 
-        'Random_CrossValidation_Switch': False,
+        'Random_CrossValidation_Switch': True,
         'Random_CV_Apply_wandb_sweep_Switch': False,
         'wandb_sweep_count_Random_CV': 100,
         'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
@@ -116,10 +121,10 @@ cfg = {
         ##### Random Cross Validation Settings #####
         'Training-Settings': {
             'Random_CV_folds': 10,
-            'Random_CV_training_begindates': [20190101,20200101,20210101,20220101,20230101],
-            'Random_CV_training_enddates': [20191231,20201231,20211231,20221231,20231231],
-            'Random_CV_validation_begindates': [20190101,20220101],
-            'Random_CV_validation_enddates': [20231231,20231231],
+            'Random_CV_training_begindates': [20220101,20230101],
+            'Random_CV_training_enddates': [20221231,20231231],
+            'Random_CV_validation_begindates': [20220101],
+            'Random_CV_validation_enddates': [20231231],
             'additional_validation_regions': [
                 'Canada', 'Contiguous United States', 'Midwestern United States', 'Northeastern United States',
                 'Northern North America', 'Northwestern United States', 'Southern United States', 'Southwestern United States'
@@ -140,19 +145,19 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        'Spatial_CrossValidation_Switch': False,
+        'Spatial_CrossValidation_Switch': True,
         'Spatial_CV_Apply_wandb_sweep_Switch': False,
         'wandb_sweep_count_Spatial_CV': 100,
         'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
-        'Use_recorded_data_to_show_validation_results': True,
+        'Use_recorded_data_to_show_validation_results': False,
 
         ##### Spatial Cross Validation Settings #####
         'Training-Settings': {
             'Spatial_CV_folds': 10,
-            'Spatial_CV_training_begindates': [20190101,20200101,20210101,20220101,20230101],
-            'Spatial_CV_training_enddates': [20191231,20201231,20211231,20221231,20231231],
-            'Spatial_CV_validation_begindates': [20190101,20220101],
-            'Spatial_CV_validation_enddates': [20231231,20231231],
+            'Spatial_CV_training_begindates': [20220101, 20230101],#[20190101,20200101,20210101,20220101,20230101],
+            'Spatial_CV_training_enddates': [20221231, 20231231],#[20191231,20201231,20211231,20221231,20231231],
+            'Spatial_CV_validation_begindates': [20220101],
+            'Spatial_CV_validation_enddates': [20231231],
             'additional_validation_regions': [
                 'Canada', 'Contiguous United States', 'Midwestern United States', 'Northeastern United States',
                 'Northern North America', 'Northwestern United States', 'Southern United States', 'Southwestern United States'
@@ -181,7 +186,7 @@ cfg = {
     },
     #########################################################################################################################################################
     'BLISCO-CrossValidation' : {
-        'BLISCO_CV_Switch': True,
+        'BLISCO_CV_Switch': False,
         'Use_recorded_data_to_show_validation_results': False,
         'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
         
@@ -268,31 +273,31 @@ cfg = {
     },
     #########################################################################################################################################################
     'Estimation-Settings' : {
-        'Estimation_Switch': False,
-        'Train_model_Switch': False,
+        'Estimation_Switch': False, ## If True, conduct estimation; If False, do not conduct estimation. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
+        'Train_model_Switch': True, ## If True, train the model and save the trained model; If False, directly use the saved trained model to conduct estimation. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
         'Map_estimation_Switch': True,
         'Estimation_visualization_Switch': False,
 
         ###### Training Settings ######
         'Training_Settings': {
-            'Training_begin_dates': [20230101],
-            'Training_end_dates': [20231231],
+            'Training_begin_dates': [20210101,20230101],
+            'Training_end_dates': [20211231,20231231],
         },
         ###### Estimation Settings ######
         'Map_Estimation_Settings': {
             'Eatimation_Daily_Switch': True,
-            'Estimation_trained_begin_dates': [20230101],
-            'Estimation_trained_end_dates': [20231231],
-            'Estimation_begindates': [[20230101]],
-            'Estimation_enddates': [[20231231]],
+            'Estimation_trained_begin_dates': [20210101,20230101],
+            'Estimation_trained_end_dates': [20211231,20231231],
+            'Estimation_begindates': [[20210101,20210701],[20230101,20230701]],
+            'Estimation_enddates': [[20210131,20210731],[20231231,20230731]],
             'Extent': [10.055,69.945,-169.945,-40.055],
             'Estimation_Area': 'NorthAmerica',
 
-            'Save_Monthly_Average_Switch': True,
+            'Save_Monthly_Average_Switch': False,
             'Save_Monthly_Average_begindates': [20220101],
             'Save_Monthly_Average_enddates': [20231231],
 
-            'Save_Annual_Average_Switch': True,
+            'Save_Annual_Average_Switch': False,
             'Save_Annual_Average_beginyear': [2022],
             'Save_Annual_Average_endyear': [2023],
         },
@@ -318,8 +323,8 @@ cfg = {
 
     'Training-Settings' : {
         'identity': {
-            'version': 'v1.1.0',
-            'description': f'_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_BenchMark_NoGCVars_270dayfilling_NonNegMSE_5d0', # A brief description of the model version, typically including the key settings such as the data version, training settings, and model architecture.
+            'version': 'v1.2.0',
+            'description': f'_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_BenchMark_270dayfilling_MSE', # A brief description of the model version, typically including the key settings such as the data version, training settings, and model architecture.
             'author': 'Siyuan Shen',
             'email': 's.siyuan@wustl.edu',
             'runningdate': '{}-{}-{}'.format(time.strftime('%Y'), time.strftime('%m'), time.strftime('%d'))
@@ -329,9 +334,9 @@ cfg = {
             'normalize_type': 'Gaussian', # Options: 'Gaussian', 'MinMax', 'Robust',only applicable to learning objects normalize_species or normalize_bias
             'bias': False,
             'normalize_bias': False,
-            'normalize_species': True,
+            'normalize_species': False,
             'absolute_species': False,
-            'log_species': False,
+            'log_species': True, # Apply log transformation to PM2.5 to reduce the impact of extreme valuess
             'softplus_output': False,   # Apply softplus post-processing to eliminate negative PM2.5
         },
         'hyper-parameters': {
@@ -377,7 +382,7 @@ cfg = {
         },
 
         'Loss-Functions': {
-            'Regression_loss_type': 'NonNegMSE',
+            'Regression_loss_type': 'MSE' ,#'NonNegMSE'
             'Classification_loss_type': 'CrossEntropyLoss',
             'GeoMSE': {
                 'GeoMSE_Lamba1_Penalty1': 10.0,
@@ -389,7 +394,7 @@ cfg = {
                 # loss = MSE + lambda * mean(relu(-(pred * true_std + true_mean)))
                 # Start small (0.05) to avoid hurting R2; increase if negatives persist.
                 # Set to 0.0 to disable (equivalent to plain MSE).
-                'NonNegMSE_lambda': 5.0
+                'NonNegMSE_lambda': 50.0
             },
             'MultiHead_Loss': {
                 'ResNet_MultiHeadNet_regression_loss_coefficient': 1,

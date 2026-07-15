@@ -18,7 +18,8 @@ def ddp_setup(rank, world_size):
         world_size: Total number of processes
     """ 
     os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = "12355"
+    _slurm_job_id = os.environ.get('SLURM_JOB_ID')
+    os.environ["MASTER_PORT"] = str(49152 + int(_slurm_job_id) % 16383) if _slurm_job_id else "12355"
     torch.cuda.set_device(rank)
     init_process_group(backend="nccl", rank=rank, world_size=world_size)
 
