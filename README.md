@@ -88,7 +88,30 @@ v1.1.0 - 2026/02/17 Siyuan Shen {s.siyuan@wustl.edu}
 - Per-row diagnostics: cumulative CPU prep time, GPU forward time, pixel count, NaN fill count.
 - First-row GPU latency (`[DIAG]`) logged with `cuda.synchronize()` to detect when Day-2 slowness begins.
 
+---
+
+## Post-release updates to v2.0.0
+
 ### 19. `SCSG_GCHP_version` Configuration
 - Added `SCSG_GCHP_version = 'GCHP.v13.2.1/stretchNA.output.noDOW.base'` to `config.py` for Aaron's stretched-grid GCHP data.
 - Added `SCSG_GCHP_indir` path in `Estimation_pkg/utils.py`.
 - Added 9 new entries in `inputfiles_table`: `scsg_GCHP_PM25`, `scsg_GCHP_SO4`, `scsg_GCHP_NH4`, `scsg_GCHP_NIT`, `scsg_GCHP_BC`, `scsg_GCHP_POA`, `scsg_GCHP_SOA`, `scsg_GCHP_DST`, `scsg_GCHP_SSLT`.
+
+### 20. Log-Transform for Emission Channels
+- **Motivation**: CEDS anthropogenic and dust/sea-salt offline emission channels are heavy-tailed (mostly ~0 with rare, large point sources), which let raw CEDS point-source cells leak through the MoCE base expert as punctate hotspots not seen in `tSATPM25`/GCHP fields at the same pixels — see hotspot investigation notes. Fix: `log10(x + eps)` applied to these channels before the existing per-channel Gaussian z-score normalization.
+- `log_transformed_channels` (list) and `log_transform_eps` (dict) added to `Net_Architecture_config.py`, next to the `'MoCE-architecture'` block.
+- **eps is a fixed constant per channel, not recomputed per training run.** Chosen instead of a single shared eps because the 8 channels span ~20 orders of magnitude in real signal, and instead of a dynamically-derived-every-run eps to keep it identical across training/testing/estimation regardless of which subset of dates a given run touches.
+- **How eps is derived** (method, not to be confused with training-site statistics):
+  1. For each channel, sample several dates spread across the full training period (used: 2018-03-15, 2020-11-15, 2022-07-15, 2024-07-05).
+  2. For each sample date, load the **full continental map array** via `inputfiles_table(YYYY,MM,DD)` from `Estimation_pkg.utils` (NOT the per-site 3×5×5 training tensors in `Training_Datasets/.../3DCNN_centerwindow/`).
+  3. Pool the nonzero values across all sample dates, take `median(nonzero)`.
+  4. `eps = 1e-3 × median(nonzero)`.
+  - **Full map, not training-site windows, deliberately**: training windows are 5×5 crops centered on ground monitoring stations, which skew heavily toward populated/monitored areas. Verified directly: training-window medians run ~60x higher than full-map medians for CEDS channels, and training windows had 0% exact-zero cells vs 6-10% on the full map. An eps sized off training-window data would be too large relative to the full estimation domain — quantified impact: for NH3 specifically, an eps derived from training-window median would floor 74% of the map's real nonzero signal into indistinguishable-from-zero.
+  - **Per CEDS-version, not per species**: `v2023-04` and `v2025-04` CEDS releases differ in native spatial resolution before regridding to the 0.01°×0.01° NA grid, which measurably shifts the per-pixel distribution — every anthro species' median nonzero value is consistently ~2-3x higher in `v2023-04` than `v2025-04` on the same output grid. `log_transform_eps` is keyed by the exact versioned channel name (e.g. `NO_anthro_emi_v2025-04`), not just species, for this reason.
+- **Current values** (`Net_Architecture_config.py`, computed 2026-08-11): CEDS v2025-04 — NO 6.03e-16, SO2 1.16e-16, OC 3.17e-18, BC 3.87e-18, NH3 1.13e-18, NMVOC 5.01e-17. CEDS v2023-04 — NO 1.12e-15, SO2 4.22e-16, OC 7.59e-18, BC 9.68e-18, NH3 3.50e-18, NMVOC 1.10e-16. Dust/sea-salt offline (Daily, currently active) — DST 3.39e-14, SSLT 6.34e-14; (Monthly, not currently used by any active MoCE channel list) — DST 2.98e-14, SSLT 1.04e-13.
+- **If `CEDS_version`/`DUST_version`/`SSLT_version` changes to a version not already in `log_transform_eps`, recompute eps for it using the method above before training** — do not reuse an existing version's value, and do not let the lookup silently fall back to a default.
+- **Wired into both training and estimation** (`apply_log_transform(data, channel_name)` in `Training_pkg/utils.py`, a no-op unless `channel_name` is in `log_transformed_channels`, and raises `KeyError` rather than silently falling back if a listed channel has no `log_transform_eps` entry):
+  - `Training_pkg/data_func.py::CNN3DInputDatasets._load_aggregate_3DTrainingDatasets` applies it to each site's raw per-channel tensor immediately after loading, before concatenation and before `_derive_trainingdatasets_normalization_matrix` computes mean/std — so the training mean/std are derived from log-transformed values for these channels.
+  - `Estimation_pkg/iostream.py::load_map_data` applies it to each channel's raw map array immediately after `np.load`, before the `train_mean`/`train_std` subtraction in `predict_func.py`.
+  - `log_transformed_channels` is currently `[]` (transform inert everywhere) pending a training run to validate end-to-end; the channel list is commented out in `Net_Architecture_config.py` ready to re-enable.
+- **Impact check** (raw z-score vs log+z-score, full-map pooled from the 4 sample dates above, mean/std from real training-window data): under the current raw (no-log) pipeline, CEDS point-source pixels on the map produce z-scores far outside the range the model was trained on; under log+z-score the same pixels land at bounded, well-separated-but-not-absurd z-scores, and the zero-cell z-score (`z(zero)`, from `eps`) stays clearly separated from real signal (-5.6 to -10.0 across channels) without collapsing the map's real dynamic range (p1-to-p99 spread preserved, ~9-12 z-units per channel). See `2026-08-11` analysis in project notes for the full raw-vs-log percentile/outlier table.

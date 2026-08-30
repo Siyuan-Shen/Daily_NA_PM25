@@ -1,14 +1,19 @@
 import time 
 #########################################################################################################################################################
 Pathbegin_YEAR = 2018
-Pathend_YEAR = 2023
+Pathend_YEAR = 2024
 AVD_OBS_version = 'AVD_d20250804' # 'AVD_d20240814' 'AVD_d20250804'
 AVD_GEO_version = 'vAOD20240322vGEO20241212' # 'vAOD20251119vGEO20251120' # 'vAOD20240322vGEO20241212' # 
 GCHP_version = 'CombinedAOD_GL_v20251119'
 SCSG_GCHP_version = 'GCHP.v13.2.1/stretchNA.output.noDOW.base'
 Use_AOD_nan_values_filtered_Obs = False ## True: use the AOD that is not filled to filter the obs, high quality geophysical a priori; False: use the filled AOD
 Include_NAPS = True ### True: include NAPS data; False: not include NAPS data
-NAPS_version = 'NAPS_20250807' # 'NAPS_20250807', 'NAPS-20240813'
+NAPS_version = 'NAPS_20260713' # 'NAPS_20250807', 'NAPS_20260713'
+CEDS_version = 'v2025-04' # This is for the CEDS emission version. In training channels under Net_Architeture_config.py and Estimation_func/utils.py
+
+DUST_version = 'v2025-03_025_GEOSFP' #'v2021-08_025' # 
+SSLT_version = 'v2025-04_05_GEOSIT' # 'v2019-01_05' # 
+
 
 if Include_NAPS:
     observation_data_NAPS_insertion = NAPS_version
@@ -30,8 +35,8 @@ else:
 
 Compute1_root_dir = '/my-projects2'
 Compute2_root_dir = '/home/s.siyuan/my-projects2'
-ROOT_DIR = Compute2_root_dir
-MYPROJECT_ROOT_DIR = Compute2_root_dir.replace('my-projects2','my-projects')
+ROOT_DIR = Compute1_root_dir
+MYPROJECT_ROOT_DIR = Compute1_root_dir.replace('my-projects2','my-projects')
 cfg = {
     'Pathway' : {
 
@@ -112,7 +117,7 @@ cfg = {
 
     'Random-CrossValidation' : {
 
-        'Random_CrossValidation_Switch': True,
+        'Random_CrossValidation_Switch': False,
         'Random_CV_Apply_wandb_sweep_Switch': False,
         'wandb_sweep_count_Random_CV': 100,
         'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
@@ -121,10 +126,10 @@ cfg = {
         ##### Random Cross Validation Settings #####
         'Training-Settings': {
             'Random_CV_folds': 10,
-            'Random_CV_training_begindates': [20220101,20230101],
-            'Random_CV_training_enddates': [20221231,20231231],
-            'Random_CV_validation_begindates': [20220101],
-            'Random_CV_validation_enddates': [20231231],
+            'Random_CV_training_begindates': [20190101,20200101,20210101,20220101,20230101,20240101],
+            'Random_CV_training_enddates': [20191231,20201231,20211231,20221231,20231231,20241231],
+            'Random_CV_validation_begindates': [20190101,20220101],
+            'Random_CV_validation_enddates': [20241231,20241231],
             'additional_validation_regions': [
                 'Canada', 'Contiguous United States', 'Midwestern United States', 'Northeastern United States',
                 'Northern North America', 'Northwestern United States', 'Southern United States', 'Southwestern United States'
@@ -145,7 +150,7 @@ cfg = {
 
     'Spatial-CrossValidation' : {
 
-        'Spatial_CrossValidation_Switch': True,
+        'Spatial_CrossValidation_Switch': False,
         'Spatial_CV_Apply_wandb_sweep_Switch': False,
         'wandb_sweep_count_Spatial_CV': 100,
         'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
@@ -154,10 +159,10 @@ cfg = {
         ##### Spatial Cross Validation Settings #####
         'Training-Settings': {
             'Spatial_CV_folds': 10,
-            'Spatial_CV_training_begindates': [20220101, 20230101],#[20190101,20200101,20210101,20220101,20230101],
-            'Spatial_CV_training_enddates': [20221231, 20231231],#[20191231,20201231,20211231,20221231,20231231],
-            'Spatial_CV_validation_begindates': [20220101],
-            'Spatial_CV_validation_enddates': [20231231],
+            'Spatial_CV_training_begindates': [20190101,20200101,20210101,20220101,20230101,20240101],#[20190101,20200101,20210101,20220101,20230101],
+            'Spatial_CV_training_enddates': [20191231,20201231,20211231,20221231,20231231,20241231],#[20191231,20201231,20211231,20221231,20231231],
+            'Spatial_CV_validation_begindates': [20190101,20220101],
+            'Spatial_CV_validation_enddates': [20241231,20241231],
             'additional_validation_regions': [
                 'Canada', 'Contiguous United States', 'Midwestern United States', 'Northeastern United States',
                 'Northern North America', 'Northwestern United States', 'Southern United States', 'Southwestern United States'
@@ -186,7 +191,7 @@ cfg = {
     },
     #########################################################################################################################################################
     'BLISCO-CrossValidation' : {
-        'BLISCO_CV_Switch': False,
+        'BLISCO_CV_Switch': True,
         'Use_recorded_data_to_show_validation_results': False,
         'Use_saved_models_to_reproduce_validation_results_Switch': False, ## If True, use the saved models to reproduce the validation results; If False, directly use the recorded validation results. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
         
@@ -195,10 +200,10 @@ cfg = {
             'BLISCO_CV_folds': 10, # larger or at least equal to seeds number
             'BLISCO_CV_buffer_radius_km': [10],
             'BLISCO_CV_seeds_number': 10,
-            'BLISCO_CV_training_begindates': [20190101,20200101,20210101,20220101,20230101],
-            'BLISCO_CV_training_enddates': [20191231,20201231,20211231,20221231,20231231],
+            'BLISCO_CV_training_begindates': [20190101,20200101,20210101,20220101,20230101,20240101],
+            'BLISCO_CV_training_enddates': [20191231,20201231,20211231,20221231,20231231,20241231],
             'BLISCO_CV_validation_begindates': [20190101,20220101],
-            'BLISCO_CV_validation_enddates': [20231231,20231231],
+            'BLISCO_CV_validation_enddates': [20241231,20241231],
             'additional_validation_regions': [
                 'Canada', 'Contiguous United States', 'Midwestern United States', 'Northeastern United States',
                 'Northern North America', 'Northwestern United States', 'Southern United States', 'Southwestern United States'
@@ -274,7 +279,7 @@ cfg = {
     #########################################################################################################################################################
     'Estimation-Settings' : {
         'Estimation_Switch': False, ## If True, conduct estimation; If False, do not conduct estimation. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
-        'Train_model_Switch': True, ## If True, train the model and save the trained model; If False, directly use the saved trained model to conduct estimation. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
+        'Train_model_Switch': False, ## If True, train the model and save the trained model; If False, directly use the saved trained model to conduct estimation. This is for the case when the model training is not conducted by ourselves, e.g., using the models trained by other colleagues or from previous runs.
         'Map_estimation_Switch': True,
         'Estimation_visualization_Switch': False,
 
@@ -314,7 +319,6 @@ cfg = {
             'Annual_Plot_Switch': True,
             'Annual_Plot_beginyears': [2022],
             'Annual_Plot_endyears': [2023],
-            
         },
 
     },
@@ -323,8 +327,8 @@ cfg = {
 
     'Training-Settings' : {
         'identity': {
-            'version': 'v1.2.0',
-            'description': f'_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_BenchMark_270dayfilling_MSE', # A brief description of the model version, typically including the key settings such as the data version, training settings, and model architecture.
+            'version': 'v2.0.0',
+            'description': f'_{AVD_OBS_version}_{geophysical_data_insertion}_{geophysical_data_NAPS_insertion}_LogEmi_NewCEDS_NewDailyDustEmi_In2Expts', # A brief description of the model version, typically including the key settings such as the data version, training settings, and model architecture.
             'author': 'Siyuan Shen',
             'email': 's.siyuan@wustl.edu',
             'runningdate': '{}-{}-{}'.format(time.strftime('%Y'), time.strftime('%m'), time.strftime('%d'))
@@ -334,10 +338,10 @@ cfg = {
             'normalize_type': 'Gaussian', # Options: 'Gaussian', 'MinMax', 'Robust',only applicable to learning objects normalize_species or normalize_bias
             'bias': False,
             'normalize_bias': False,
-            'normalize_species': False,
+            'normalize_species': True,
             'absolute_species': False,
-            'log_species': True, # Apply log transformation to PM2.5 to reduce the impact of extreme valuess
-            'softplus_output': False,   # Apply softplus post-processing to eliminate negative PM2.5
+            'log_species': False, # Apply log transformation to PM2.5 to reduce the impact of extreme valuess
+            'softplus_output': False,   # Apply softplus post-processing to eliminate negative PM2.5, for both evaluation and estimation. I usually do this manually for estimation only.
         },
         'hyper-parameters': {
             'epoch': 71, # 2DCNN: 131; 3DCNN:71; Transformer:111

@@ -10,6 +10,49 @@
 # Step 4: Add the new architecture option in the wandb_config.py file for logging and sweeping.
 # Step 5: Change the code in Training_pkg/TrainingModule.py to use the new architecture.
 # Step 6: Test the new architecture with a small dataset to ensure it works correctly.
+
+from config import CEDS_version, DUST_version, SSLT_version
+
+log_transformed_channels = ['Daily_DUST_offline_emi_{}'.format(DUST_version), 'Daily_SSLT_offline_emi_{}'.format(SSLT_version),
+                            'Monthly_DUST_offline_emi_{}'.format(DUST_version), 'Monthly_SSLT_offline_emi_{}'.format(SSLT_version),
+                            'NO_anthro_emi_{}'.format(CEDS_version),'SO2_anthro_emi_{}'.format(CEDS_version),'NH3_anthro_emi_{}'.format(CEDS_version),
+                            'OC_anthro_emi_{}'.format(CEDS_version),'BC_anthro_emi_{}'.format(CEDS_version),'NMVOC_anthro_emi_{}'.format(CEDS_version),
+                            ]
+
+# Fixed per-channel eps for log10(x + eps) applied to log_transformed_channels before z-score
+# normalization. Deliberately NOT derived from the training-site-window tensors (those are
+# biased toward populated/monitored areas and have a much higher zero/small-value floor than
+# the full estimation domain). Instead eps = 1e-3 * median(nonzero) computed from full-map
+# arrays (inputfiles_table) pooled across 4 dates spread over 2018-2024 (20180315, 20201115,
+# 20220715, 20240705), so it reflects the same population the model actually estimates over.
+# Held fixed across training/testing/estimation for consistency. Keyed by the exact versioned
+# channel name (not just species), because different CEDS releases have different native
+# spatial resolution before regridding, which measurably shifts the per-pixel value
+# distribution: every anthro species' median nonzero value is ~2-3x higher in v2023-04 than
+# in v2025-04 on this same 0.01x0.01 NA grid - not noise, so each version needs its own entry.
+# If a new CEDS_version/DUST_version/SSLT_version is introduced, recompute and add an entry
+# rather than reusing an existing one.
+log_transform_eps = {
+    # CEDS v2025-04
+    'NO_anthro_emi_v2025-04'             : 6.03e-16,
+    'SO2_anthro_emi_v2025-04'            : 1.16e-16,
+    'OC_anthro_emi_v2025-04'             : 3.17e-18,
+    'BC_anthro_emi_v2025-04'             : 3.87e-18,
+    'NH3_anthro_emi_v2025-04'            : 1.13e-18,
+    'NMVOC_anthro_emi_v2025-04'          : 5.01e-17,
+    # CEDS v2023-04
+    'NO_anthro_emi_v2023-04'             : 1.12e-15,
+    'SO2_anthro_emi_v2023-04'            : 4.22e-16,
+    'OC_anthro_emi_v2023-04'             : 7.59e-18,
+    'BC_anthro_emi_v2023-04'             : 9.68e-18,
+    'NH3_anthro_emi_v2023-04'            : 3.50e-18,
+    'NMVOC_anthro_emi_v2023-04'          : 1.10e-16,
+    # Dust / sea-salt offline emissions
+    'Daily_DUST_offline_emi_{}'.format(DUST_version)    : 3.39e-14,
+    'Daily_SSLT_offline_emi_{}'.format(SSLT_version)    : 6.34e-14,
+    'Monthly_DUST_offline_emi_{}'.format(DUST_version)  : 2.98e-14,
+    'Monthly_SSLT_offline_emi_{}'.format(SSLT_version)  : 1.04e-13,
+}
 cfg  = {
     'network-architecture':{
         "Apply_CNN_architecture": False,
@@ -124,15 +167,17 @@ cfg  = {
             'num_experts': 4,
             'gating_hidden_size': 128,
             'gate_selected_channels': ["tSATAOD", "tSATPM25","lat", "lon", "sin_days", "cos_days",
-                                "ocfire", "pm2p5fire", "mami", "tcfire",
-                                 "PBLH", "RH",  "V10M", "U10M", "PS","PRECTOT", "T2M", ],
+                                "pm2p5fire", "mami", "tcfire","ocfire", 
+                                 "PBLH", "RH",  "V10M", "U10M", "PS","PRECTOT", "T2M",
+                                 # 'scsg_GCHP_PM25', 'scsg_GCHP_SO4', 'scsg_GCHP_NH4', 'scsg_GCHP_NIT', 'scsg_GCHP_POA', 'scsg_GCHP_SOA', 'scsg_GCHP_DST', 
+                                 ],
             
             'base_model_channels' : ["tSATAOD", "tSATPM25", 
                 "scsg_GCHP_PM25", "scsg_GCHP_SO4", "scsg_GCHP_NH4", "scsg_GCHP_NIT", "scsg_GCHP_POA", "scsg_GCHP_SOA", "scsg_GCHP_DST", "scsg_GCHP_SSLT",
                 #"GC_PM25", "GC_SO4", "GC_NH4", "GC_NIT", "GC_OM", "GC_SOA", "GC_DST", "GC_SSLT",
                 "PBLH", "RH", "PRECTOT", "T2M", "V10M", "U10M", "PS", 
-                "NH3_anthro_emi", "SO2_anthro_emi", "NO_anthro_emi", "OC_anthro_emi",
-                "BC_anthro_emi",  "DST_offline_emi", "SSLT_offline_emi",
+               "NO_anthro_emi_{}".format(CEDS_version), "OC_anthro_emi_{}".format(CEDS_version), "BC_anthro_emi_{}".format(CEDS_version),"NH3_anthro_emi_{}".format(CEDS_version), "SO2_anthro_emi_{}".format(CEDS_version),
+                "Daily_DUST_offline_emi_{}".format(DUST_version), "Daily_SSLT_offline_emi_{}".format(SSLT_version),
                 "Urban_Builtup_Lands", 
                "elevation", "Population", "lat", "lon", "sin_days", "cos_days",],
             
@@ -151,7 +196,8 @@ cfg  = {
                          "elevation", "Population", ],
                 [ "tSATAOD", "tSATPM25", "Urban_Builtup_Lands",'Grasslands','Evergreen-Broadleaf-Forests',
                     "elevation", "Population", "lat", "lon", "sin_days", "cos_days",
-                        "ocfire", "pm2p5fire", "mami", "tcfire",],
+                    "Daily_DUST_offline_emi_{}".format(DUST_version), "Daily_SSLT_offline_emi_{}".format(SSLT_version),
+                        "pm2p5fire", "mami", "tcfire","ocfire",],
             ],
             },   
         },

@@ -1467,7 +1467,11 @@ class CNN3DInputDatasets():
                 temp_data = np.load(infile, allow_pickle=True).item()
             else:
                 raise ValueError('Training file - The {} file does not exist!'.format(infile))
-            
+
+            if channel_name in log_transformed_channels:
+                for isite in temp_data.keys():
+                    temp_data[isite]['data'] = apply_log_transform(temp_data[isite]['data'], channel_name)
+
             if i == 0:
                 
                 data = temp_data

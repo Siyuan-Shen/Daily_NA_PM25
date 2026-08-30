@@ -5,7 +5,7 @@ import calendar
 
 def judge_leap_year(year):
     return calendar.isleap(int(year))
-from config import AVD_OBS_version,AVD_GEO_version,Use_AOD_nan_values_filtered_Obs,GCHP_version,SCSG_GCHP_version
+from config import AVD_OBS_version,AVD_GEO_version,Use_AOD_nan_values_filtered_Obs,GCHP_version,SCSG_GCHP_version,CEDS_version,DUST_version,SSLT_version
 from Training_pkg.utils import MapData_fromRegionalComponentProject_Indir, MapData_Indir
 
 Estimation_Settings = cfg['Estimation-Settings']
@@ -63,9 +63,12 @@ GCHP_indir               = f'{MapData_Indir}GCHP_input/{GCHP_version}/'
 SCSG_GCHP_indir              = f'{MapData_Indir}GCHP_input/{SCSG_GCHP_version}/ugm3_fine_resolution/'
 
 Meteorology_indir        = f'{MapData_Indir}Meteorology_input/'
-GFAS_indir               = f'{MapData_Indir}GFAS_input/'
+GFAS_input_indir               = f'{MapData_Indir}GFAS_input/'
 Anthropogenic_Emissions_input_indir = f'{MapData_fromRegionalComponentProject_Indir}Anthropogenic_Emissions_input/'
-Offline_Emissions_input_indir       = f'{MapData_fromRegionalComponentProject_Indir}Offline_Emissions_input/'
+Daily_Offline_Emissions_input_indir       = f'{MapData_Indir}Offline_Emissions_input/'
+Monthly_Offline_Emissions_input_indir       = f'{MapData_fromRegionalComponentProject_Indir}Offline_Emissions_input/'
+
+
 
 LandCover_input_indir               = f'{MapData_fromRegionalComponentProject_Indir}LandCover_input/'
 Population_input_indir              = f'{MapData_fromRegionalComponentProject_Indir}Population_input/'
@@ -74,7 +77,6 @@ OpenStreetMap_road_density_indir    = f'{MapData_fromRegionalComponentProject_In
 OpenStreetMap_nearest_dist_indir    = f'{MapData_fromRegionalComponentProject_Indir}OpenStreetMap_RoadDensity_NearestDistances_forEachPixels_input/'
 Geographical_Variables_input_indir  = f'{MapData_fromRegionalComponentProject_Indir}Geographical_Variables_input/'
 Spatiotemporal_input_indir          = f'{MapData_Indir}Spatiotemporal_input/'
-
 def inputfiles_table(YYYY, MM, DD):
 
     inputfiles_dict = {
@@ -85,6 +87,7 @@ def inputfiles_table(YYYY, MM, DD):
         'gSATPM25orig5kmdelta'  : Geophysical_indir + '{}/{}/{}/cropped_gSATPM25orig5kmdelta_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
         ############################################################################################################
         # GEOS-Chem input variables
+        
         'GC_PM25'               : GEOS_Chem_indir + '{}/{}/PM25_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'GC_SO4'                : GEOS_Chem_indir + '{}/{}/SO4_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'GC_NH4'                : GEOS_Chem_indir + '{}/{}/NH4_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
@@ -94,7 +97,7 @@ def inputfiles_table(YYYY, MM, DD):
         'GC_SOA'                : GEOS_Chem_indir + '{}/{}/SOA_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'GC_DST'                : GEOS_Chem_indir + '{}/{}/DST_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'GC_SSLT'               : GEOS_Chem_indir + '{}/{}/SSLT_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
-
+        
         ############################################################################################################
         # GCHP input variables
         'GCHP_PM25'            : GCHP_indir + '{}/{}/GCPM25_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
@@ -106,6 +109,8 @@ def inputfiles_table(YYYY, MM, DD):
         'GCHP_SOA'             : GCHP_indir + '{}/{}/SOA_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'GCHP_DST'             : GCHP_indir + '{}/{}/DST_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'GCHP_SSLT'            : GCHP_indir + '{}/{}/SSLT_001x001_NA_GCHPmap_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        
+        
         ############################################################################################################
         # Aaron's Stretch GCHP data
         
@@ -118,7 +123,6 @@ def inputfiles_table(YYYY, MM, DD):
         'scsg_GCHP_SOA'             : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_SOA_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'scsg_GCHP_DST'             : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_Dust_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         'scsg_GCHP_SSLT'            : SCSG_GCHP_indir + '{}/{}/GCHP_ugm3_fine_resolution_SALA_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
-        
         ############################################################################################################
         # Meteorology input variables
         'USTAR'                 : Meteorology_indir + '{}/{}/USTAR_GEOSFP_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
@@ -134,20 +138,27 @@ def inputfiles_table(YYYY, MM, DD):
         #########################################################################################################
         # Anthropogenic Emission input variables
 
-        'NH3_anthro_emi'     : Anthropogenic_Emissions_input_indir + '{}/NH3-em-anthro_CMIP_v2023-04_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,YYYY,MM),
-        'SO2_anthro_emi'     : Anthropogenic_Emissions_input_indir + '{}/SO2-em-anthro_CMIP_v2023-04_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,YYYY,MM),
-        'NO_anthro_emi'      : Anthropogenic_Emissions_input_indir + '{}/NO-em-anthro_CMIP_v2023-04_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,YYYY,MM),
-        'OC_anthro_emi'      : Anthropogenic_Emissions_input_indir + '{}/OC-em-anthro_CMIP_v2023-04_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,YYYY,MM),
-        'BC_anthro_emi'      : Anthropogenic_Emissions_input_indir + '{}/BC-em-anthro_CMIP_v2023-04_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,YYYY,MM),
-        'NMVOC_anthro_emi'   : Anthropogenic_Emissions_input_indir + '{}/NMVOC-em-anthro_CMIP_v2023-04_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,YYYY,MM),
+        'NH3_anthro_emi_{}'.format(CEDS_version)     : Anthropogenic_Emissions_input_indir + '{}/NH3-em-anthro_CMIP_{}_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,CEDS_version,YYYY,MM),
+        'SO2_anthro_emi_{}'.format(CEDS_version)     : Anthropogenic_Emissions_input_indir + '{}/SO2-em-anthro_CMIP_{}_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,CEDS_version,YYYY,MM),
+        'NO_anthro_emi_{}'.format(CEDS_version)      : Anthropogenic_Emissions_input_indir + '{}/NO-em-anthro_CMIP_{}_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,CEDS_version,YYYY,MM),
+        'OC_anthro_emi_{}'.format(CEDS_version)      : Anthropogenic_Emissions_input_indir + '{}/OC-em-anthro_CMIP_{}_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,CEDS_version,YYYY,MM),
+        'BC_anthro_emi_{}'.format(CEDS_version)      : Anthropogenic_Emissions_input_indir + '{}/BC-em-anthro_CMIP_{}_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,CEDS_version,YYYY,MM),
+        'NMVOC_anthro_emi_{}'.format(CEDS_version)   : Anthropogenic_Emissions_input_indir + '{}/NMVOC-em-anthro_CMIP_{}_CEDS_Total_001x001_NA_{}{}.npy'.format(YYYY,CEDS_version,YYYY,MM),
         
         #########################################################################################################
         # Variables from Offline Natural Emissions
-        'DST_offline_emi'    : Offline_Emissions_input_indir + '{}/DST-em-EMI_Total_001x001_NA_{}{}.npy'.format(YYYY,YYYY,MM),
-        'SSLT_offline_emi'   : Offline_Emissions_input_indir + '{}/SSLT-em-EMI_Total_001x001_NA_{}{}.npy'.format(YYYY,YYYY,MM),
+        'Daily_DUST_offline_emi_{}'.format(DUST_version)    : Daily_Offline_Emissions_input_indir + 'DUST/{}/{}/{}/DUST-em-EMI_Total_001x001_NA_{}{}{}.npy'.format(DUST_version,YYYY,MM,YYYY,MM,DD),
+        'Daily_SSLT_offline_emi_{}'.format(SSLT_version)   : Daily_Offline_Emissions_input_indir + 'SSLT/{}/{}/{}/SSLT-em-EMI_Total_001x001_NA_{}{}{}.npy'.format(SSLT_version,YYYY,MM,YYYY,MM,DD),
         
+        'Monthly_DUST_offline_emi_{}'.format(DUST_version)    : Monthly_Offline_Emissions_input_indir + 'DUST/{}/{}/DUST-em-EMI_Total_001x001_NA_{}{}.npy'.format(DUST_version,YYYY,YYYY,MM),
+        'Monthly_SSLT_offline_emi_{}'.format(SSLT_version)   : Monthly_Offline_Emissions_input_indir + 'SSLT/{}/{}/SSLT-em-EMI_Total_001x001_NA_{}{}.npy'.format(SSLT_version,YYYY,YYYY,MM),
+        #########################################################################################################
+        # Variables from GFAS Fire Emissions
+        'mami'                 : GFAS_input_indir + '{}/{}/mami_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'ocfire'               : GFAS_input_indir + '{}/{}/ocfire_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'tcfire'               : GFAS_input_indir + '{}/{}/tcfire_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
+        'pm2p5fire'            : GFAS_input_indir + '{}/{}/pm2p5fire_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM,YYYY,MM,DD),
         ##################### [Variables from Land Cover] ###################
-        
         'Barren'             : LandCover_input_indir + 'Barren/Barren-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         'Closed-Shrublands'  : LandCover_input_indir + 'Closed-Shrublands/Closed-Shrublands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         'Crop_Nat_Vege_Mos'  : LandCover_input_indir + 'Cropland-Natural-Vegetation-Mosaics/Cropland-Natural-Vegetation-Mosaics-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
@@ -166,13 +177,6 @@ def inputfiles_table(YYYY, MM, DD):
         'Water-Bodies'       : LandCover_input_indir + 'Water-Bodies/Water-Bodies-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         'Woody-Shrublands'   : LandCover_input_indir + 'Woody-Shrublands/Woody-Shrublands-MCD12C1_LandCover_001x001_NA_{}.npy'.format(YYYY),
         
-        ##################### [GFAS Fire Emission] ###################
-
-        'mami'                 : GFAS_indir + '{}/{}/mami_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM, YYYY, MM,DD),
-        'pm2p5fire'            : GFAS_indir + '{}/{}/pm2p5fire_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM, YYYY, MM,DD),
-        'ocfire'               : GFAS_indir + '{}/{}/ocfire_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM, YYYY, MM,DD),
-        'tcfire'               : GFAS_indir + '{}/{}/tcfire_GFAS_001x001_NA_map_{}{}{}.npy'.format(YYYY,MM, YYYY, MM,DD),
-       
         ##################### [Open Street Map log data] ###################
         'log_major_roads'      : OpenStreetMap_log_road_indir + 'OpenStreetMap-major_roads-LogRoadMap_001x001.npy',
         'log_major_roads_dist' : OpenStreetMap_log_road_indir + 'OpenStreetMap-major_roads_NearestDistances-LogRoadMap_001x001.npy',
@@ -235,20 +239,22 @@ def inputfiles_table(YYYY, MM, DD):
             'sin_days' : Spatiotemporal_input_indir + 'Day_of_the_year/sin_days_of_the_year_{}{}.npy'.format(MM, DD),
             'cos_days' : Spatiotemporal_input_indir + 'Day_of_the_year/cos_days_of_the_year_{}{}.npy'.format(MM, DD),
         })
+    
     if Use_AOD_nan_values_filtered_Obs:
         inputfiles_dict.update({
             'eta'                   : Geophysical_indir + '{}/{}/{}/eta_nanfill_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
             'tSATAOD'               : Geophysical_indir + '{}/{}/{}/tSATAOD_fine0p01_nanfill_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
             'tSATPM25'              : Geophysical_indir + '{}/{}/{}/tSATPM25_nanfill_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
-
+        
         })
     else:
         inputfiles_dict.update({
             'eta'                   : Geophysical_indir + '{}/{}/{}/eta_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
             'tSATAOD'               : Geophysical_indir + '{}/Ratio_Calibrated/AOD/{}/{}/Ratio_Calibrated_AOD_map_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
             'tSATPM25'              : Geophysical_indir + '{}/Ratio_Calibrated/GeoPM25/{}/{}/Ratio_Calibrated_GeoPM25_map_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
-            
-        })
+            #'tSATAOD'               : Geophysical_indir + '{}/{}/{}/tSATAOD_fine0p01_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+            #'tSATPM25'              : Geophysical_indir + '{}/{}/{}/tSATPM25_{}{}{}.npy'.format(Geophysical_version,YYYY,MM,YYYY,MM,DD),
+            })
     return inputfiles_dict
 
  

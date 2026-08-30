@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 from Model_Structure_pkg.utils import *
 from config import cfg
+from Net_Architecture_config import log_transformed_channels, log_transform_eps
 
 ####################################################################################
 ###                                 Paths Settings                               ###
@@ -327,4 +328,23 @@ def optimizer_lookup(model_parameters,learning_rate):
         return torch.optim.Adam(params=model_parameters,betas=(Adam_beta0, Adam_beta1),eps=Adam_eps, lr=learning_rate)
     elif AdamW_Settings:
         return torch.optim.AdamW(params=model_parameters, lr=learning_rate, fused=True, weight_decay=AdamW_weight_decay, betas=(AdamW_beta0, AdamW_beta1), eps=AdamW_eps)
+
+def apply_log_transform(data, channel_name):
+    '''
+    Apply log10(clip(x,0,None) + eps) to `data` if channel_name is one of
+    log_transformed_channels. eps is looked up by the exact versioned channel
+    name in log_transform_eps (see Net_Architecture_config.py for derivation).
+    Fails loudly rather than silently reusing a stale/wrong-version eps.
+    '''
+    if channel_name not in log_transformed_channels:
+        return data
+    if channel_name not in log_transform_eps:
+        raise KeyError(
+            "log_transform_eps has no entry for channel '{}', but it is listed in "
+            "log_transformed_channels. Recompute eps for this exact versioned channel "
+            "name and add it to log_transform_eps in Net_Architecture_config.py -- "
+            "do not reuse another version's eps.".format(channel_name)
+        )
+    eps = log_transform_eps[channel_name]
+    return np.log10(np.clip(data, 0, None) + eps)
 
