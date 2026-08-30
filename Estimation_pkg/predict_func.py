@@ -257,6 +257,12 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
                 if ResNet3D_centered_window:
                     next_date = get_next_date_YYYY_MM_DD(date, 1)
                     nYYYY, nMM, nDD = getGrg_YYYY_MM_DD(next_date)
+                    if not map_data_available(total_channel_names, nYYYY, nMM, nDD):
+                        # Boundary date (e.g. the most recent date in the dataset) — next
+                        # day's inputs aren't produced yet. Edge-replicate today's data.
+                        if rank == 0:
+                            print(f'[Boundary] {nYYYY}{nMM}{nDD} data unavailable; edge-replicating {YYYY}{MM}{DD} for the d+1 window slot.')
+                        nYYYY, nMM, nDD = YYYY, MM, DD
                     cached_map_data[:, depth-1, :, :] = load_map_data(total_channel_names, nYYYY, nMM, nDD, rank)
                 else:
                     cached_map_data[:, depth-1, :, :] = load_map_data(total_channel_names, YYYY, MM, DD, rank)
@@ -267,6 +273,12 @@ def cnn3D_mapdata_predict_func(rank, world_size,model,predict_begindate,predict_
                 def _load_day(iday):
                     temp_date = get_previous_date_YYYY_MM_DD(date, iday if not ResNet3D_centered_window else iday - 1)
                     iYYYY, iMM, iDD = getGrg_YYYY_MM_DD(temp_date)
+                    if ResNet3D_centered_window and not map_data_available(total_channel_names, iYYYY, iMM, iDD):
+                        # Boundary date — this window slot (e.g. d+1) isn't available yet.
+                        # Edge-replicate the date being predicted instead of crashing.
+                        if rank == 0:
+                            print(f'[Boundary] {iYYYY}{iMM}{iDD} data unavailable; edge-replicating {YYYY}{MM}{DD} for this window slot.')
+                        iYYYY, iMM, iDD = YYYY, MM, DD
                     return depth - iday - 1, load_map_data(total_channel_names, iYYYY, iMM, iDD, rank)
                 with _TPE(max_workers=depth) as ex:
                     for slot, data in ex.map(_load_day, range(depth)):

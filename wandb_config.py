@@ -4,6 +4,7 @@ import itertools
 
 from Training_pkg.utils import description,Apply_Transformer_architecture,Apply_CNN_Transformer_architecture,Apply_CNN_architecture,Apply_3D_CNN_architecture, version, learning_rate0, epoch, batchsize,ResCNN3D_blocks_num,ResCNN3D_output_channels,ResNet_blocks_num
 from Model_Structure_pkg.utils import *
+from wandb.sdk.lib.runid import generate_id
 def wandb_run_config():
     if Apply_CNN_architecture:
         run_config = {
@@ -89,7 +90,7 @@ def wandb_initialize(run_config,rank,sweep_mode=None,sweep_id=None):
             project=version,
             # Track hyperparameters and run metadata.
             ## get random string for the name
-            name= '{}{}'.format(wandb.util.generate_id(),description),
+            name= '{}{}'.format(generate_id(),description),
             config=run_config,
             mode="offline" if rank != 0 else "online",
             group=sweep_id if sweep_mode else None  # Group runs under a sweep if sweep_mode is provided

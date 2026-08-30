@@ -66,6 +66,17 @@ def load_Estimation_Map(outdir, file_target,typeName,Area,YYYY,MM,DD,nchannel, *
     return mapdata
 
 
+def map_data_available(channel_names, YYYY, MM, DD):
+    """Check whether every input file needed for this date has been produced yet.
+
+    Used by the centered-window 3D CNN estimator to detect a boundary date (e.g. the
+    most recent date in the dataset) whose d+1 files don't exist yet, so it can fall
+    back to edge-replicating an adjacent day instead of crashing on a missing file.
+    """
+    inputfiles = inputfiles_table(YYYY=YYYY, MM=MM, DD=DD)
+    return all(os.path.isfile(inputfiles[name]) for name in channel_names)
+
+
 def load_map_data(channel_names, YYYY, MM, DD, rank):
     inputfiles = inputfiles_table(YYYY=YYYY, MM=MM, DD=DD)
     lat_infile = LATLON_indir + 'NA_SATLAT_0p01.npy'
@@ -77,7 +88,7 @@ def load_map_data(channel_names, YYYY, MM, DD, rank):
     def _load(i):
         if rank == 0:
             print('Loading channel: {}, file: {}'.format(channel_names[i], inputfiles[channel_names[i]]))
-        output[i] = np.load(inputfiles[channel_names[i]])
+        output[i] = apply_log_transform(np.load(inputfiles[channel_names[i]]), channel_names[i])
     with _TPE(max_workers=min(len(channel_names), 16)) as ex:
         list(ex.map(_load, range(len(channel_names))))
     print(f'Loading time cost: {time.time() - loading_time_start:.1f}s')
